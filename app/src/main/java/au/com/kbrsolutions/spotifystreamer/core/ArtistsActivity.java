@@ -6,8 +6,10 @@ import android.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +21,7 @@ public class ArtistsActivity extends AppCompatActivity {
     private boolean mTestMode;
     private ArtistListFragment artistListFragment;
     private ArtistArrayAdapter artistArrayAdapter;
+    private TextView sarchText;
     public final static String SUMMARY_TAG = "summary_tag";
 
     public enum FragmentsEnum {
@@ -29,18 +32,31 @@ public class ArtistsActivity extends AppCompatActivity {
     enum FragmentsCallingSourceEnum {
         UPDATE_SUMMARY_LIST_ADAPTER
     }
-    private final static String LOC_CAT_TAG = ArtistsActivity.class.getSimpleName();
+
+    private final static String LOG_TAG = ArtistsActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artists);
+        sarchText = (TextView) findViewById(R.id.searchTextView);
+        sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                return handleSearchButtonClicked(actionId);
+            }
+        });
         setFragment(FragmentsEnum.SUMMARY_FRAGMENT, getString(R.string.title_fragment_summary), true, null);
     }
 
+    private boolean handleSearchButtonClicked(int actionId) {
+        Log.v(LOG_TAG, "handleSearchButtonClicked");
+        return true;
+    }
+
     private void setFragment(FragmentsEnum fragmentId, String titleText, boolean addFragmentToStack, FragmentsCallingSourceEnum callingSource) {
-//        Log.i(LOC_CAT_TAG, "@#setFragment - start - fragmentId/callingSource/titleText/addFragmentToStack/fragmentsArrayDeque: " + fragmentId + "/" + callingSource + "/" + titleText + "/" + addFragmentToStack + "/" + fragmentsStack.toString());
-        //		Log.i(LOC_CAT_TAG, "setFragment - start - ##fragmentsArrayDeque: " + fragmentsStack.toString());
+//        Log.i(LOG_TAG, "@#setFragment - start - fragmentId/callingSource/titleText/addFragmentToStack/fragmentsArrayDeque: " + fragmentId + "/" + callingSource + "/" + titleText + "/" + addFragmentToStack + "/" + fragmentsStack.toString());
+        //		Log.i(LOG_TAG, "setFragment - start - ##fragmentsArrayDeque: " + fragmentsStack.toString());
         //		android.app.FragmentManager fragmentManager = getFragmentManager();
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction;
@@ -48,11 +64,11 @@ public class ArtistsActivity extends AppCompatActivity {
 
             case SUMMARY_FRAGMENT:
 //				String folderFragmentTag = FOLDER_TAG;
-                Log.i(LOC_CAT_TAG, "setFragment - ##FOLDER_TAG folderFragmentTag: " + SUMMARY_TAG);
-//                Log.i(LOC_CAT_TAG, "r##setFragment - callingSource/currFolderTitleIdx: " + callingSource + "/" + currFolderTitleIdx);
-//                Log.i(LOC_CAT_TAG, "r##setFragment - list/folderItemsList: " + list.size() + "/" + folderItemsList.size());
+                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG folderFragmentTag: " + SUMMARY_TAG);
+//                Log.i(LOG_TAG, "r##setFragment - callingSource/currFolderTitleIdx: " + callingSource + "/" + currFolderTitleIdx);
+//                Log.i(LOG_TAG, "r##setFragment - list/folderItemsList: " + list.size() + "/" + folderItemsList.size());
                 if (artistListFragment == null) {
-                    Log.i(LOC_CAT_TAG, "setFragment - artistListFragment is null");
+                    Log.i(LOG_TAG, "setFragment - artistListFragment is null");
                     artistListFragment = new ArtistListFragment();
                 }
                 List<ArtistDetails> summaryItemsList = new ArrayList<ArtistDetails>();
@@ -69,20 +85,20 @@ public class ArtistsActivity extends AppCompatActivity {
                 fragmentTransaction.replace(R.id.fragments_frame, artistListFragment, SUMMARY_TAG);
                 fragmentTransaction.commit();
                 Fragment f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
-                Log.i(LOC_CAT_TAG, "setFragment - ##FOLDER_TAG before executePendingTransactions fragment: " + f1);
+                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG before executePendingTransactions fragment: " + f1);
                 fragmentManager.executePendingTransactions();				// will wait until the replace and commit are done
                 f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
-                Log.i(LOC_CAT_TAG, "setFragment - ##FOLDER_TAG after  executePendingTransactions fragment: " + f1);
+                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG after  executePendingTransactions fragment: " + f1);
 
-//				Log.i(LOC_CAT_TAG, "setFragment - FOLDER_FRAGMENT isRobotiomTestInProgress: " + isRobotiumTestInProgress);
+//				Log.i(LOG_TAG, "setFragment - FOLDER_FRAGMENT isRobotiomTestInProgress: " + isRobotiumTestInProgress);
                 break;
 
             default:
                 if (!mTestMode) {
-                    throw new RuntimeException(LOC_CAT_TAG + " - setFragment - no code to handle fragmentId: " + fragmentId);
+                    throw new RuntimeException(LOG_TAG + " - setFragment - no code to handle fragmentId: " + fragmentId);
                 }
         }
-//        Log.i(LOC_CAT_TAG, "@#setFragment - end - getFolderFragmentCount/addFragmentToStack/fragmentsArrayDeque: " + fragmentsStack.getFolderFragmentCount() + "/" + addFragmentToStack + "/" + fragmentsStack.toString());
+//        Log.i(LOG_TAG, "@#setFragment - end - getFolderFragmentCount/addFragmentToStack/fragmentsArrayDeque: " + fragmentsStack.getFolderFragmentCount() + "/" + addFragmentToStack + "/" + fragmentsStack.toString());
     }
 
     @Override
