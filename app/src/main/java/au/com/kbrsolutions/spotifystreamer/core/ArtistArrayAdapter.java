@@ -1,7 +1,6 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.content.Context;
-import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -22,12 +21,14 @@ import au.com.kbrsolutions.spotifystreamer.R;
 public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
     private List<ArtistDetails> objects;
-    private FragmentActivity mActivity;
+    private ArtistsActivity mActivity;
 
     private final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
 
-    public ArtistArrayAdapter(FragmentActivity activity, List<ArtistDetails> objects) {
-        super(activity.getApplicationContext(), -1, objects);
+//    public ArtistArrayAdapter(FragmentActivity activity, List<ArtistDetails> objects) {
+    public ArtistArrayAdapter(ArtistsActivity activity, List<ArtistDetails> objects) {
+
+    super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;
         this.objects = objects;
 		Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
@@ -54,7 +55,8 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
             Log.i(LOG_TAG, "getView - artistName is null");
         }
 
-        Picasso.with(mActivity.getApplication()).load("http://i.imgur.com/DvpvklR.png").into(artistImage);
+//        Picasso.with(mActivity.getApplication()).load("http://i.imgur.com/DvpvklR.png").into(artistImage);
+        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).into(artistImage);
 
         return v;
     }

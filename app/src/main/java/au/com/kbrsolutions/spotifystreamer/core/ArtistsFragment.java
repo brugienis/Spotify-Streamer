@@ -63,7 +63,7 @@ public class ArtistsFragment extends ListFragment {
 
         List<ArtistDetails> artistsDetails = new ArrayList<>();
         // todo: not sure what to do next
-        mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
+//        mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
 
 
         // Inflate the layout for this fragment
@@ -141,7 +141,7 @@ public class ArtistsFragment extends ListFragment {
             }
 //            mArtistArrayAdapter.clear();
 //            mArtistArrayAdapter.addAll(artistsDetails);
-            mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
+//            mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
             setListAdapter(mArtistArrayAdapter);
             mArtistArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
