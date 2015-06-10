@@ -12,6 +12,10 @@
         <activity
             android:name=".core.HomeActivity"
             android:label="@string/app_name" >
+        </activity>
+        <activity
+            android:name=".core.ArtistsActivity"
+            android:label="@string/title_activity_artists" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

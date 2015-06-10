@@ -32,6 +32,8 @@
 
 </LinearLayout>
 <!--
+
+            android:id="@+id/listview_artists"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:imeActionId="@+id/action_start_search"
 

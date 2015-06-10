@@ -3,7 +3,7 @@ package au.com.kbrsolutions.spotifystreamer.core;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -25,13 +25,15 @@ import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 
 //import android.app.Fragment;
 
-public class ArtistsFragment extends Fragment {
+public class ArtistsFragment extends ListFragment {
 
     private ArrayAdapter<String> mArtistsAdapter;
+    private ArtistArrayAdapter mArtistArrayAdapter;
 //    private String[] data = {"Beyonce", "Dylan"};
     private ListView listView;
     private TextView sarchText;
@@ -52,19 +54,22 @@ public class ArtistsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
 //        List<String> foundArtists = new ArrayList<String>(Arrays.asList(data));
-        mArtistsAdapter =
-                new ArrayAdapter<String>(
-                        getActivity(), // The current context (this activity)
-                        R.layout.list_item_artist, // The name of the layout ID.
-                        R.id.list_item_artist, // The ID of the textview to populate.
-//                        foundArtists);
-                        new ArrayList<String>());
+//        mArtistsAdapter =
+//                new ArrayAdapter<String>(
+//                        getActivity(), // The current context (this activity)
+//                        R.layout.list_item_artist, // The name of the layout ID.
+//                        R.id.list_item_artist, // The ID of the textview to populate.
+//                        new ArrayList<String>());
+
+        List<ArtistDetails> artistsDetails = new ArrayList<>();
+        // todo: not sure what to do next
+        mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
+
 
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
 
         sarchText = (TextView) rootView.findViewById(R.id.searchTextView);
-        // // TODO: 9/06/2015 if prev search text in preferences, show it, other wise hide keybord? 
         sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -120,41 +125,65 @@ public class ArtistsFragment extends Fragment {
         artistsFetcher.execute(artistName);
     }
 
-    public class ArtistsDataFetcher extends AsyncTask<String, Void, List<String>> {
+    public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {
 
         @Override
-        protected void onPostExecute(List<String> results) {
-            if (results == null) {
+        protected void onPostExecute(List<ArtistDetails> artistsDetails) {
+            if (artistsDetails == null) {
                 // fixme: show empty view with a message
                 Log.v(LOG_TAG, "showing toast");
                 Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG);
                 return;
             }
-            mArtistsAdapter.clear();
-            mArtistsAdapter.addAll(results);
+            List<String> artistsNames = new ArrayList<>(artistsDetails.size());
+            for (ArtistDetails artistDetails: artistsDetails) {
+                artistsNames.add(artistDetails.name + " - " + artistDetails.spotifyId);
+            }
+//            mArtistArrayAdapter.clear();
+//            mArtistArrayAdapter.addAll(artistsDetails);
+            mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
+            setListAdapter(mArtistArrayAdapter);
+            mArtistArrayAdapter.notifyDataSetChanged();
+            //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }
 
+        private SpotifyService spotify;
+//        private final String imageSize64 = "64";
+//        private final String imageSize300 = "300";
+//        private final String imageSize640 = "640";
+
         @Override
-        protected List<String> doInBackground(String... params) {
+        protected List<ArtistDetails> doInBackground(String... params) {
 
             // If there's no zip code, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
-            List<String> results = null;
+            List<ArtistDetails> results = null;
             String artistName = params[0];
-            SpotifyApi api = new SpotifyApi();
-            SpotifyService spotify = api.getService();
+            if (spotify == null) {
+                SpotifyApi api = new SpotifyApi();
+                spotify = api.getService();
+            }
             ArtistsPager artistsPager = spotify.searchArtists(artistName);
             Log.v(LOG_TAG, "handleArtistsData - results: " + artistsPager);
             Pager<Artist> artists = artistsPager.artists;
+            List<Image> images;
             List<Artist> artistsList = artists.items;
-            int idx = 0;
+            String thumbnailImageUrl;
+            int imagesCnt;
             if (artistsList.size() > 0) {
-                results = new ArrayList<String>(artistsList.size());
+                results = new ArrayList<ArtistDetails>(artistsList.size());
                 for (Artist artist : artistsList) {
-                    results.add(artist.name + " - " + artist.popularity);
-//                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.id + "/" + artist.name + "/" + artist.popularity);
+                    images = artist.images;
+                    imagesCnt = images.size();
+                    if (imagesCnt == 0) {
+                        thumbnailImageUrl = null;
+                    } else {
+                        thumbnailImageUrl = images.get(imagesCnt - 1).url;
+                    }
+                    results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
+                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity);
                 }
             }
             return results;
