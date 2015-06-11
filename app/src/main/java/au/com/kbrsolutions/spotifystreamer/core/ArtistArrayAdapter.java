@@ -1,7 +1,9 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,10 +58,36 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         }
 
 //        Picasso.with(mActivity.getApplication()).load("http://i.imgur.com/DvpvklR.png").into(artistImage);
-        // todo: calculate dp size to px for resize()
-        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(140, 140).centerCrop().into(artistImage);
+        int px = convertDpToPx((int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) - 20);
+        int px1 = dpToPx((int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) - 20);
+
+        Log.i(LOG_TAG, "convertSpToPx - px/px1: " + px + "/" + px1);;
+        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(px, px).centerCrop().into(artistImage);
+//        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(140, 140).centerCrop().into(artistImage);
+//        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).onlyScaleDown().centerCrop().into(artistImage);
 
         return v;
+    }
+
+//    public int convertSpToPx(int sp) {
+//        Resources r = mActivity.getResources();
+//        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, r.getDisplayMetrics());
+//        Log.i(LOG_TAG, "convertSpToPx - sp/px: " + sp + "/" + px);
+//        return px;
+//    }
+
+    // todo: conversion is not working properly
+    public int convertDpToPx(int dpStr) {
+        int dp = Integer.valueOf(dpStr);
+        Resources r = mActivity.getResources();
+        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
+        Log.i(LOG_TAG, "convertSpToPx - dp/px: " + dpStr + "/" + px);
+        return px;
+    }
+
+    private int dpToPx(int dp) {
+        float density = mActivity.getApplicationContext().getResources().getDisplayMetrics().density;
+        return Math.round((float)dp * density) / 2;
     }
 
 

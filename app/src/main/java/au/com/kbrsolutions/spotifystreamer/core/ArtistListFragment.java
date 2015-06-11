@@ -64,7 +64,7 @@ public class ArtistListFragment extends ListFragment {
         protected void onPostExecute(List<ArtistDetails> artistsDetails) {
             if (artistsDetails == null) {
                 Log.v(LOG_TAG, "showing toast");
-                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG);
+                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG).show();
                 return;
             }
             List<String> artistsNames = new ArrayList<>(artistsDetails.size());
