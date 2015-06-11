@@ -59,10 +59,13 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
 //        Picasso.with(mActivity.getApplication()).load("http://i.imgur.com/DvpvklR.png").into(artistImage);
         int px = convertDpToPx((int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) - 20);
-        int px1 = dpToPx((int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) - 20);
+        int px1 =       dpToPx((int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) - 20);
 
-        Log.i(LOG_TAG, "convertSpToPx - px/px1: " + px + "/" + px1);;
-        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(px, px).centerCrop().into(artistImage);
+        int widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) - (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
+
+        Log.i(LOG_TAG, "getView - dimens size/px/px1: " + mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) + "/" + px + "/" + px1);
+//        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(px, px).centerCrop().into(artistImage);
+        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(widthPx, widthPx).centerCrop().into(artistImage);
 //        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(140, 140).centerCrop().into(artistImage);
 //        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).onlyScaleDown().centerCrop().into(artistImage);
 
@@ -80,14 +83,14 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
     public int convertDpToPx(int dpStr) {
         int dp = Integer.valueOf(dpStr);
         Resources r = mActivity.getResources();
-        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics());
+        int px = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()) - 40;
         Log.i(LOG_TAG, "convertSpToPx - dp/px: " + dpStr + "/" + px);
         return px;
     }
 
     private int dpToPx(int dp) {
         float density = mActivity.getApplicationContext().getResources().getDisplayMetrics().density;
-        return Math.round((float)dp * density) / 2;
+        return Math.round((float)dp * density);
     }
 
 
