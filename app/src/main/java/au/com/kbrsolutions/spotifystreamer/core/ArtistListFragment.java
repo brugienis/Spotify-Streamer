@@ -88,7 +88,7 @@ public class ArtistListFragment extends ListFragment {
         @Override
         protected List<ArtistDetails> doInBackground(String... params) {
 
-            // If there's no zip code, there's nothing to look up.  Verify size of params.
+            // If there's no artist name, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
@@ -113,14 +113,30 @@ public class ArtistListFragment extends ListFragment {
                     if (imagesCnt == 0) {
                         thumbnailImageUrl = null;
                     } else {
-                        thumbnailImageUrl = images.get(imagesCnt - 1).url;
+//                        thumbnailImageUrl = images.get(imagesCnt - 2).url;
+                        thumbnailImageUrl = getThumbnaiImagelUrl(images);
+//                        thumbnailImageUrl = images.get(1).url;
                     }
                     results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity);
+                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                 }
             }
             return results;
 
+        }
+
+        private String getThumbnaiImagelUrl(List<Image> imagesData) {
+            int lastImagaDataIdx = imagesData.size() - 1;
+            String selectedUrl = imagesData.get(lastImagaDataIdx).url;
+            int imageWidth;
+            for (int i = lastImagaDataIdx; i > -1; i--) {
+                imageWidth = (int) Integer.valueOf(imagesData.get(i).width);
+                if (imageWidth > 100) {
+                    selectedUrl = imagesData.get(i).url;
+                    break;
+                }
+            }
+            return selectedUrl;
         }
     }
 

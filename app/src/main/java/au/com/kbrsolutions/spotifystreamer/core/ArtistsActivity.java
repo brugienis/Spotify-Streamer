@@ -1,6 +1,5 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -103,15 +102,15 @@ public class ArtistsActivity extends AppCompatActivity {
                 artistListFragment.setListAdapter(artistArrayAdapter);
                 artistArrayAdapter.notifyDataSetChanged();
 
-                //			fragmentManager.beginTransaction().replace(R.id.fragments_frame, artistListFragment).commit();
-                fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.replace(R.id.fragments_frame, artistListFragment, SUMMARY_TAG);
-                fragmentTransaction.commit();
-                Fragment f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
-                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG before executePendingTransactions fragment: " + f1);
-                fragmentManager.executePendingTransactions();				// will wait until the replace and commit are done
-                f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
-                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG after  executePendingTransactions fragment: " + f1);
+    			fragmentManager.beginTransaction().replace(R.id.fragments_frame, artistListFragment).commit();
+//                fragmentTransaction = fragmentManager.beginTransaction();
+//                fragmentTransaction.replace(R.id.fragments_frame, artistListFragment, SUMMARY_TAG);
+//                fragmentTransaction.commit();
+//                Fragment f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
+//                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG before executePendingTransactions fragment: " + f1);
+//                fragmentManager.executePendingTransactions();				// will wait until the replace and commit are done
+//                f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
+//                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG after  executePendingTransactions fragment: " + f1);
 
 //				Log.i(LOG_TAG, "setFragment - FOLDER_FRAGMENT isRobotiomTestInProgress: " + isRobotiumTestInProgress);
                 break;

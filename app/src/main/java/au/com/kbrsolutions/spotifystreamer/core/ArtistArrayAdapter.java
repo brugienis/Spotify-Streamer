@@ -56,7 +56,8 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         }
 
 //        Picasso.with(mActivity.getApplication()).load("http://i.imgur.com/DvpvklR.png").into(artistImage);
-        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).into(artistImage);
+        // todo: calculate dp size to px for resize()
+        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(140, 140).centerCrop().into(artistImage);
 
         return v;
     }
