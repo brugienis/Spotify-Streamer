@@ -2,12 +2,8 @@ package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
 import android.app.ListFragment;
-import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.ListAdapter;
 import android.widget.Toast;
 
@@ -27,7 +23,6 @@ import kaaes.spotify.webapi.android.models.Pager;
 public class ArtistListFragment extends ListFragment {
 
     private ArtistsActivity mActivity;
-    private InputMethodManager imm;
 
     private final static String LOG_TAG = ArtistListFragment.class.getSimpleName();
 
@@ -35,11 +30,6 @@ public class ArtistListFragment extends ListFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         this.mActivity = (ArtistsActivity) activity;
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
     }
 
     private boolean handleSearchButtonClicked(int actionId) {
@@ -55,15 +45,15 @@ public class ArtistListFragment extends ListFragment {
         return handled;
     }
 
-    private void hideKeyboard() {
+//    private void hideKeyboard() {
         // A_MUST: during monkey test got NullPointer Exception
-        View view = getView();
-        if (view != null && view.getWindowToken() != null && imm != null) {
-            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
-        }
-    }
+//        View view = getView();
+//        if (view != null && view.getWindowToken() != null && imm != null) {
+//            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
+//        }
+//    }
 
-    private void sendArtistsDataRequestToSpotify(String artistName) {
+    public void sendArtistsDataRequestToSpotify(String artistName) {
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
     }
@@ -73,9 +63,8 @@ public class ArtistListFragment extends ListFragment {
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetails) {
             if (artistsDetails == null) {
-                // fixme: show empty view with a message
                 Log.v(LOG_TAG, "showing toast");
-                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG);
+                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG).show();
                 return;
             }
             List<String> artistsNames = new ArrayList<>(artistsDetails.size());
@@ -99,7 +88,7 @@ public class ArtistListFragment extends ListFragment {
         @Override
         protected List<ArtistDetails> doInBackground(String... params) {
 
-            // If there's no zip code, there's nothing to look up.  Verify size of params.
+            // If there's no artist name, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
@@ -124,15 +113,32 @@ public class ArtistListFragment extends ListFragment {
                     if (imagesCnt == 0) {
                         thumbnailImageUrl = null;
                     } else {
-                        thumbnailImageUrl = images.get(imagesCnt - 1).url;
+//                        thumbnailImageUrl = images.get(imagesCnt - 2).url;
+                        thumbnailImageUrl = getThumbnaiImagelUrl(images);
+//                        thumbnailImageUrl = images.get(1).url;
                     }
                     results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity);
+                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                 }
             }
             return results;
 
         }
+
+        private String getThumbnaiImagelUrl(List<Image> imagesData) {
+            int lastImagaDataIdx = imagesData.size() - 1;
+            String selectedUrl = imagesData.get(lastImagaDataIdx).url;
+            int imageWidth;
+            for (int i = lastImagaDataIdx; i > -1; i--) {
+                imageWidth = (int) Integer.valueOf(imagesData.get(i).width);
+                if (imageWidth > 100) {
+                    selectedUrl = imagesData.get(i).url;
+                    break;
+                }
+            }
+            return selectedUrl;
+        }
     }
+
 
 }

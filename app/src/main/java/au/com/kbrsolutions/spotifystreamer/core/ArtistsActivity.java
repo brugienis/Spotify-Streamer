@@ -1,14 +1,16 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -22,6 +24,8 @@ public class ArtistsActivity extends AppCompatActivity {
     private ArtistListFragment artistListFragment;
     private ArtistArrayAdapter artistArrayAdapter;
     private TextView sarchText;
+    private InputMethodManager imm;
+
     public final static String SUMMARY_TAG = "summary_tag";
 
     public enum FragmentsEnum {
@@ -32,13 +36,13 @@ public class ArtistsActivity extends AppCompatActivity {
     enum FragmentsCallingSourceEnum {
         UPDATE_SUMMARY_LIST_ADAPTER
     }
-
     private final static String LOG_TAG = ArtistsActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artists);
+        imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         sarchText = (TextView) findViewById(R.id.searchTextView);
         sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -46,12 +50,30 @@ public class ArtistsActivity extends AppCompatActivity {
                 return handleSearchButtonClicked(actionId);
             }
         });
+
         setFragment(FragmentsEnum.SUMMARY_FRAGMENT, getString(R.string.title_fragment_summary), true, null);
     }
 
     private boolean handleSearchButtonClicked(int actionId) {
+        boolean handled = false;
+        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+            String artistName = sarchText.getText().toString();
+            if (artistName.trim().length() > 0 && artistListFragment != null) {
+//                sendArtistsDataRequestToSpotify(artistName);
+                artistListFragment.sendArtistsDataRequestToSpotify(artistName);
+                handled = true;
+                hideKeyboard();
+            }
+        }
         Log.v(LOG_TAG, "handleSearchButtonClicked");
-        return true;
+        return handled;
+    }
+    private void hideKeyboard() {
+        // A_MUST: during monkey test got NullPointer Exception
+//        View view = getView();
+        if (sarchText != null && sarchText.getWindowToken() != null && imm != null) {
+            imm.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+        }
     }
 
     private void setFragment(FragmentsEnum fragmentId, String titleText, boolean addFragmentToStack, FragmentsCallingSourceEnum callingSource) {
@@ -80,15 +102,15 @@ public class ArtistsActivity extends AppCompatActivity {
                 artistListFragment.setListAdapter(artistArrayAdapter);
                 artistArrayAdapter.notifyDataSetChanged();
 
-                //			fragmentManager.beginTransaction().replace(R.id.fragments_frame, artistListFragment).commit();
-                fragmentTransaction = fragmentManager.beginTransaction();
-                fragmentTransaction.replace(R.id.fragments_frame, artistListFragment, SUMMARY_TAG);
-                fragmentTransaction.commit();
-                Fragment f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
-                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG before executePendingTransactions fragment: " + f1);
-                fragmentManager.executePendingTransactions();				// will wait until the replace and commit are done
-                f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
-                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG after  executePendingTransactions fragment: " + f1);
+    			fragmentManager.beginTransaction().replace(R.id.fragments_frame, artistListFragment).commit();
+//                fragmentTransaction = fragmentManager.beginTransaction();
+//                fragmentTransaction.replace(R.id.fragments_frame, artistListFragment, SUMMARY_TAG);
+//                fragmentTransaction.commit();
+//                Fragment f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
+//                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG before executePendingTransactions fragment: " + f1);
+//                fragmentManager.executePendingTransactions();				// will wait until the replace and commit are done
+//                f1 = fragmentManager.findFragmentByTag(SUMMARY_TAG);
+//                Log.i(LOG_TAG, "setFragment - ##FOLDER_TAG after  executePendingTransactions fragment: " + f1);
 
 //				Log.i(LOG_TAG, "setFragment - FOLDER_FRAGMENT isRobotiomTestInProgress: " + isRobotiumTestInProgress);
                 break;

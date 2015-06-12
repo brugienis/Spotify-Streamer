@@ -8,21 +8,21 @@
     <ImageView
         android:id="@+id/artistImageId"
         android:scaleType="center"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="@dimen/artist_thumbnail_image_size"
+        android:layout_height="@dimen/artist_thumbnail_image_size"
         android:adjustViewBounds="true"
-        android:maxHeight="5dp"
-        android:maxWidth="5dp"
-        android:paddingRight="1dp"
-        />
+        android:padding="@dimen/artist_thumbnail_image_padding"
+        android:src="@mipmap/ic_launcher"/>
 
     <TextView
         android:id="@+id/artistNameId"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
         android:text="artist name"
+        android:textSize="@dimen/artist_name_size"
         android:gravity="center_vertical"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black" />
 
 </LinearLayout>
