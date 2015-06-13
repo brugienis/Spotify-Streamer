@@ -59,7 +59,7 @@ public class TestArrayAdapterFragment extends Fragment {
         mTracksAdapter =
                 new ArrayAdapter<String>(
                         getActivity(), // The current context (this activity)
-                        R.layout.test_list_item_track, // The name of the layout ID.
+                        R.layout.test_list_item_track, // The trackName of the layout ID.
                         R.id.listItemTrack, // The ID of the textview to populate.
                         foundArtists
 //                        new ArrayList<String>()
@@ -159,7 +159,7 @@ public class TestArrayAdapterFragment extends Fragment {
             Log.v(LOG_TAG, "onPostExecute - added: " + artistsNames);
             Log.v(LOG_TAG, "showing toast");
 //            for (ArtistDetails artistDetails: artistsDetails) {
-//                mTracksAdapter.add(artistDetails.name + artistDetails.spotifyId);
+//                mTracksAdapter.add(artistDetails.trackName + artistDetails.previewUrl);
 //                Log.v(LOG_TAG, "handleSearchButtonClicked - start");
 //            }
 //            mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
@@ -204,7 +204,7 @@ public class TestArrayAdapterFragment extends Fragment {
                         thumbnailImageUrl = images.get(imagesCnt - 1).url;
                     }
                     results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity);
+                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity);
                 }
             }
             return results;

@@ -18,7 +18,7 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
-public class ArtistsActivity extends AppCompatActivity {
+public class ArtistsActivity extends AppCompatActivity implements ArtistListFragment. ArtistSelectable {
 
     private boolean mTestMode;
     private ArtistListFragment artistListFragment;
@@ -27,6 +27,11 @@ public class ArtistsActivity extends AppCompatActivity {
     private InputMethodManager imm;
 
     public final static String SUMMARY_TAG = "summary_tag";
+
+    @Override
+    public void handleSelectedArtist(String artistId) {
+        Log.v(LOG_TAG, "handleSelectedArtist - artistId: " + artistId);
+    }
 
     public enum FragmentsEnum {
         SUMMARY_FRAGMENT,
@@ -121,6 +126,10 @@ public class ArtistsActivity extends AppCompatActivity {
                 }
         }
 //        Log.i(LOG_TAG, "@#setFragment - end - getFolderFragmentCount/addFragmentToStack/fragmentsArrayDeque: " + fragmentsStack.getFolderFragmentCount() + "/" + addFragmentToStack + "/" + fragmentsStack.toString());
+    }
+
+    public  void processClick(int position) {
+        Log.v(LOG_TAG, "processClick - start");
     }
 
     @Override

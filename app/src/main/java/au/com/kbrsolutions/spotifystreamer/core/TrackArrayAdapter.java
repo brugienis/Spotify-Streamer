@@ -16,17 +16,16 @@ import java.util.List;
 import au.com.kbrsolutions.spotifystreamer.R;
 
 /**
- * Created by business on 9/06/2015.
+ * Created by business on 14/06/2015.
  */
-public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
+public class TrackArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
     private List<ArtistDetails> objects;
-    private ArtistsActivity mActivity;
+    private TracksActivity mActivity;
 
     private final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
 
-//    public ArtistArrayAdapter(FragmentActivity activity, List<ArtistDetails> objects) {
-    public ArtistArrayAdapter(ArtistsActivity activity, List<ArtistDetails> objects) {
+    public TrackArrayAdapter(TracksActivity activity, List<ArtistDetails> objects) {
 
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;
@@ -63,5 +62,4 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
         return v;
     }
-
 }

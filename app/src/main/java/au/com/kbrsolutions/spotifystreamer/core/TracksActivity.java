@@ -1,24 +1,55 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
-import android.support.v7.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
-import au.com.kbrsolutions.spotifystreamer.R;
-import au.com.kbrsolutions.spotifystreamer.test.TestArrayAdapterFragment;
+import java.util.ArrayList;
+import java.util.List;
 
-public class TracksActivity extends AppCompatActivity {
+import au.com.kbrsolutions.spotifystreamer.R;
+
+public class TracksActivity extends ActionBarActivity {
+
+    private String message;
+    private TracksListFragment mTracksListFragment;
+
+    private final static String LOG_TAG = TracksActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tracks);
         if (savedInstanceState == null) {
+            if (mTracksListFragment == null) {
+                mTracksListFragment = new TracksListFragment();
+            }
+            List<ArtistDetails> summaryItemsList = new ArrayList<ArtistDetails>();
+            summaryItemsList.add(new ArtistDetails("name0", "id0", "thumbImage0"));
+            summaryItemsList.add(new ArtistDetails("name1", "id1", "thumbImage1"));
+            summaryItemsList.add(new ArtistDetails("name2", "id2", "thumbImage2"));
+
+            TrackArrayAdapter artistArrayAdapter = new TrackArrayAdapter<ArtistDetails>(this, summaryItemsList);
+            mTracksListFragment.setListAdapter(artistArrayAdapter);
+            artistArrayAdapter.notifyDataSetChanged();
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new TracksListFragment())
+//            getFragmentManager().beginTransaction()
+                    .add(R.id.fragments_frame, mTracksListFragment, "")
                     .commit();
         }
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
+            message = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+            mTracksListFragment.setMessage(message);
+        }
+        Log.v(LOG_TAG, "onCreate - message: " + message);
+
+//        FragmentManager fragmentManager = getFragmentManager();
+//        FragmentTransaction fragmentTransaction;
+//        getSupportFragmentManager().beginTransaction().replace(R.id.fragments_frame, mTracksListFragment).commit();
     }
 
 

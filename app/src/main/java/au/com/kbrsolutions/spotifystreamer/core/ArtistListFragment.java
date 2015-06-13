@@ -2,9 +2,12 @@ package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
 import android.app.ListFragment;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.view.View;
 import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -23,6 +26,7 @@ import kaaes.spotify.webapi.android.models.Pager;
 public class ArtistListFragment extends ListFragment {
 
     private ArtistsActivity mActivity;
+    private ArtistSelectable selectedArtistHandler;
 
     private final static String LOG_TAG = ArtistListFragment.class.getSimpleName();
 
@@ -32,26 +36,14 @@ public class ArtistListFragment extends ListFragment {
         this.mActivity = (ArtistsActivity) activity;
     }
 
-    private boolean handleSearchButtonClicked(int actionId) {
-        boolean handled = false;
-//        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-//            String artistName = sarchText.getText().toString();
-//            if (artistName.trim().length() > 0) {
-//                sendArtistsDataRequestToSpotify(artistName);
-//                handled = true;
-//                hideKeyboard();
-//            }
-//        }
-        return handled;
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+//        ((ArtistDetails) getListAdapter().getItem(position)).spotifyId;
+        Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) getListAdapter().getItem(position)).spotifyId);
+        startActivity(detailIntent);
+//        mActivity.processClick(position);
+//        selectedArtistHandler.handleSelectedArtist();
     }
-
-//    private void hideKeyboard() {
-        // A_MUST: during monkey test got NullPointer Exception
-//        View view = getView();
-//        if (view != null && view.getWindowToken() != null && imm != null) {
-//            imm.hideSoftInputFromWindow(getView().getWindowToken(), 0);
-//        }
-//    }
 
     public void sendArtistsDataRequestToSpotify(String artistName) {
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
@@ -80,25 +72,22 @@ public class ArtistListFragment extends ListFragment {
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }
 
-        private SpotifyService spotify;
-//        private final String imageSize64 = "64";
-//        private final String imageSize300 = "300";
-//        private final String imageSize640 = "640";
+        SpotifyService mSpotifyService;
 
         @Override
         protected List<ArtistDetails> doInBackground(String... params) {
 
-            // If there's no artist name, there's nothing to look up.  Verify size of params.
+            // If there's no artist trackName, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
             List<ArtistDetails> results = null;
             String artistName = params[0];
-            if (spotify == null) {
+            if (mSpotifyService == null) {
                 SpotifyApi api = new SpotifyApi();
-                spotify = api.getService();
+                mSpotifyService = api.getService();
             }
-            ArtistsPager artistsPager = spotify.searchArtists(artistName);
+            ArtistsPager artistsPager = mSpotifyService.searchArtists(artistName);
             Log.v(LOG_TAG, "handleArtistsData - results: " + artistsPager);
             Pager<Artist> artists = artistsPager.artists;
             List<Image> images;
@@ -113,12 +102,12 @@ public class ArtistListFragment extends ListFragment {
                     if (imagesCnt == 0) {
                         thumbnailImageUrl = null;
                     } else {
-//                        thumbnailImageUrl = images.get(imagesCnt - 2).url;
+//                        albumThumbnailImageUrl = images.get(imagesCnt - 2).url;
                         thumbnailImageUrl = getThumbnaiImagelUrl(images);
-//                        thumbnailImageUrl = images.get(1).url;
+//                        albumThumbnailImageUrl = images.get(1).url;
                     }
                     results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-                    Log.v(LOG_TAG, "doInBackground - id/name/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
+                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                 }
             }
             return results;
@@ -140,5 +129,12 @@ public class ArtistListFragment extends ListFragment {
         }
     }
 
+    interface ArtistSelectable {
+        void handleSelectedArtist(String artistId);
+    }
+
+    public void setSelectedArtistHandler(ArtistSelectable selectedArtistHandler) {
+        this.selectedArtistHandler = selectedArtistHandler;
+    }
 
 }
