@@ -8,7 +8,8 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="search_artist_hint">Enter artist name</string>
     <string name="start_search">Go</string>
-    <string name="title_activity_artists">ArtistsActivity</string>
+    <string name="title_activity_artists">TracksActivity</string>
 
     <string name="title_fragment_summary">Summary</string>
+    <string name="title_activity_tracks">TracksActivity</string>
 </resources>

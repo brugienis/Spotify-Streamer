@@ -1,30 +1,31 @@
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.test;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
 import au.com.kbrsolutions.spotifystreamer.R;
-import au.com.kbrsolutions.spotifystreamer.test.TestArrayAdapterFragment;
 
-public class HomeActivity extends ActionBarActivity {
+public class TestListViewActivity extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.test_activity_tracks);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new TestArrayAdapterFragment())
+                    .add(R.id.fragment, new TestArrayAdapterFragment())
                     .commit();
         }
+
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_home, menu);
+        getMenuInflater().inflate(R.menu.menu_tracks, menu);
         return true;
     }
 

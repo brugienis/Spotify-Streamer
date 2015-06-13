@@ -1,26 +1,26 @@
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.test;
 
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.v4.app.ListFragment;
+import android.support.v4.app.Fragment;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.core.ArtistDetails;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
@@ -30,80 +30,100 @@ import kaaes.spotify.webapi.android.models.Pager;
 
 //import android.app.Fragment;
 
-public class ArtistsFragment extends ListFragment {
+public class TestArrayAdapterFragment extends Fragment {
 
-    private ArrayAdapter<String> mArtistsAdapter;
-    private ArtistArrayAdapter mArtistArrayAdapter;
-//    private String[] data = {"Beyonce", "Dylan"};
+    private ArrayAdapter<String> mTracksAdapter;
+//    private ArtistArrayAdapter mArtistArrayAdapter;
+    private String[] data = {"Beyonce", "Dylan"};
     private ListView listView;
     private TextView sarchText;
     private InputMethodManager imm;
 
-    private final String LOG_TAG = ArtistsFragment.class.getSimpleName();
+    private final String LOG_TAG = TestArrayAdapterFragment.class.getSimpleName();
 
-    public ArtistsFragment() {
+    public TestArrayAdapterFragment() {
         // Required empty public constructor
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+        Log.v(LOG_TAG, "onCreate - start");
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-//        List<String> foundArtists = new ArrayList<String>(Arrays.asList(data));
-//        mArtistsAdapter =
-//                new ArrayAdapter<String>(
-//                        getActivity(), // The current context (this activity)
-//                        R.layout.list_item_artist, // The name of the layout ID.
-//                        R.id.list_item_artist, // The ID of the textview to populate.
-//                        new ArrayList<String>());
-
-        List<ArtistDetails> artistsDetails = new ArrayList<>();
-        // todo: not sure what to do next
-//        mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
-
+        Log.v(LOG_TAG, "onCreateView - start");
+        List<String> foundArtists = new ArrayList<String>(Arrays.asList(data));
+        mTracksAdapter =
+                new ArrayAdapter<String>(
+                        getActivity(), // The current context (this activity)
+                        R.layout.test_list_item_track, // The name of the layout ID.
+                        R.id.listItemTrack, // The ID of the textview to populate.
+                        foundArtists
+//                        new ArrayList<String>()
+                );
+        // todo: shows empty screen???????????????
+        Log.v(LOG_TAG, "onCreateView - after new ArrayAdapter - " + foundArtists);
 
         // Inflate the layout for this fragment
-        View rootView = inflater.inflate(R.layout.fragment_artists, container, false);
+        View rootView = inflater.inflate(R.layout.test_fragment_tracks, container, false);
 
-        sarchText = (TextView) rootView.findViewById(R.id.searchTextView);
-        sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                return handleSearchButtonClicked(actionId);
-            }
-        });
-
-        listView = (ListView) rootView.findViewById(R.id.listview_artists);
-        listView.setAdapter(mArtistsAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//        listView =  (ListView) rootView.findViewById(android.R.id.list);
+        listView =  (ListView) rootView.findViewById(R.id.tracksList);
+        listView.setAdapter(mTracksAdapter);
+//        mTracksAdapter.notifyDataSetChanged();
+        Log.v(LOG_TAG, "onCreateView - after setAdapter: " + foundArtists);
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                Toast.makeText(getActivity(), mForecastAdapter.getItem(position), Toast.LENGTH_SHORT).show();
 //                Intent detailIntent = new Intent(getActivity(), DetailActivity.class).putExtra(Intent.EXTRA_TEXT, mForecastAdapter.getItem(position));
 //                detailIntent.setData(Uri.parse(mForecastAdapter.getItem(position)));
 //                startActivity(detailIntent);
-            }
-        });
+//            }
+//        });
+
+//        sarchText = (TextView) rootView.findViewById(R.id.searchTracks);
+//        sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+//            @Override
+//            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+//                Log.v(LOG_TAG, "onEditorAction - start");
+//                return handleSearchButtonClicked(actionId);
+//            }
+//        });
 
         return rootView;
     }
-    
+
+    @Override
+    public View getView() {
+        Log.v(LOG_TAG, "getView - start");
+        return super.getView();
+    }
+
     private boolean handleSearchButtonClicked(int actionId) {
+        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             String artistName = sarchText.getText().toString();
+            Log.v(LOG_TAG, "handleSearchButtonClicked - artistName: " + artistName);
             if (artistName.trim().length() > 0) {
+                Log.v(LOG_TAG, "handleSearchButtonClicked - will call sendArtistsDataRequestToSpotify");
                 sendArtistsDataRequestToSpotify(artistName);
                 handled = true;
                 hideKeyboard();
             }
         }
         return handled;
-    } 
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        sendArtistsDataRequestToSpotify("Dylan");
+    }
 
     private void hideKeyboard() {
         // A_MUST: during monkey test got NullPointer Exception
@@ -113,14 +133,8 @@ public class ArtistsFragment extends ListFragment {
         }
     }
 
-//    @Override
-//    public void onStart() {
-//        super.onStart();
-//        sendArtistsDataRequestToSpotify("Beyonce");
-//    }
-//    }
-
     private void sendArtistsDataRequestToSpotify(String artistName) {
+        Log.v(LOG_TAG, "sendArtistsDataRequestToSpotify - start");
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
     }
@@ -131,19 +145,26 @@ public class ArtistsFragment extends ListFragment {
         protected void onPostExecute(List<ArtistDetails> artistsDetails) {
             if (artistsDetails == null) {
                 // fixme: show empty view with a message
-                Log.v(LOG_TAG, "showing toast");
-                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG);
+                Log.v(LOG_TAG, "onPostExecute - showing toast");
+                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG).show();
                 return;
             }
             List<String> artistsNames = new ArrayList<>(artistsDetails.size());
             for (ArtistDetails artistDetails: artistsDetails) {
                 artistsNames.add(artistDetails.name + " - " + artistDetails.spotifyId);
             }
-//            mArtistArrayAdapter.clear();
-//            mArtistArrayAdapter.addAll(artistsDetails);
+            mTracksAdapter.clear();
+            mTracksAdapter.addAll(artistsNames);
+            mTracksAdapter.notifyDataSetChanged();
+            Log.v(LOG_TAG, "onPostExecute - added: " + artistsNames);
+            Log.v(LOG_TAG, "showing toast");
+//            for (ArtistDetails artistDetails: artistsDetails) {
+//                mTracksAdapter.add(artistDetails.name + artistDetails.spotifyId);
+//                Log.v(LOG_TAG, "handleSearchButtonClicked - start");
+//            }
 //            mArtistArrayAdapter = new ArtistArrayAdapter(getActivity(), artistsDetails);
-            setListAdapter(mArtistArrayAdapter);
-            mArtistArrayAdapter.notifyDataSetChanged();
+//            setListAdapter(mArtistArrayAdapter);
+//            mArtistArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }
 
