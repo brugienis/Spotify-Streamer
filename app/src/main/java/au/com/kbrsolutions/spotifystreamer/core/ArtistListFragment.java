@@ -12,6 +12,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.utils.ProgressBarHandler;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
@@ -26,6 +28,8 @@ public class ArtistListFragment extends ListFragment {
 
     private ArtistsActivity mActivity;
     private ArtistSelectable selectedArtistHandler;
+    private ProgressBarHandler mProgressBarHandler;
+
 
     private final static String LOG_TAG = ArtistListFragment.class.getSimpleName();
 
@@ -44,18 +48,23 @@ public class ArtistListFragment extends ListFragment {
 //        selectedArtistHandler.handleSelectedArtist();
     }
 
-    public void sendArtistsDataRequestToSpotify(String artistName) {
-        ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
-        artistsFetcher.execute(artistName);
+        public void sendArtistsDataRequestToSpotify(String artistName) {
+            if (mProgressBarHandler == null) {
+                mProgressBarHandler = new ProgressBarHandler(mActivity);
+            }
+            mProgressBarHandler.show();
+            ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
+            artistsFetcher.execute(artistName);
     }
 
     public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {
 
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetails) {
+            mProgressBarHandler.hide();
             if (artistsDetails == null) {
                 Log.v(LOG_TAG, "showing toast");
-                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), mActivity.getResources().getString(R.string.search_returned_no_data), Toast.LENGTH_LONG).show();
                 return;
             }
             ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
@@ -102,12 +111,13 @@ public class ArtistListFragment extends ListFragment {
 //                        albumThumbnailImageUrl = images.get(1).url;
                     }
                     results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
+//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                 }
             }
             return results;
 
         }
+        private final int THUMBNAIL = 100;
 
         private String getThumbnaiImagelUrl(List<Image> imagesData) {
             int lastImagaDataIdx = imagesData.size() - 1;
@@ -115,7 +125,7 @@ public class ArtistListFragment extends ListFragment {
             int imageWidth;
             for (int i = lastImagaDataIdx; i > -1; i--) {
                 imageWidth = (int) Integer.valueOf(imagesData.get(i).width);
-                if (imageWidth > 100) {
+                if (imageWidth > THUMBNAIL) {
                     selectedUrl = imagesData.get(i).url;
                     break;
                 }

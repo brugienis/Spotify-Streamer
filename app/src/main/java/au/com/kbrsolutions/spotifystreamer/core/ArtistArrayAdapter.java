@@ -37,7 +37,7 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
     // todo: utilize convertView and Holder
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Log.i(LOG_TAG, "getView - start");
+//        Log.i(LOG_TAG, "getView - start");
         View v = convertView;
         if (v == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -50,7 +50,7 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         ArtistDetails artistDetails = objects.get(position);
 
         if (artistDetails != null) {
-            Log.i(LOG_TAG, "getView - artistName set to: " + artistDetails.name);
+//            Log.i(LOG_TAG, "getView - artistName set to: " + artistDetails.name);
             artistName.setText(artistDetails.name);
         } else {
             Log.i(LOG_TAG, "getView - artistName is null");

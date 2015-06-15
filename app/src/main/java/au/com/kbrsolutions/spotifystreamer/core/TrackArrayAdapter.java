@@ -32,17 +32,13 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
         this.mActivity = activity;
         this.objects = objects;
         Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
-        for (TrackDetails trackDetails:
-             objects) {
-            Log.i(LOG_TAG, trackDetails.trackName);
-
-        }
     }
+    private int widthPx = -1;
 
     // todo: utilize convertView and Holder
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Log.i(LOG_TAG, "getView - start");
+//        Log.i(LOG_TAG, "getView - start");
         View v = convertView;
         if (v == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -52,20 +48,22 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
         TextView trackName = (TextView) v.findViewById(R.id.trackNameId);
 
+        TextView albumName = (TextView) v.findViewById(R.id.albumNameId);
+
         TrackDetails trackDetails = objects.get(position);
-        Log.i(LOG_TAG, "position: " + position + "/" + trackDetails);
+//        Log.i(LOG_TAG, "position: " + position + "/" + trackDetails);
 
         if (trackDetails != null) {
-            Log.i(LOG_TAG, "getView - trackName set to: " + trackDetails.trackName);
+//            Log.i(LOG_TAG, "getView - trackName set to: " + trackDetails.trackName);
             trackName.setText(trackDetails.trackName);
-        } else {
-            Log.i(LOG_TAG, "getView - trackName is null");
+            albumName.setText(trackDetails.albumName);
+
+            if (widthPx == -1) {
+                widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
+                        (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
+            }
+            Picasso.with(mActivity.getApplication()).load(trackDetails.albumArtSmallImageUrl).resize(widthPx, widthPx).centerCrop().into(albumImage);
         }
-
-        int widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
-                (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
-
-        Picasso.with(mActivity.getApplication()).load(trackDetails.albumArtSmallImageUrl).resize(widthPx, widthPx).centerCrop().into(albumImage);
 
         return v;
     }

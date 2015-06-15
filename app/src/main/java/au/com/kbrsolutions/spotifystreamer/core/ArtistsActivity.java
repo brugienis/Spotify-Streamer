@@ -25,6 +25,7 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
     private ArtistArrayAdapter artistArrayAdapter;
     private TextView sarchText;
     private InputMethodManager imm;
+//    private ProgressBarHandler mProgressBarHandler;
 
     public final static String SUMMARY_TAG = "summary_tag";
 
@@ -57,6 +58,8 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
         });
 
         setFragment(FragmentsEnum.SUMMARY_FRAGMENT, getString(R.string.title_fragment_summary), true, null);
+//        mProgressBarHandler = new ProgressBarHandler(this);
+//        getActionBar().setTitle(getResources().getString(R.string.artist_activity_title));
     }
 
     private boolean handleSearchButtonClicked(int actionId) {

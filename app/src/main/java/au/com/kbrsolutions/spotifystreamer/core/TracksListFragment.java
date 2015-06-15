@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import au.com.kbrsolutions.spotifystreamer.utils.ProgressBarHandler;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
@@ -27,6 +28,10 @@ public class TracksListFragment extends ListFragment {
 
     private String mArtistId;
     private TracksActivity mActivity;
+    private ProgressBarHandler mProgressBarHandler;
+
+    private final int BIG_WIDTH = 640;
+    private final int SMALL_WIDTH = 200;
 
     private final static String LOG_TAG = TracksListFragment.class.getSimpleName();
 
@@ -55,11 +60,33 @@ public class TracksListFragment extends ListFragment {
     }
 
     public void sendArtistsDataRequestToSpotify(String mArtistId) {
+        setIsRetrievingData(true);
         TracksDataFetcher artistsFetcher = new TracksDataFetcher();
         artistsFetcher.execute(mArtistId);
     }
 
-//    private TrackArrayAdapter trackArrayAdapter;
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.v(LOG_TAG, "onResume - start");
+        if (mProgressBarHandler == null) {
+            mProgressBarHandler = new ProgressBarHandler(mActivity);
+        }
+        if (sRetrievingData()) {
+            mProgressBarHandler.show();
+        }
+        Log.v(LOG_TAG, "onResume - end");
+    }
+
+    private boolean isRetrievingData;
+
+    private synchronized boolean sRetrievingData() {
+        return isRetrievingData;
+    }
+
+    private synchronized void setIsRetrievingData(boolean isRetrievingData) {
+        this.isRetrievingData = isRetrievingData;
+    }
 
     public class TracksDataFetcher extends AsyncTask<String, Void, List<TrackDetails>> {
 
@@ -78,6 +105,8 @@ public class TracksListFragment extends ListFragment {
 //            TrackArrayAdapter trackArrayAdapter = new TrackArrayAdapter(mActivity, trackDetails);
             trackArrayAdapter.clear();
             trackArrayAdapter.addAll(trackDetails);
+            setIsRetrievingData(false);
+            mProgressBarHandler.hide();
 //            setListAdapter(trackArrayAdapter);
 //            trackArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
@@ -121,7 +150,7 @@ public class TracksListFragment extends ListFragment {
                         trackImages = getImagesUrls(images);
                     }
                     results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
-                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity);
+//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity);
                 }
             }
             return results;
@@ -136,14 +165,14 @@ public class TracksListFragment extends ListFragment {
             for (int i = imagesData.size() - 1; i > -1; i--) {
                 oneImage = imagesData.get(i);
                 imageWidth = (int) Integer.valueOf(oneImage.width);
-                Log.v(LOG_TAG, "getImagesUrls - imageWidth/popularity: " + imageWidth + "/" + oneImage.url);
+//                Log.v(LOG_TAG, "getImagesUrls - imageWidth/popularity: " + imageWidth + "/" + oneImage.url);
                 if (smallImage == null) {
-                    if (imageWidth >= 200) {
+                    if (imageWidth >= SMALL_WIDTH) {
                         smallImage = oneImage.url;
                     }
                 }
                 if (bigImage == null) {
-                    if (imageWidth >= 640) {
+                    if (imageWidth >= BIG_WIDTH) {
                         bigImage = oneImage.url;
                         break;
                     }
