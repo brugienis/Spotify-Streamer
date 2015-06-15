@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.View;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -59,15 +58,11 @@ public class ArtistListFragment extends ListFragment {
                 Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG).show();
                 return;
             }
-            List<String> artistsNames = new ArrayList<>(artistsDetails.size());
-            for (ArtistDetails artistDetails: artistsDetails) {
-                artistsNames.add(artistDetails.name + " - " + artistDetails.spotifyId);
-            }
-//            mArtistArrayAdapter.clear();
-//            mArtistArrayAdapter.addAll(artistsDetails);
-            ListAdapter mArtistArrayAdapter = getListAdapter();
-            mArtistArrayAdapter = new ArtistArrayAdapter(mActivity, artistsDetails);
-            setListAdapter(mArtistArrayAdapter);
+            ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
+            mArtistArrayAdapter.clear();
+            mArtistArrayAdapter.addAll(artistsDetails);
+//            mArtistArrayAdapter = new ArtistArrayAdapter(mActivity, artistsDetails);
+//            setListAdapter(mArtistArrayAdapter);
 //            mArtistArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }

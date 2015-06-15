@@ -26,11 +26,12 @@ public class TracksActivity extends ActionBarActivity {
         if (savedInstanceState == null) {
             if (mTracksListFragment == null) {
                 mTracksListFragment = new TracksListFragment();
+                Log.v(LOG_TAG, "created TracksListFragment");
             }
             List<TrackDetails> tracksItemsList = new ArrayList<>();
-            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null));
-            tracksItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null));
-            tracksItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null));
+            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
+            tracksItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null, null));
+            tracksItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null, null));
 
             TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, tracksItemsList);
             mTracksListFragment.setListAdapter(trackArrayAdapter);

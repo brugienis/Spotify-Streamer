@@ -48,23 +48,24 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.tracks_listview_item, parent, false);
         }
-        ImageView artistImage = (ImageView) v.findViewById(R.id.trackImageId);
+        ImageView albumImage = (ImageView) v.findViewById(R.id.trackImageId);
 
-        TextView artistName = (TextView) v.findViewById(R.id.trackNameId);
+        TextView trackName = (TextView) v.findViewById(R.id.trackNameId);
 
         TrackDetails trackDetails = objects.get(position);
+        Log.i(LOG_TAG, "position: " + position + "/" + trackDetails);
 
         if (trackDetails != null) {
-            Log.i(LOG_TAG, "getView - artistName set to: " + trackDetails.trackName);
-            artistName.setText(trackDetails.trackName);
+            Log.i(LOG_TAG, "getView - trackName set to: " + trackDetails.trackName);
+            trackName.setText(trackDetails.trackName);
         } else {
-            Log.i(LOG_TAG, "getView - artistName is null");
+            Log.i(LOG_TAG, "getView - trackName is null");
         }
 
         int widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
                 (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
 
-        Picasso.with(mActivity.getApplication()).load(trackDetails.albumThumbnailImageUrl).resize(widthPx, widthPx).centerCrop().into(artistImage);
+        Picasso.with(mActivity.getApplication()).load(trackDetails.albumArtSmallImageUrl).resize(widthPx, widthPx).centerCrop().into(albumImage);
 
         return v;
     }

@@ -18,7 +18,6 @@ import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
-import retrofit.http.QueryMap;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -55,15 +54,12 @@ public class TracksListFragment extends ListFragment {
         super.onListItemClick(l, v, position, id);
     }
 
-    public void setMessage(String message) {
-        this.mArtistId = message;
-        Log.v(LOG_TAG, "setMessage - got message: " + message);
-    }
-
     public void sendArtistsDataRequestToSpotify(String mArtistId) {
         TracksDataFetcher artistsFetcher = new TracksDataFetcher();
         artistsFetcher.execute(mArtistId);
     }
+
+//    private TrackArrayAdapter trackArrayAdapter;
 
     public class TracksDataFetcher extends AsyncTask<String, Void, List<TrackDetails>> {
 
@@ -75,15 +71,15 @@ public class TracksListFragment extends ListFragment {
                 return;
             }
             List<String> artistsNames = new ArrayList<>(trackDetails.size());
-            for (TrackDetails artistDetails: trackDetails) {
-                artistsNames.add(artistDetails.trackName + " - " + artistDetails.albumThumbnailImageUrl);
-            }
-//            mArtistArrayAdapter.clear();
-//            mArtistArrayAdapter.addAll(trackDetails);
-//            TracksArrayAdapter trackArrayAdapter = getListAdapter();
-            TrackArrayAdapter trackArrayAdapter = new TrackArrayAdapter(mActivity, trackDetails);
-            setListAdapter(trackArrayAdapter);
-            trackArrayAdapter.notifyDataSetChanged();
+//            for (TrackDetails artistDetails: trackDetails) {
+//                artistsNames.add(artistDetails.trackName + " - " + artistDetails.albumThumbnailImageUrl);
+//            }
+            TrackArrayAdapter trackArrayAdapter = (TrackArrayAdapter) getListAdapter();
+//            TrackArrayAdapter trackArrayAdapter = new TrackArrayAdapter(mActivity, trackDetails);
+            trackArrayAdapter.clear();
+            trackArrayAdapter.addAll(trackDetails);
+//            setListAdapter(trackArrayAdapter);
+//            trackArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }
 
@@ -102,52 +98,71 @@ public class TracksListFragment extends ListFragment {
                 SpotifyApi api = new SpotifyApi();
                 mSpotifyService = api.getService();
             }
-            QueryMap queryMap = null;   //new HashMap<>();
-//            queryMap.put("country", new );
-//            mSpotifyService.getArtistTopTrack("", queryMap);
             Map<String, Object> m = new HashMap<>();
             m.put("country", "US");
             Tracks tracks = mSpotifyService.getArtistTopTrack(artistId, m);
             //"GET https://api.spotify.com/v1/artists/43ZHCT0cAZBISjO8DG9PnE/top-tracks?country=SE"
             // GET https://api.spotify.com/v1/artists/4gzpq5DPGxSnKTe4SA8HAU%3Fcountry%3DUS/top-tracks
 
-            Log.v(LOG_TAG, "handleArtistsData - results: " + tracks);
             List<Track> listedTracks = tracks.tracks;
             List<Image> images;
             String thumbnailImageUrl;
             int imagesCnt;
+            // TrackDetails(String trackName, String albumName, String thumbnailImageUrl, String previewUrl)
             if (listedTracks.size() > 0) {
                 results = new ArrayList<TrackDetails>(listedTracks.size());
                 for (Track track : listedTracks) {
-//                    images = track.images;
-//                    imagesCnt = images.size();
-//                    if (imagesCnt == 0) {
-//                        thumbnailImageUrl = null;
-//                    } else {
-//                        thumbnailImageUrl = getThumbnaiImagelUrl(images);
-//                    }
-//                    results.add(new TrackDetails(track.name, track.id, thumbnailImageUrl));
-                    results.add(new TrackDetails(track.name, track.album.name, null, null));
-//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity + "/" + thumbnailImageUrl);
+                    images = track.album.images;
+                    imagesCnt = images.size();
+                    TrackImages trackImages;
+                    if (imagesCnt == 0) {
+                        trackImages = new TrackImages(null, null);
+                    } else {
+                        trackImages = getImagesUrls(images);
+                    }
+                    results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
                     Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity);
                 }
             }
             return results;
-
         }
 
-        private String getThumbnaiImagelUrl(List<Image> imagesData) {
-            int lastImagaDataIdx = imagesData.size() - 1;
-            String selectedUrl = imagesData.get(lastImagaDataIdx).url;
+        private TrackImages getImagesUrls(List<Image> imagesData) {
+            Image prevImage = null;
+            String bigImage = null;
+            String smallImage = null;
+            Image oneImage;
             int imageWidth;
-            for (int i = lastImagaDataIdx; i > -1; i--) {
-                imageWidth = (int) Integer.valueOf(imagesData.get(i).width);
-                if (imageWidth > 100) {
-                    selectedUrl = imagesData.get(i).url;
-                    break;
+            for (int i = imagesData.size() - 1; i > -1; i--) {
+                oneImage = imagesData.get(i);
+                imageWidth = (int) Integer.valueOf(oneImage.width);
+                Log.v(LOG_TAG, "getImagesUrls - imageWidth/popularity: " + imageWidth + "/" + oneImage.url);
+                if (smallImage == null) {
+                    if (imageWidth >= 200) {
+                        smallImage = oneImage.url;
+                    }
                 }
+                if (bigImage == null) {
+                    if (imageWidth >= 640) {
+                        bigImage = oneImage.url;
+                        break;
+                    }
+                }
+                prevImage = oneImage;
             }
-            return selectedUrl;
+            if (bigImage == null) {
+                bigImage = prevImage.url;
+            }
+            return new TrackImages(bigImage, smallImage);
+        }
+
+        class TrackImages {
+            public final String big;
+            public final String small;
+            TrackImages(String big, String small) {
+                this.big = big;
+                this.small = small;
+            }
         }
     }
 }
