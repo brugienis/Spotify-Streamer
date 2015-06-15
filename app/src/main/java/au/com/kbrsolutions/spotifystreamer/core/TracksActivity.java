@@ -27,14 +27,14 @@ public class TracksActivity extends ActionBarActivity {
             if (mTracksListFragment == null) {
                 mTracksListFragment = new TracksListFragment();
             }
-            List<ArtistDetails> summaryItemsList = new ArrayList<ArtistDetails>();
-            summaryItemsList.add(new ArtistDetails("name0", "id0", "thumbImage0"));
-            summaryItemsList.add(new ArtistDetails("name1", "id1", "thumbImage1"));
-            summaryItemsList.add(new ArtistDetails("name2", "id2", "thumbImage2"));
+            List<TrackDetails> tracksItemsList = new ArrayList<>();
+            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null));
+            tracksItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null));
+            tracksItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null));
 
-            TrackArrayAdapter artistArrayAdapter = new TrackArrayAdapter<ArtistDetails>(this, summaryItemsList);
-            mTracksListFragment.setListAdapter(artistArrayAdapter);
-            artistArrayAdapter.notifyDataSetChanged();
+            TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, tracksItemsList);
+            mTracksListFragment.setListAdapter(trackArrayAdapter);
+            trackArrayAdapter.notifyDataSetChanged();
             getSupportFragmentManager().beginTransaction()
 //            getFragmentManager().beginTransaction()
                     .add(R.id.fragments_frame, mTracksListFragment, "")

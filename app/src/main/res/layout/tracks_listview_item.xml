@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="horizontal"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/trackImageId"
+        android:scaleType="center"
+        android:layout_width="@dimen/artist_thumbnail_image_size"
+        android:layout_height="@dimen/artist_thumbnail_image_size"
+        android:adjustViewBounds="true"
+        android:padding="@dimen/artist_thumbnail_image_padding"
+        android:src="@mipmap/ic_launcher"/>
+
+    <TextView
+        android:id="@+id/trackNameId"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:paddingLeft="5dp"
+        android:text="artist name"
+        android:textSize="@dimen/artist_name_size"
+        android:gravity="center_vertical"
+        android:textColor="@android:color/black" />
+
+</LinearLayout>
