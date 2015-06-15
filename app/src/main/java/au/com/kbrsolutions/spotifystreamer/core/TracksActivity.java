@@ -29,12 +29,13 @@ public class TracksActivity extends ActionBarActivity {
                 Log.v(LOG_TAG, "created TracksListFragment");
             }
             List<TrackDetails> tracksItemsList = new ArrayList<>();
-            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
-            tracksItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null, null));
-            tracksItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null, null));
+//            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
+//            tracksItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null, null));
+//            tracksItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null, null));
 
             TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, tracksItemsList);
             mTracksListFragment.setListAdapter(trackArrayAdapter);
+//            mTracksListFragment.setEmptyText("Enter artist name"); // got java.lang.IllegalStateException: Content view not yet created
             trackArrayAdapter.notifyDataSetChanged();
             getSupportFragmentManager().beginTransaction()
 //            getFragmentManager().beginTransaction()
@@ -53,6 +54,9 @@ public class TracksActivity extends ActionBarActivity {
 //        getSupportFragmentManager().beginTransaction().replace(R.id.fragments_frame, mTracksListFragment).commit();
     }
 
+    void goBack() {
+        finish();
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -73,6 +77,8 @@ public class TracksActivity extends ActionBarActivity {
             return true;
         }
 
-        return super.onOptionsItemSelected(item);
+//        return super.onOptionsItemSelected(item);
+        finish();
+        return true;
     }
 }

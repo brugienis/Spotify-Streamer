@@ -11,6 +11,7 @@
         android:theme="@style/AppTheme" >
         <activity
             android:name=".core.ArtistsActivity"
+            android:configChanges="screenSize|orientation"
             android:label="@string/title_activity_artists" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,6 +21,7 @@
         </activity>
         <activity
             android:name=".core.TracksActivity"
+            android:configChanges="screenSize|orientation"
             android:label="@string/title_activity_tracks"
             android:parentActivityName=".core.ArtistsActivity" >
             <meta-data

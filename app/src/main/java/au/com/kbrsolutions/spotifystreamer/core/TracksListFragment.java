@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.utils.ProgressBarHandler;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
@@ -92,9 +93,11 @@ public class TracksListFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
+            mProgressBarHandler.hide();
             if (trackDetails == null) {
                 Log.v(LOG_TAG, "showing toast");
-                Toast.makeText(getActivity(), "No data found", Toast.LENGTH_LONG).show();
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
+                mActivity.goBack();
                 return;
             }
             List<String> artistsNames = new ArrayList<>(trackDetails.size());
@@ -106,7 +109,6 @@ public class TracksListFragment extends ListFragment {
             trackArrayAdapter.clear();
             trackArrayAdapter.addAll(trackDetails);
             setIsRetrievingData(false);
-            mProgressBarHandler.hide();
 //            setListAdapter(trackArrayAdapter);
 //            trackArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'

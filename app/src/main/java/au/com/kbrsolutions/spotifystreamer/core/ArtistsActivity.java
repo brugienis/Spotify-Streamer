@@ -47,6 +47,7 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "onCreate - start");
         setContentView(R.layout.activity_artists);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         sarchText = (TextView) findViewById(R.id.searchTextView);
@@ -101,10 +102,10 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
                     Log.i(LOG_TAG, "setFragment - artistListFragment is null");
                     artistListFragment = new ArtistListFragment();
                 }
-                List<ArtistDetails> summaryItemsList = new ArrayList<ArtistDetails>();
-                summaryItemsList.add(new ArtistDetails("name0", "id0", "thumbImage0"));
-                summaryItemsList.add(new ArtistDetails("name1", "id1", "thumbImage1"));
-                summaryItemsList.add(new ArtistDetails("name2", "id2", "thumbImage2"));
+                List<ArtistDetails> summaryItemsList = new ArrayList<>();
+//                summaryItemsList.add(new ArtistDetails("name0", "id0", "thumbImage0"));
+//                summaryItemsList.add(new ArtistDetails("name1", "id1", "thumbImage1"));
+//                summaryItemsList.add(new ArtistDetails("name2", "id2", "thumbImage2"));
 
                 artistArrayAdapter = new ArtistArrayAdapter<ArtistDetails>(this, summaryItemsList);
                 artistListFragment.setListAdapter(artistArrayAdapter);
@@ -155,5 +156,11 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.v(LOG_TAG, "onDestroy - done");
     }
 }

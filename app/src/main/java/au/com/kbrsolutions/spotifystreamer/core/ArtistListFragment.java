@@ -64,7 +64,7 @@ public class ArtistListFragment extends ListFragment {
             mProgressBarHandler.hide();
             if (artistsDetails == null) {
                 Log.v(LOG_TAG, "showing toast");
-                Toast.makeText(getActivity(), mActivity.getResources().getString(R.string.search_returned_no_data), Toast.LENGTH_LONG).show();
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
             }
             ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
