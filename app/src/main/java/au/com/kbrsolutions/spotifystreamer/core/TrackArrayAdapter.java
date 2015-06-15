@@ -16,21 +16,27 @@ import java.util.List;
 import au.com.kbrsolutions.spotifystreamer.R;
 
 /**
- * Created by business on 14/06/2015.
+ * Created by business on 13/06/2015.
  */
-public class TrackArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
+public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
-    private List<ArtistDetails> objects;
+    private List<TrackDetails> objects;
     private TracksActivity mActivity;
 
-    private final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
+    private final String LOG_TAG = TrackArrayAdapter.class.getSimpleName();
 
-    public TrackArrayAdapter(TracksActivity activity, List<ArtistDetails> objects) {
+    //    public ArtistArrayAdapter(FragmentActivity activity, List<ArtistDetails> objects) {
+    public TrackArrayAdapter(TracksActivity activity, List<TrackDetails> objects) {
 
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;
         this.objects = objects;
         Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
+        for (TrackDetails trackDetails:
+             objects) {
+            Log.i(LOG_TAG, trackDetails.trackName);
+
+        }
     }
 
     // todo: utilize convertView and Holder
@@ -40,17 +46,17 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         View v = convertView;
         if (v == null) {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            v = inflater.inflate(R.layout.artists_listview_item, parent, false);
+            v = inflater.inflate(R.layout.tracks_listview_item, parent, false);
         }
-        ImageView artistImage = (ImageView) v.findViewById(R.id.artistImageId);
+        ImageView artistImage = (ImageView) v.findViewById(R.id.trackImageId);
 
-        TextView artistName = (TextView) v.findViewById(R.id.artistNameId);
+        TextView artistName = (TextView) v.findViewById(R.id.trackNameId);
 
-        ArtistDetails artistDetails = objects.get(position);
+        TrackDetails trackDetails = objects.get(position);
 
-        if (artistDetails != null) {
-            Log.i(LOG_TAG, "getView - artistName set to: " + artistDetails.name);
-            artistName.setText(artistDetails.name);
+        if (trackDetails != null) {
+            Log.i(LOG_TAG, "getView - artistName set to: " + trackDetails.trackName);
+            artistName.setText(trackDetails.trackName);
         } else {
             Log.i(LOG_TAG, "getView - artistName is null");
         }
@@ -58,8 +64,9 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         int widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
                 (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
 
-        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(widthPx, widthPx).centerCrop().into(artistImage);
+        Picasso.with(mActivity.getApplication()).load(trackDetails.albumThumbnailImageUrl).resize(widthPx, widthPx).centerCrop().into(artistImage);
 
         return v;
     }
+
 }

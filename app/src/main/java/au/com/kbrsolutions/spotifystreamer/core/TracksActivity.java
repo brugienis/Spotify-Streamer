@@ -43,7 +43,7 @@ public class TracksActivity extends ActionBarActivity {
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
             message = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            mTracksListFragment.setMessage(message);
+            mTracksListFragment.sendArtistsDataRequestToSpotify(message);
         }
         Log.v(LOG_TAG, "onCreate - message: " + message);
 

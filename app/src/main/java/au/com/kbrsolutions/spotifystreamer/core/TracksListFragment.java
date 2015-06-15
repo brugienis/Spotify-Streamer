@@ -2,7 +2,6 @@ package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
 import android.os.AsyncTask;
-import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.util.Log;
 import android.view.View;
@@ -46,10 +45,10 @@ public class TracksListFragment extends ListFragment {
         this.mActivity = (TracksActivity) activity;
     }
 
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
+//    @Override
+//    public void onViewCreated(View view, Bundle savedInstanceState) {
 //        sendArtistsDataRequestToSpotify(mArtistId);
-    }
+//    }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
@@ -61,7 +60,7 @@ public class TracksListFragment extends ListFragment {
         Log.v(LOG_TAG, "setMessage - got message: " + message);
     }
 
-    public void sendArtistsDataRequestToSpotify(String artistName) {
+    public void sendArtistsDataRequestToSpotify(String mArtistId) {
         TracksDataFetcher artistsFetcher = new TracksDataFetcher();
         artistsFetcher.execute(mArtistId);
     }
@@ -82,7 +81,7 @@ public class TracksListFragment extends ListFragment {
 //            mArtistArrayAdapter.clear();
 //            mArtistArrayAdapter.addAll(trackDetails);
 //            TracksArrayAdapter trackArrayAdapter = getListAdapter();
-            TracksArrayAdapter trackArrayAdapter = new TracksArrayAdapter(mActivity, trackDetails);
+            TrackArrayAdapter trackArrayAdapter = new TrackArrayAdapter(mActivity, trackDetails);
             setListAdapter(trackArrayAdapter);
             trackArrayAdapter.notifyDataSetChanged();
             //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
