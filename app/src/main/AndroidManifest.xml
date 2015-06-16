@@ -10,6 +10,29 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
+            android:name=".core.TracksActivity"
+            android:configChanges="screenSize|orientation"
+            android:label="@string/title_activity_tracks"
+            android:parentActivityName=".core.ArtistsActivityComplex" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".core.ArtistsActivityComplex" />
+        </activity>
+        <activity
+            android:name=".core.ArtistsActivity"
+            android:label="@string/title_activity_artists" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest><!--
+
+
+        <activity
             android:name=".core.ArtistsActivityComplex"
             android:configChanges="screenSize|orientation"
             android:label="@string/title_activity_artists" >
@@ -19,20 +42,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".core.TracksActivity"
-            android:configChanges="screenSize|orientation"
-            android:label="@string/title_activity_tracks"
-            android:parentActivityName=".core.ArtistsActivityComplex" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".core.ArtistsActivityComplex" />
-        </activity>
-    </application>
-
-</manifest>
-
-<!--
 
         <activity
             android:trackName=".core.HomeActivity"
@@ -48,5 +57,4 @@
                 android:trackName="android.support.PARENT_ACTIVITY"
                 android:value="au.com.kbrsolutions.spotifystreamer.core.ArtistsActivity" />
         </activity>
-
 -->

@@ -12,4 +12,6 @@
 
     <string name="title_fragment_summary">Summary</string>
     <string name="title_activity_tracks">Top 10 tracks</string>
+
+    <string name="hello_world">Hello world!</string>
 </resources>

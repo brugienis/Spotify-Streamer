@@ -1,7 +1,6 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,17 +20,18 @@ import au.com.kbrsolutions.spotifystreamer.R;
 public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
     private List<ArtistDetails> objects;
-    private ArtistsActivityComplex mActivity;
+    private ArtistsActivity mActivity;
+    private int widthPx = -1;
 
     private final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
 
 //    public ArtistArrayAdapter(FragmentActivity activity, List<ArtistDetails> objects) {
-    public ArtistArrayAdapter(ArtistsActivityComplex activity, List<ArtistDetails> objects) {
+    public ArtistArrayAdapter(ArtistsActivity activity, List<ArtistDetails> objects) {
 
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;
         this.objects = objects;
-        Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
+//        Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
     }
 
     // todo: utilize convertView and Holder
@@ -52,14 +52,14 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         if (artistDetails != null) {
 //            Log.i(LOG_TAG, "getView - artistName set to: " + artistDetails.name);
             artistName.setText(artistDetails.name);
-        } else {
-            Log.i(LOG_TAG, "getView - artistName is null");
+
+            if (widthPx == -1) {
+                widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
+                        (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
+            }
+
+            Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(widthPx, widthPx).centerCrop().into(artistImage);
         }
-
-        int widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
-                (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
-
-        Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(widthPx, widthPx).centerCrop().into(artistImage);
 
         return v;
     }

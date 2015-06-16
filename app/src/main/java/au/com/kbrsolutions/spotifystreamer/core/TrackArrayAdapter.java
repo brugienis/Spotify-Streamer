@@ -1,7 +1,6 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.content.Context;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +21,7 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
     private List<TrackDetails> objects;
     private TracksActivity mActivity;
+    private int widthPx = -1;
 
     private final String LOG_TAG = TrackArrayAdapter.class.getSimpleName();
 
@@ -31,9 +31,8 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;
         this.objects = objects;
-        Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
+//        Log.i(LOG_TAG, "constructor - end - objects.size(): " + objects.size());
     }
-    private int widthPx = -1;
 
     // todo: utilize convertView and Holder
     @Override
@@ -62,6 +61,7 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
                 widthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
                         (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
             }
+
             Picasso.with(mActivity.getApplication()).load(trackDetails.albumArtSmallImageUrl).resize(widthPx, widthPx).centerCrop().into(albumImage);
         }
 

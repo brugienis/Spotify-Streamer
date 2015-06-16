@@ -1,7 +1,7 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
-import android.app.ListFragment;
+import android.support.v4.app.ListFragment;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -24,19 +24,19 @@ import kaaes.spotify.webapi.android.models.Pager;
 /**
  * Created by business on 10/06/2015.
  */
-public class ArtistListFragment extends ListFragment {
+public class ArtistsListFragment extends ListFragment {
 
-    private ArtistsActivityComplex mActivity;
+    private ArtistsActivity mActivity;
     private ArtistSelectable selectedArtistHandler;
     private ProgressBarHandler mProgressBarHandler;
 
 
-    private final static String LOG_TAG = ArtistListFragment.class.getSimpleName();
+    private final static String LOG_TAG = ArtistsListFragment.class.getSimpleName();
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        this.mActivity = (ArtistsActivityComplex) activity;
+        this.mActivity = (ArtistsActivity) activity;
     }
 
     @Override
@@ -53,6 +53,7 @@ public class ArtistListFragment extends ListFragment {
                 mProgressBarHandler = new ProgressBarHandler(mActivity);
             }
             mProgressBarHandler.show();
+            ((ArtistArrayAdapter) getListAdapter()).clear();
             ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
             artistsFetcher.execute(artistName);
     }

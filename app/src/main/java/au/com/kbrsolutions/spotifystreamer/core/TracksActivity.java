@@ -3,7 +3,6 @@ package au.com.kbrsolutions.spotifystreamer.core;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -26,7 +25,7 @@ public class TracksActivity extends ActionBarActivity {
         if (savedInstanceState == null) {
             if (mTracksListFragment == null) {
                 mTracksListFragment = new TracksListFragment();
-                Log.v(LOG_TAG, "created TracksListFragment");
+//                Log.v(LOG_TAG, "created TracksListFragment");
             }
             List<TrackDetails> tracksItemsList = new ArrayList<>();
 //            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
@@ -47,7 +46,7 @@ public class TracksActivity extends ActionBarActivity {
             message = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             mTracksListFragment.sendArtistsDataRequestToSpotify(message);
         }
-        Log.v(LOG_TAG, "onCreate - message: " + message);
+//        Log.v(LOG_TAG, "onCreate - message: " + message);
 
 //        FragmentManager fragmentManager = getFragmentManager();
 //        FragmentTransaction fragmentTransaction;

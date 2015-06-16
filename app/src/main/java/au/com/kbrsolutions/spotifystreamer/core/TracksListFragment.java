@@ -22,38 +22,26 @@ import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 
 /**
- * A placeholder fragment containing a simple view.
+ * Created by business on 16/06/2015.
  */
 public class TracksListFragment extends ListFragment {
-//public class TracksListFragment extends ListFragment {
 
-    private String mArtistId;
     private TracksActivity mActivity;
     private ProgressBarHandler mProgressBarHandler;
+    private boolean isRetrievingData;
 
-    private final int BIG_WIDTH = 640;
-    private final int SMALL_WIDTH = 200;
+    private final int BIG_IMAGE_WIDTH = 640;
+    private final int SMALL_IMAGE_WIDTH = 200;
 
     private final static String LOG_TAG = TracksListFragment.class.getSimpleName();
 
-    public TracksListFragment() {
-    }
-
-//    @Override
-//    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        return inflater.inflate(R.layout.fragment_tracks, container, false);
-//    }
+    public TracksListFragment() {}
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         this.mActivity = (TracksActivity) activity;
     }
-
-//    @Override
-//    public void onViewCreated(View view, Bundle savedInstanceState) {
-//        sendArtistsDataRequestToSpotify(mArtistId);
-//    }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
@@ -69,19 +57,15 @@ public class TracksListFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.v(LOG_TAG, "onResume - start");
         if (mProgressBarHandler == null) {
             mProgressBarHandler = new ProgressBarHandler(mActivity);
         }
-        if (sRetrievingData()) {
+        if (isRetrievingData()) {
             mProgressBarHandler.show();
         }
-        Log.v(LOG_TAG, "onResume - end");
     }
 
-    private boolean isRetrievingData;
-
-    private synchronized boolean sRetrievingData() {
+    private synchronized boolean isRetrievingData() {
         return isRetrievingData;
     }
 
@@ -101,17 +85,10 @@ public class TracksListFragment extends ListFragment {
                 return;
             }
             List<String> artistsNames = new ArrayList<>(trackDetails.size());
-//            for (TrackDetails artistDetails: trackDetails) {
-//                artistsNames.add(artistDetails.trackName + " - " + artistDetails.albumThumbnailImageUrl);
-//            }
             TrackArrayAdapter trackArrayAdapter = (TrackArrayAdapter) getListAdapter();
-//            TrackArrayAdapter trackArrayAdapter = new TrackArrayAdapter(mActivity, trackDetails);
             trackArrayAdapter.clear();
             trackArrayAdapter.addAll(trackDetails);
             setIsRetrievingData(false);
-//            setListAdapter(trackArrayAdapter);
-//            trackArrayAdapter.notifyDataSetChanged();
-            //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }
 
         private SpotifyService mSpotifyService;
@@ -119,7 +96,7 @@ public class TracksListFragment extends ListFragment {
         @Override
         protected List<TrackDetails> doInBackground(String... params) {
 
-            // If there's no artist trackName, there's nothing to look up.  Verify size of params.
+            // If there's no artist Id, there's nothing to look up.  Verify size of params.
             if (params.length == 0) {
                 return null;
             }
@@ -137,9 +114,7 @@ public class TracksListFragment extends ListFragment {
 
             List<Track> listedTracks = tracks.tracks;
             List<Image> images;
-            String thumbnailImageUrl;
             int imagesCnt;
-            // TrackDetails(String trackName, String albumName, String thumbnailImageUrl, String previewUrl)
             if (listedTracks.size() > 0) {
                 results = new ArrayList<TrackDetails>(listedTracks.size());
                 for (Track track : listedTracks) {
@@ -169,12 +144,12 @@ public class TracksListFragment extends ListFragment {
                 imageWidth = (int) Integer.valueOf(oneImage.width);
 //                Log.v(LOG_TAG, "getImagesUrls - imageWidth/popularity: " + imageWidth + "/" + oneImage.url);
                 if (smallImage == null) {
-                    if (imageWidth >= SMALL_WIDTH) {
+                    if (imageWidth >= SMALL_IMAGE_WIDTH) {
                         smallImage = oneImage.url;
                     }
                 }
                 if (bigImage == null) {
-                    if (imageWidth >= BIG_WIDTH) {
+                    if (imageWidth >= BIG_IMAGE_WIDTH) {
                         bigImage = oneImage.url;
                         break;
                     }
