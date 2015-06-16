@@ -6,7 +6,7 @@
 <!-- TODO: Remove or change this placeholder text -->
     <string name="artist_activity_title">Spotify Streamer</string>
     <string name="search_returned_no_artist_data">No data found - please refine your search text</string>
-    <string name="search_returned_no_track_data">No tracks data found</string>
+    <string name="search_returned_no_track_data">No tracks found</string>
     <string name="search_artist_hint">Enter artist name</string>
     <string name="title_activity_artists">Spotify Streamer</string>
 

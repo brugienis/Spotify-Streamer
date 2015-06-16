@@ -48,14 +48,15 @@ public class ArtistsListFragment extends ListFragment {
 //        selectedArtistHandler.handleSelectedArtist();
     }
 
-        public void sendArtistsDataRequestToSpotify(String artistName) {
-            if (mProgressBarHandler == null) {
-                mProgressBarHandler = new ProgressBarHandler(mActivity);
-            }
-            mProgressBarHandler.show();
-            ((ArtistArrayAdapter) getListAdapter()).clear();
-            ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
-            artistsFetcher.execute(artistName);
+    public void sendArtistsDataRequestToSpotify(String artistName) {
+        if (mProgressBarHandler == null) {
+            mProgressBarHandler = new ProgressBarHandler(mActivity);
+        }
+        Log.v(LOG_TAG ,"sendArtistsDataRequestToSpotify - before show");
+        mProgressBarHandler.show();
+        ((ArtistArrayAdapter) getListAdapter()).clear();
+        ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
+        artistsFetcher.execute(artistName);
     }
 
     public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {

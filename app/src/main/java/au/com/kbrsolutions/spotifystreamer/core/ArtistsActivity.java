@@ -3,6 +3,7 @@ package au.com.kbrsolutions.spotifystreamer.core;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,6 +58,7 @@ public class ArtistsActivity extends ActionBarActivity {
     }
 
     private boolean handleSearchButtonClicked(int actionId) {
+        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             String artistName = sarchText.getText().toString();
