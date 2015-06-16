@@ -26,7 +26,7 @@ import kaaes.spotify.webapi.android.models.Pager;
  */
 public class ArtistListFragment extends ListFragment {
 
-    private ArtistsActivity mActivity;
+    private ArtistsActivityComplex mActivity;
     private ArtistSelectable selectedArtistHandler;
     private ProgressBarHandler mProgressBarHandler;
 
@@ -36,7 +36,7 @@ public class ArtistListFragment extends ListFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        this.mActivity = (ArtistsActivity) activity;
+        this.mActivity = (ArtistsActivityComplex) activity;
     }
 
     @Override

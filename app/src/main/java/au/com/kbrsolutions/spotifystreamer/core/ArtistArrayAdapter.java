@@ -21,12 +21,12 @@ import au.com.kbrsolutions.spotifystreamer.R;
 public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
     private List<ArtistDetails> objects;
-    private ArtistsActivity mActivity;
+    private ArtistsActivityComplex mActivity;
 
     private final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
 
 //    public ArtistArrayAdapter(FragmentActivity activity, List<ArtistDetails> objects) {
-    public ArtistArrayAdapter(ArtistsActivity activity, List<ArtistDetails> objects) {
+    public ArtistArrayAdapter(ArtistsActivityComplex activity, List<ArtistDetails> objects) {
 
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;

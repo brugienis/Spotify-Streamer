@@ -18,7 +18,7 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
-public class ArtistsActivity extends AppCompatActivity implements ArtistListFragment. ArtistSelectable {
+public class ArtistsActivityComplex extends AppCompatActivity implements ArtistListFragment. ArtistSelectable {
 
     private boolean mTestMode;
     private ArtistListFragment artistListFragment;
@@ -42,12 +42,12 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
     enum FragmentsCallingSourceEnum {
         UPDATE_SUMMARY_LIST_ADAPTER
     }
-    private final static String LOG_TAG = ArtistsActivity.class.getSimpleName();
+    private final static String LOG_TAG = ArtistsActivityComplex.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(LOG_TAG, "onCreate - start");
+        Log.v(LOG_TAG, "onCreate - start - savedInstanceState: " + savedInstanceState);
         setContentView(R.layout.activity_artists);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         sarchText = (TextView) findViewById(R.id.searchTextView);
@@ -157,6 +157,20 @@ public class ArtistsActivity extends AppCompatActivity implements ArtistListFrag
 
         return super.onOptionsItemSelected(item);
     }
+
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState) {
+//        super.onSaveInstanceState(outState);
+//        outState.putCharSequence("sarchText", sarchText.getText());
+//        Log.v(LOG_TAG, "onSaveInstanceState - done - sarchText: " + sarchText);
+//    }
+//
+//    @Override
+//    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+//        super.onRestoreInstanceState(savedInstanceState);
+//        sarchText.setText(savedInstanceState.getCharSequence("sarchText"));
+//        Log.v(LOG_TAG, "onRestoreInstanceState - done - sarchText: " + sarchText);
+//    }
 
     @Override
     protected void onDestroy() {

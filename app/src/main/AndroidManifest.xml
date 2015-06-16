@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".core.ArtistsActivity"
+            android:name=".core.ArtistsActivityComplex"
             android:configChanges="screenSize|orientation"
             android:label="@string/title_activity_artists" >
             <intent-filter>
@@ -23,10 +23,10 @@
             android:name=".core.TracksActivity"
             android:configChanges="screenSize|orientation"
             android:label="@string/title_activity_tracks"
-            android:parentActivityName=".core.ArtistsActivity" >
+            android:parentActivityName=".core.ArtistsActivityComplex" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="au.com.kbrsolutions.spotifystreamer.core.ArtistsActivity" />
+                android:value=".core.ArtistsActivityComplex" />
         </activity>
     </application>
 

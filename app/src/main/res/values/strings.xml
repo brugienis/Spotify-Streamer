@@ -1,16 +1,13 @@
 <resources>
     <string name="app_name">Spotify Streamer</string>
 
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
 
 <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="artist_activity_title">Spotify Streamer</string>
     <string name="search_returned_no_artist_data">No data found - please refine your search text</string>
     <string name="search_returned_no_track_data">No tracks data found</string>
     <string name="search_artist_hint">Enter artist name</string>
-    <string name="start_search">Go</string>
     <string name="title_activity_artists">Spotify Streamer</string>
 
     <string name="title_fragment_summary">Summary</string>

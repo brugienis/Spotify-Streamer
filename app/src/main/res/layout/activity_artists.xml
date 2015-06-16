@@ -15,7 +15,6 @@
         android:layout_gravity="left|top"
         android:hint="@string/search_artist_hint"
         android:inputType="text"
-        android:text="coldplay"
         android:imeOptions="actionSearch"/>
 
 
@@ -27,3 +26,10 @@
     </FrameLayout>
 
 </RelativeLayout>
+
+<!--
+
+        android:saveEnabled="true"
+        android:text="coldplay"
+
+-->
