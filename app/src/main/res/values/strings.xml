@@ -5,6 +5,7 @@
 
 <!-- TODO: Remove or change this placeholder text -->
     <string name="artist_activity_title">Spotify Streamer</string>
+    <string name="search_unsuccessful_network_problems">Could not access Spotify - check your network connection and try again later</string>
     <string name="search_returned_no_artist_data">No data found - please refine your search text</string>
     <string name="search_returned_no_track_data">No tracks found</string>
     <string name="search_artist_hint">Enter artist name</string>

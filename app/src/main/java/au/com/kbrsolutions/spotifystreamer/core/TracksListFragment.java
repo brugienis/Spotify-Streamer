@@ -75,10 +75,15 @@ public class TracksListFragment extends ListFragment {
 
     public class TracksDataFetcher extends AsyncTask<String, Void, List<TrackDetails>> {
 
+        private boolean successfullyAccessedSpotify = true;
+
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
             mProgressBarHandler.hide();
-            if (trackDetails == null) {
+            if (!successfullyAccessedSpotify) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                return;
+            } else if (trackDetails == null) {
                 Log.v(LOG_TAG, "showing toast");
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
                 mActivity.goBack();
@@ -102,33 +107,37 @@ public class TracksListFragment extends ListFragment {
             }
             List<TrackDetails> results = null;
             String artistId = params[0];
-            if (mSpotifyService == null) {
-                SpotifyApi api = new SpotifyApi();
-                mSpotifyService = api.getService();
-            }
-            Map<String, Object> m = new HashMap<>();
-            m.put("country", "US");
-            Tracks tracks = mSpotifyService.getArtistTopTrack(artistId, m);
-            //"GET https://api.spotify.com/v1/artists/43ZHCT0cAZBISjO8DG9PnE/top-tracks?country=SE"
-            // GET https://api.spotify.com/v1/artists/4gzpq5DPGxSnKTe4SA8HAU%3Fcountry%3DUS/top-tracks
-
-            List<Track> listedTracks = tracks.tracks;
-            List<Image> images;
-            int imagesCnt;
-            if (listedTracks.size() > 0) {
-                results = new ArrayList<TrackDetails>(listedTracks.size());
-                for (Track track : listedTracks) {
-                    images = track.album.images;
-                    imagesCnt = images.size();
-                    TrackImages trackImages;
-                    if (imagesCnt == 0) {
-                        trackImages = new TrackImages(null, null);
-                    } else {
-                        trackImages = getImagesUrls(images);
-                    }
-                    results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
-//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity);
+            try {
+                if (mSpotifyService == null) {
+                    SpotifyApi api = new SpotifyApi();
+                    mSpotifyService = api.getService();
                 }
+                Map<String, Object> m = new HashMap<>();
+                m.put("country", "US");
+                Tracks tracks = mSpotifyService.getArtistTopTrack(artistId, m);
+                //"GET https://api.spotify.com/v1/artists/43ZHCT0cAZBISjO8DG9PnE/top-tracks?country=SE"
+                // GET https://api.spotify.com/v1/artists/4gzpq5DPGxSnKTe4SA8HAU%3Fcountry%3DUS/top-tracks
+
+                List<Track> listedTracks = tracks.tracks;
+                List<Image> images;
+                int imagesCnt;
+                if (listedTracks.size() > 0) {
+                    results = new ArrayList<TrackDetails>(listedTracks.size());
+                    for (Track track : listedTracks) {
+                        images = track.album.images;
+                        imagesCnt = images.size();
+                        TrackImages trackImages;
+                        if (imagesCnt == 0) {
+                            trackImages = new TrackImages(null, null);
+                        } else {
+                            trackImages = getImagesUrls(images);
+                        }
+                        results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
+//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity);
+                    }
+                }
+            } catch (Exception e) {
+                successfullyAccessedSpotify = false;
             }
             return results;
         }

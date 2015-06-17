@@ -19,7 +19,6 @@ import au.com.kbrsolutions.spotifystreamer.R;
 public class ArtistsActivity extends ActionBarActivity {
 
     private ArtistsListFragment mArtistsListFragment;
-    private ArtistArrayAdapter artistArrayAdapter;
     private TextView sarchText;
     private InputMethodManager imm;
 
@@ -76,6 +75,18 @@ public class ArtistsActivity extends ActionBarActivity {
         if (sarchText != null && sarchText.getWindowToken() != null && imm != null) {
             imm.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.v(LOG_TAG, "onSaveInstanceState - done");
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        Log.v(LOG_TAG, "onRestoreInstanceState - done");
     }
 
     @Override

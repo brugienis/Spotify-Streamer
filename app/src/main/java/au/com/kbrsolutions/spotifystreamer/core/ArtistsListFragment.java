@@ -61,10 +61,15 @@ public class ArtistsListFragment extends ListFragment {
 
     public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {
 
+        private boolean successfullyAccessedSpotify = true;
+
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetails) {
             mProgressBarHandler.hide();
-            if (artistsDetails == null) {
+            if (!successfullyAccessedSpotify) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                return;
+            } else if (artistsDetails == null) {
                 Log.v(LOG_TAG, "showing toast");
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
@@ -72,10 +77,6 @@ public class ArtistsListFragment extends ListFragment {
             ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
             mArtistArrayAdapter.clear();
             mArtistArrayAdapter.addAll(artistsDetails);
-//            mArtistArrayAdapter = new ArtistArrayAdapter(mActivity, artistsDetails);
-//            setListAdapter(mArtistArrayAdapter);
-//            mArtistArrayAdapter.notifyDataSetChanged();
-            //java.lang.RuntimeException: Your content must have a ListView whose id attribute is 'android.R.id.list'
         }
 
         SpotifyService mSpotifyService;
@@ -89,32 +90,38 @@ public class ArtistsListFragment extends ListFragment {
             }
             List<ArtistDetails> results = null;
             String artistName = params[0];
+            try {
             if (mSpotifyService == null) {
                 SpotifyApi api = new SpotifyApi();
                 mSpotifyService = api.getService();
             }
-            ArtistsPager artistsPager = mSpotifyService.searchArtists(artistName);
-            Log.v(LOG_TAG, "handleArtistsData - results: " + artistsPager);
-            Pager<Artist> artists = artistsPager.artists;
-            List<Image> images;
-            List<Artist> artistsList = artists.items;
-            String thumbnailImageUrl;
-            int imagesCnt;
-            if (artistsList.size() > 0) {
-                results = new ArrayList<ArtistDetails>(artistsList.size());
-                for (Artist artist : artistsList) {
-                    images = artist.images;
-                    imagesCnt = images.size();
-                    if (imagesCnt == 0) {
-                        thumbnailImageUrl = null;
-                    } else {
-//                        albumThumbnailImageUrl = images.get(imagesCnt - 2).url;
-                        thumbnailImageUrl = getThumbnaiImagelUrl(images);
-//                        albumThumbnailImageUrl = images.get(1).url;
+            // if no access to network: java.net.UnknownHostException: Unable to resolve host "api.spotify.com": No address associated with hostname
+                ArtistsPager artistsPager = mSpotifyService.searchArtists(artistName);
+//                Log.v(LOG_TAG, "doInBackground - results: " + artistsPager);
+                Pager<Artist> artists = artistsPager.artists;
+                List<Image> images;
+                List<Artist> artistsList = artists.items;
+                String thumbnailImageUrl;
+                int imagesCnt;
+                if (artistsList.size() > 0) {
+                    results = new ArrayList<ArtistDetails>(artistsList.size());
+                    for (Artist artist : artistsList) {
+                        images = artist.images;
+                        imagesCnt = images.size();
+                        if (imagesCnt == 0) {
+                            thumbnailImageUrl = null;
+                        } else {
+    //                        albumThumbnailImageUrl = images.get(imagesCnt - 2).url;
+                            thumbnailImageUrl = getThumbnaiImagelUrl(images);
+    //                        albumThumbnailImageUrl = images.get(1).url;
+                        }
+                        results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
+    //                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                     }
-                    results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                 }
+            } catch (Exception e) {
+                Log.v(LOG_TAG, "doInBackground - exception: " + e);
+                successfullyAccessedSpotify = false;
             }
             return results;
 
