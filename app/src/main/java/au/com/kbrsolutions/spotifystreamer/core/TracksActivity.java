@@ -35,11 +35,9 @@ public class TracksActivity extends ActionBarActivity {
 
             TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, tracksItemsList);
             mTracksListFragment.setListAdapter(trackArrayAdapter);
-//            mTracksListFragment.setEmptyText("Enter artist name"); // got java.lang.IllegalStateException: Content view not yet created
             trackArrayAdapter.notifyDataSetChanged();
             getSupportFragmentManager().beginTransaction()
-//            getFragmentManager().beginTransaction()
-                    .add(R.id.fragments_frame, mTracksListFragment, "")
+                    .replace(R.id.fragments_frame, mTracksListFragment, "")
                     .commit();
         }
         Intent intent = getIntent();
@@ -47,11 +45,6 @@ public class TracksActivity extends ActionBarActivity {
             message = getIntent().getStringExtra(Intent.EXTRA_TEXT);
             mTracksListFragment.sendArtistsDataRequestToSpotify(message);
         }
-//        Log.v(LOG_TAG, "onCreate - message: " + message);
-
-//        FragmentManager fragmentManager = getFragmentManager();
-//        FragmentTransaction fragmentTransaction;
-//        getSupportFragmentManager().beginTransaction().replace(R.id.fragments_frame, mTracksListFragment).commit();
     }
 
     void goBack() {
