@@ -18,7 +18,7 @@ import au.com.kbrsolutions.spotifystreamer.R;
 
 public class ArtistsActivity extends ActionBarActivity {
 
-    private ArtistsFragment mArtistsFragment;
+    private ArtistsListFragment mArtistsFragment;
     private TextView sarchText;
     private InputMethodManager imm;
     private final String ARTIST_TAG = "artistTag";
@@ -40,7 +40,7 @@ public class ArtistsActivity extends ActionBarActivity {
             }
         });
         if (mArtistsFragment == null) {
-            mArtistsFragment = new ArtistsFragment();
+            mArtistsFragment = new ArtistsListFragment();
         }
         List<ArtistDetails> tracksItemsList = new ArrayList<>();
 //            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
