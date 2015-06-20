@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 import au.com.kbrsolutions.spotifystreamer.R;
-import au.com.kbrsolutions.spotifystreamer.utils.ProgressBarHandler;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Image;
@@ -27,7 +26,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 public class TracksListFragment extends ListFragment {
 
     private TracksActivity mActivity;
-    private ProgressBarHandler mProgressBarHandler;
+//    private ProgressBarHandler mProgressBarHandler;
     private boolean isRetrievingData;
 
     private final int BIG_IMAGE_WIDTH = 640;
@@ -57,12 +56,12 @@ public class TracksListFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (mProgressBarHandler == null) {
-            mProgressBarHandler = new ProgressBarHandler(mActivity);
-        }
-        if (isRetrievingData()) {
-            mProgressBarHandler.show();
-        }
+//        if (mProgressBarHandler == null) {
+//            mProgressBarHandler = new ProgressBarHandler(mActivity);
+//        }
+//        if (isRetrievingData()) {
+//            mProgressBarHandler.show();
+//        }
     }
 
     private synchronized boolean isRetrievingData() {
@@ -79,7 +78,7 @@ public class TracksListFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
-            mProgressBarHandler.hide();
+//            mProgressBarHandler.hide();
             if (!successfullyAccessedSpotify) {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
                 return;

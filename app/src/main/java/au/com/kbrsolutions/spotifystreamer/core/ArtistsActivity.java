@@ -18,15 +18,18 @@ import au.com.kbrsolutions.spotifystreamer.R;
 
 public class ArtistsActivity extends ActionBarActivity {
 
-    private ArtistsListFragment mArtistsListFragment;
+    private ArtistsFragment mArtistsFragment;
     private TextView sarchText;
     private InputMethodManager imm;
+    private final String ARTIST_TAG = "artistTag";
+    private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "listViewFirstVisiblePosition";
 
     private final static String LOG_TAG = ArtistsActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "onCreate - start - savedInstanceState: " + savedInstanceState);
         setContentView(R.layout.activity_artists);
         imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         sarchText = (TextView) findViewById(R.id.searchTextView);
@@ -36,24 +39,20 @@ public class ArtistsActivity extends ActionBarActivity {
                 return handleSearchButtonClicked(actionId);
             }
         });
-        if (savedInstanceState == null) {
-            if (mArtistsListFragment == null) {
-                mArtistsListFragment = new ArtistsListFragment();
-//                Log.v(LOG_TAG, "created TracksListFragment");
-            }
-            List<ArtistDetails> tracksItemsList = new ArrayList<>();
+        if (mArtistsFragment == null) {
+            mArtistsFragment = new ArtistsFragment();
+        }
+        List<ArtistDetails> tracksItemsList = new ArrayList<>();
 //            tracksItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
 //            tracksItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null, null));
 //            tracksItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null, null));
 
-            ArtistArrayAdapter<TrackDetails> trackArrayAdapter = new ArtistArrayAdapter<>(this, tracksItemsList);
-            mArtistsListFragment.setListAdapter(trackArrayAdapter);
-//            mArtistsListFragment.setEmptyText("Enter artist name"); // got java.lang.IllegalStateException: Content view not yet created
-            trackArrayAdapter.notifyDataSetChanged();
-            getSupportFragmentManager().beginTransaction()
-                    .add(R.id.fragments_frame, mArtistsListFragment, "")
-                    .commit();
-        }
+        ArtistArrayAdapter<TrackDetails> trackArrayAdapter = new ArtistArrayAdapter<>(this, tracksItemsList);
+        mArtistsFragment.setListAdapter(trackArrayAdapter);
+//        trackArrayAdapter.notifyDataSetChanged();
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG)
+                .commit();
     }
 
     private boolean handleSearchButtonClicked(int actionId) {
@@ -61,13 +60,13 @@ public class ArtistsActivity extends ActionBarActivity {
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             String artistName = sarchText.getText().toString();
-            if (artistName.trim().length() > 0 && mArtistsListFragment != null) {
-                mArtistsListFragment.sendArtistsDataRequestToSpotify(artistName);
+            if (artistName.trim().length() > 0 && mArtistsFragment != null) {
+                mArtistsFragment.sendArtistsDataRequestToSpotify(artistName);
                 handled = true;
                 hideKeyboard();
             }
         }
-//        Log.v(LOG_TAG, "handleSearchButtonClicked");
+        Log.v(LOG_TAG, "handleSearchButtonClicked - end");
         return handled;
     }
 
@@ -77,16 +76,46 @@ public class ArtistsActivity extends ActionBarActivity {
         }
     }
 
+    private final String ARTISTS_DATA = "artistsData";
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+//
+        ArtistsDetailsAndScreenPositionHolder artistsDetailsAndScreenPositionHolder = mArtistsFragment.getArtistsDetails();
+        List<ArtistDetails> artistDetailsList = artistsDetailsAndScreenPositionHolder.artistsDetailsList;
+        int listViewFirstVisiblePosition = artistsDetailsAndScreenPositionHolder.listViewFirstVisiblePosition;
+        if (artistDetailsList != null && artistDetailsList.size() > 0) {
+            outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, artistsDetailsAndScreenPositionHolder.listViewFirstVisiblePosition);
+            Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
+        }
         Log.v(LOG_TAG, "onSaveInstanceState - done");
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        ArrayList<ArtistDetails> artistDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
+        if (artistDetailsList != null) {
+            int listViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
+            mArtistsFragment.showArtistsDetails(artistDetailsList, listViewFirstVisiblePosition);
+            Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + artistDetailsList.size());
+        }
         Log.v(LOG_TAG, "onRestoreInstanceState - done");
+    }
+
+    @Override
+    protected void onPause() {
+
+        // hide the keyboard in order to avoid getTextBeforeCursor on inactive InputConnection
+        // from: http://stackoverflow.com/questions/8122625/getextractedtext-on-inactive-inputconnection-warning-on-android
+
+        InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+
+        inputMethodManager.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+
+        super.onPause();
     }
 
     @Override

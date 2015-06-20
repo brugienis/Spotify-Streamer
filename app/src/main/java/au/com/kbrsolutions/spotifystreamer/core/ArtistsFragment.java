@@ -21,16 +21,14 @@ import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 
 /**
- * Created by business on 10/06/2015.
+ * Created by business on 19/06/2015.
  */
-public class ArtistsListFragment extends ListFragment {
+public class ArtistsFragment extends ListFragment {
 
+    private List<ArtistDetails> artistsDetailsList;
     private ArtistsActivity mActivity;
 
-    private final static String LOG_TAG = ArtistsListFragment.class.getSimpleName();
-    private ArtistSelectable selectedArtistHandler;
-//    private ProgressBarHandler mProgressBarHandler;
-
+    private final static String LOG_TAG = ArtistsFragment.class.getSimpleName();
 
     @Override
     public void onAttach(Activity activity) {
@@ -40,20 +38,26 @@ public class ArtistsListFragment extends ListFragment {
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
-//        ((ArtistDetails) getListAdapter().getItem(position)).spotifyId;
         Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) getListAdapter().getItem(position)).spotifyId);
         startActivity(detailIntent);
-//        mActivity.processClick(position);
-//        selectedArtistHandler.handleSelectedArtist();
+    }
+
+    public ArtistsDetailsAndScreenPositionHolder getArtistsDetails() {
+//        Log.v(LOG_TAG, "getArtistsDetails - visible pos fst/last: " + getListView().getFirstVisiblePosition() + "/" + getListView().getLastVisiblePosition());
+        return new ArtistsDetailsAndScreenPositionHolder(artistsDetailsList, getListView().getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
+    }
+
+    public void showArtistsDetails(List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
+        this.artistsDetailsList = artistsDetailsList;
+//        Log.v(LOG_TAG, "showArtistsDetails - artistsDetailsList.size: " + artistsDetailsList.size());
+        ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
+        mArtistArrayAdapter.clear();
+        mArtistArrayAdapter.addAll(artistsDetailsList);
+        getListView().setSelection(listViewFirstVisiblePosition);
     }
 
     public void sendArtistsDataRequestToSpotify(String artistName) {
-        Log.v(LOG_TAG, "sendArtistsDataRequestToSpotify - start");
-//        if (mProgressBarHandler == null) {
-//            mProgressBarHandler = new ProgressBarHandler(mActivity);
-//        }
-//        Log.v(LOG_TAG ,"sendArtistsDataRequestToSpotify - before show");
-//        mProgressBarHandler.show();
+//        Log.v(LOG_TAG, "sendArtistsDataRequestToSpotify - start");
         ((ArtistArrayAdapter) getListAdapter()).clear();
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
@@ -64,20 +68,15 @@ public class ArtistsListFragment extends ListFragment {
         private boolean successfullyAccessedSpotify = true;
 
         @Override
-        protected void onPostExecute(List<ArtistDetails> artistsDetails) {
-            Log.v(LOG_TAG, "onPostExecute - artistsDetails: " + artistsDetails);
-//            mProgressBarHandler.hide();
+        protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
             if (!successfullyAccessedSpotify) {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
                 return;
-            } else if (artistsDetails == null) {
-                Log.v(LOG_TAG, "showing toast");
+            } else if (artistsDetailsList == null) {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
             }
-            ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
-            mArtistArrayAdapter.clear();
-            mArtistArrayAdapter.addAll(artistsDetails);
+            showArtistsDetails(artistsDetailsList, 0);
         }
 
         SpotifyService mSpotifyService;
@@ -92,11 +91,11 @@ public class ArtistsListFragment extends ListFragment {
             List<ArtistDetails> results = null;
             String artistName = params[0];
             try {
-            if (mSpotifyService == null) {
-                SpotifyApi api = new SpotifyApi();
-                mSpotifyService = api.getService();
-            }
-            // if no access to network: java.net.UnknownHostException: Unable to resolve host "api.spotify.com": No address associated with hostname
+                if (mSpotifyService == null) {
+                    SpotifyApi api = new SpotifyApi();
+                    mSpotifyService = api.getService();
+                }
+                // if no access to network: java.net.UnknownHostException: Unable to resolve host "api.spotify.com": No address associated with hostname
                 ArtistsPager artistsPager = mSpotifyService.searchArtists(artistName);
 //                Log.v(LOG_TAG, "doInBackground - results: " + artistsPager);
                 Pager<Artist> artists = artistsPager.artists;
@@ -112,12 +111,12 @@ public class ArtistsListFragment extends ListFragment {
                         if (imagesCnt == 0) {
                             thumbnailImageUrl = null;
                         } else {
-    //                        albumThumbnailImageUrl = images.get(imagesCnt - 2).url;
+                            //                        albumThumbnailImageUrl = images.get(imagesCnt - 2).url;
                             thumbnailImageUrl = getThumbnaiImagelUrl(images);
-    //                        albumThumbnailImageUrl = images.get(1).url;
+                            //                        albumThumbnailImageUrl = images.get(1).url;
                         }
                         results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
-    //                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
+                        //                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
                     }
                 }
             } catch (Exception e) {
@@ -143,13 +142,4 @@ public class ArtistsListFragment extends ListFragment {
             return selectedUrl;
         }
     }
-
-    interface ArtistSelectable {
-        void handleSelectedArtist(String artistId);
-    }
-
-    public void setSelectedArtistHandler(ArtistSelectable selectedArtistHandler) {
-        this.selectedArtistHandler = selectedArtistHandler;
-    }
-
 }

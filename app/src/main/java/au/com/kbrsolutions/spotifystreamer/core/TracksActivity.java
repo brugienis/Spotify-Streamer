@@ -76,8 +76,8 @@ public class TracksActivity extends ActionBarActivity {
             return true;
         }
 
-//        return super.onOptionsItemSelected(item);
-        finish();
-        return true;
+        return super.onOptionsItemSelected(item);
+//        finish();
+//        return true;
     }
 }
