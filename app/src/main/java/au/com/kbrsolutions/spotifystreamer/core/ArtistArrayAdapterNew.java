@@ -16,17 +16,15 @@ import java.util.List;
 import au.com.kbrsolutions.spotifystreamer.R;
 
 /**
- * Created by business on 9/06/2015.
+ * Created by business on 20/06/2015.
  */
-public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
+public class ArtistArrayAdapterNew<T> extends ArrayAdapter<ArtistDetails> {
 
     private List<ArtistDetails> mObjects;
     private Activity mActivity;
     private int mWidthPx = -1;
 
-    private final String LOG_TAG = ArtistArrayAdapter.class.getSimpleName();
-
-    public ArtistArrayAdapter(Activity activity, List<ArtistDetails> objects) {
+    public ArtistArrayAdapterNew(ArtistsActivity activity, List<ArtistDetails> objects) {
 
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;
@@ -57,7 +55,7 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 
             if (mWidthPx == -1) {
                 mWidthPx = (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
-                          (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
+                        (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
             }
 
             Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(mWidthPx, mWidthPx).centerCrop().into(holder.artistImage);

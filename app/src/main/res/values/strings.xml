@@ -15,4 +15,5 @@
     <string name="title_activity_tracks">Top 10 tracks</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_activity_artists_activity_new">ArtistsActivityNew</string>
 </resources>

@@ -12,11 +12,6 @@
         <activity
             android:name=".core.ArtistsActivity"
             android:label="@string/title_activity_artists" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".core.TracksActivity"
@@ -27,12 +22,18 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".core.ArtistsActivity" />
         </activity>
+        <activity
+            android:name=".core.ArtistsActivityNew"
+            android:label="@string/title_activity_artists_activity_new" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 
-</manifest>
-
-<!--
-
+</manifest><!--
             android:configChanges="screenSize|orientation"
 
         <activity

@@ -1,12 +1,21 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
-import android.support.v4.app.ListFragment;
+import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -21,44 +30,113 @@ import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 
 /**
- * Created by business on 19/06/2015.
+ * Created by business on 20/06/2015.
  */
-public class ArtistsListFragment extends ListFragment {
+public class ArtistsFragment extends Fragment {
 
     private List<ArtistDetails> artistsDetailsList;
-    private ArtistsActivity mActivity;
+    private TextView sarchText;
+    private ListView mListView;
+    private ArtistArrayAdapter<TrackDetails> artistArrayAdapter;
+    private InputMethodManager imm;
+    private Activity mActivity;
 
     private final static String LOG_TAG = ArtistsListFragment.class.getSimpleName();
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        this.mActivity = (ArtistsActivity) activity;
+        this.mActivity = activity;
     }
 
     @Override
-    public void onListItemClick(ListView l, View v, int position, long id) {
-        Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) getListAdapter().getItem(position)).spotifyId);
-        startActivity(detailIntent);
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+//        return super.onCreateView(inflater, container, savedInstanceState);
+        View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
+        List<ArtistDetails> artistsItemsList = new ArrayList<>();
+//            artistsItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
+//            artistsItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null, null));
+//            artistsItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null, null));
+
+        sarchText = (TextView) rootView.findViewById(R.id.searchTextView);
+        sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                return handleSearchButtonClicked(actionId);
+            }
+        });
+        artistArrayAdapter = new ArtistArrayAdapter<>(getActivity(), artistsItemsList);
+        mListView = (ListView) rootView.findViewById(R.id.listview_artists);
+        mListView.setAdapter(artistArrayAdapter);
+        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) artistArrayAdapter.getItem(position)).spotifyId);
+                startActivity(detailIntent);
+            }
+        });
+        return rootView;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+    }
+
+    @Override
+    public void onPause() {
+
+        // hide the keyboard in order to avoid getTextBeforeCursor on inactive InputConnection
+        // from: http://stackoverflow.com/questions/8122625/getextractedtext-on-inactive-inputconnection-warning-on-android
+
+        InputMethodManager inputMethodManager = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+        super.onPause();
+    }
+
+    private boolean handleSearchButtonClicked(int actionId) {
+        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
+        boolean handled = false;
+        if (actionId == EditorInfo.IME_ACTION_SEARCH) {
+            String artistName = sarchText.getText().toString();
+            if (artistName.trim().length() > 0) {
+                sendArtistsDataRequestToSpotify(artistName);
+                handled = true;
+                hideKeyboard();
+            }
+        }
+        Log.v(LOG_TAG, "handleSearchButtonClicked - end");
+        return handled;
+    }
+
+    private void hideKeyboard() {
+        if (sarchText != null && sarchText.getWindowToken() != null && imm != null) {
+//            imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+        }
     }
 
     public ArtistsDetailsAndScreenPositionHolder getArtistsDetails() {
 //        Log.v(LOG_TAG, "getArtistsDetails - visible pos fst/last: " + getListView().getFirstVisiblePosition() + "/" + getListView().getLastVisiblePosition());
-        return new ArtistsDetailsAndScreenPositionHolder(artistsDetailsList, getListView().getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
+        return new ArtistsDetailsAndScreenPositionHolder(artistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
     }
 
     public void showArtistsDetails(List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
         this.artistsDetailsList = artistsDetailsList;
 //        Log.v(LOG_TAG, "showArtistsDetails - artistsDetailsList.size: " + artistsDetailsList.size());
-        ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
-        mArtistArrayAdapter.clear();
-        mArtistArrayAdapter.addAll(artistsDetailsList);
-        getListView().setSelection(listViewFirstVisiblePosition);
+//        ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
+        artistArrayAdapter.clear();
+        artistArrayAdapter.addAll(artistsDetailsList);
+        mListView.setSelection(listViewFirstVisiblePosition);
     }
 
     public void sendArtistsDataRequestToSpotify(String artistName) {
 //        Log.v(LOG_TAG, "sendArtistsDataRequestToSpotify - start");
-        ((ArtistArrayAdapter) getListAdapter()).clear();
+//        if (artistArrayAdapter != null) {
+            artistArrayAdapter.clear();
+//        }
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
     }

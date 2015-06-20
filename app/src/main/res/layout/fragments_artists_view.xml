@@ -1,0 +1,26 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:tools="http://schemas.android.com/tools"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent"
+             tools:context="au.com.kbrsolutions.spotifystreamer.core.ArtistsFragment">
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/searchTextView"
+        android:layout_gravity="left|top"
+        android:hint="@string/search_artist_hint"
+        android:inputType="text"
+        android:imeOptions="actionSearch"/>
+
+    <ListView
+        android:id="@+id/listview_artists"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/searchTextView" />
+</RelativeLayout>
+<!--
+
+        style="@style/ForecastListStyle"
+
+-->
