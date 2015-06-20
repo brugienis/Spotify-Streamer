@@ -41,7 +41,7 @@ public class ArtistsFragment extends Fragment {
     private InputMethodManager imm;
     private Activity mActivity;
 
-    private final static String LOG_TAG = ArtistsListFragment.class.getSimpleName();
+    private final static String LOG_TAG = ArtistsFragment.class.getSimpleName();
 
     @Override
     public void onAttach(Activity activity) {

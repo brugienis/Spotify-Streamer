@@ -10,10 +10,6 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".core.ArtistsActivity"
-            android:label="@string/title_activity_artists" >
-        </activity>
-        <activity
             android:name=".core.TracksActivity"
             android:configChanges="screenSize|orientation"
             android:label="@string/title_activity_tracks"
@@ -23,8 +19,9 @@
                 android:value=".core.ArtistsActivity" />
         </activity>
         <activity
-            android:name=".core.ArtistsActivityNew"
-            android:label="@string/title_activity_artists_activity_new" >
+            android:name=".core.ArtistsActivity"
+            android:label="@string/title_activity_artists_activity_new"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -37,28 +34,8 @@
             android:configChanges="screenSize|orientation"
 
         <activity
-            android:name=".core.ArtistsActivityComplex"
-            android:configChanges="screenSize|orientation"
+            android:name=".core.ArtistsActivity"
             android:label="@string/title_activity_artists" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
 
-        <activity
-            android:trackName=".core.HomeActivity"
-            android:label="@string/app_name" >
-        </activity>
-
-        <activity
-            android:trackName=".test.TestListViewActivity"
-            android:label="@string/title_activity_tracks"
-            android:parentActivityName=".core.ArtistsActivity" >
-
-            <meta-data
-                android:trackName="android.support.PARENT_ACTIVITY"
-                android:value="au.com.kbrsolutions.spotifystreamer.core.ArtistsActivity" />
-        </activity>
 -->

@@ -3,6 +3,7 @@ package au.com.kbrsolutions.spotifystreamer.core;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -76,6 +77,7 @@ public class TracksActivity extends ActionBarActivity {
             return true;
         }
 
+        Log.v(LOG_TAG, "onOptionsItemSelected  - id: " + id);
         return super.onOptionsItemSelected(item);
 //        finish();
 //        return true;
