@@ -35,9 +35,9 @@ import kaaes.spotify.webapi.android.models.Pager;
 public class ArtistsFragment extends Fragment {
 
     interface ArtistsFragmentCallbacks {
-        void onPreExecute();
-        void onProgressUpdate(int percent);
-        void onCancelled();
+//        void onPreExecute();
+//        void onProgressUpdate(int percent);
+//        void onCancelled();
         void onPostExecute();
     }
 
@@ -46,7 +46,7 @@ public class ArtistsFragment extends Fragment {
     private TextView sarchText;
     private ListView mListView;
     private ArtistArrayAdapter<TrackDetails> artistArrayAdapter;
-    private InputMethodManager imm;
+//    private InputMethodManager imm;
     private Activity mActivity;
     private boolean searchInProgress;
 
@@ -101,24 +101,29 @@ public class ArtistsFragment extends Fragment {
                 startActivity(detailIntent);
             }
         });
+//        hideKeyboard();
         return rootView;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+//        if (imm == null) {
+//            imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+//        }
     }
 
     @Override
     public void onPause() {
+        super.onPause();
 
         // hide the keyboard in order to avoid getTextBeforeCursor on inactive InputConnection
+
+//        hideKeyboard();
         // from: http://stackoverflow.com/questions/8122625/getextractedtext-on-inactive-inputconnection-warning-on-android
 
         InputMethodManager inputMethodManager = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
-        super.onPause();
     }
 
     private boolean handleSearchButtonClicked(int actionId) {
@@ -130,6 +135,8 @@ public class ArtistsFragment extends Fragment {
                 sendArtistsDataRequestToSpotify(artistName);
                 handled = true;
                 hideKeyboard();
+            } else {
+                sarchText.setText("");
             }
         }
         Log.v(LOG_TAG, "handleSearchButtonClicked - end");
@@ -137,14 +144,15 @@ public class ArtistsFragment extends Fragment {
     }
 
     private void hideKeyboard() {
-        if (sarchText != null && sarchText.getWindowToken() != null && imm != null) {
-//            imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
-        }
+
+        InputMethodManager inputMethodManager = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+//        if (sarchText != null && sarchText.getWindowToken() != null && imm != null) {
+//            imm.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+//        }
     }
 
     public SaveRestoreArtistDetailsHolder getArtistsDetails() {
-//        Log.v(LOG_TAG, "getArtistsDetails - visible pos fst/last: " + getListView().getFirstVisiblePosition() + "/" + getListView().getLastVisiblePosition());
         return new SaveRestoreArtistDetailsHolder(sarchText.getText(), artistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
     }
 
@@ -170,12 +178,7 @@ public class ArtistsFragment extends Fragment {
         }
     }
 
-//    public void showCurrentArtistsDetails(List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
-//        showArtistsDetails(listViewFirstVisiblePosition);
-//    }
-
     public void sendArtistsDataRequestToSpotify(String artistName) {
-//        Log.v(LOG_TAG, "sendArtistsDataRequestToSpotify - start");
         setSearchInProgress(true);
         artistArrayAdapter.clear();
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
@@ -232,7 +235,6 @@ public class ArtistsFragment extends Fragment {
                 }
                 // if no access to network: java.net.UnknownHostException: Unable to resolve host "api.spotify.com": No address associated with hostname
                 ArtistsPager artistsPager = mSpotifyService.searchArtists(artistName);
-//                Log.v(LOG_TAG, "doInBackground - results: " + artistsPager);
                 Pager<Artist> artists = artistsPager.artists;
                 List<Image> images;
                 List<Artist> artistsList = artists.items;
@@ -246,9 +248,7 @@ public class ArtistsFragment extends Fragment {
                         if (imagesCnt == 0) {
                             thumbnailImageUrl = null;
                         } else {
-                            //                        albumThumbnailImageUrl = images.get(imagesCnt - 2).url;
                             thumbnailImageUrl = getThumbnaiImagelUrl(images);
-                            //                        albumThumbnailImageUrl = images.get(1).url;
                         }
                         results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
                         //                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);

@@ -14,7 +14,7 @@ import au.com.kbrsolutions.spotifystreamer.R;
 public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragment.ArtistsFragmentCallbacks {
 
     private ArtistsFragment mArtistsFragment;
-    private final String ARTIST_NAME = "artist_nag";
+    private final String ARTIST_NAME = "artist_name";
     private final String ARTIST_TAG = "artist_tag";
     private final String ARTISTS_DATA = "artists_data";
     private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "listViewFirstVisiblePosition";
@@ -26,8 +26,7 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artists);
 
-//        FragmentManager fm = getFragmentManager();
-        mArtistsFragment = (ArtistsFragment)  getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
+        mArtistsFragment = (ArtistsFragment) getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
 
         Log.v(LOG_TAG, "onCreate - mArtistsFragment: " + mArtistsFragment);
         // If the Fragment is non-null, then it is currently being
@@ -36,13 +35,6 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
             mArtistsFragment = new ArtistsFragment();
             getSupportFragmentManager().beginTransaction().add(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG).commit();
         }
-
-//        if (mArtistsFragment == null) {
-//            mArtistsFragment = new ArtistsFragment();
-//        }
-//        getSupportFragmentManager().beginTransaction()
-//                .replace(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG)
-//                .commit();
     }
 
     @Override
@@ -96,21 +88,6 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-     public void onPreExecute() {
-        Log.v(LOG_TAG, "onPreExecute");
-    }
-
-    @Override
-    public void onProgressUpdate(int percent) {
-        Log.v(LOG_TAG, "onPreExecute");
-    }
-
-    @Override
-    public void onCancelled() {
-        Log.v(LOG_TAG, "onProgressUpdate");
     }
 
     @Override

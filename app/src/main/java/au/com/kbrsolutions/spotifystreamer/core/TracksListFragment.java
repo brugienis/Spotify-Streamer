@@ -2,8 +2,8 @@ package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -26,9 +26,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 public class TracksListFragment extends ListFragment {
 
     private TracksActivity mActivity;
-//    private ProgressBarHandler mProgressBarHandler;
-    private boolean isRetrievingData;
-
+    private boolean searchStarted;
     private final int BIG_IMAGE_WIDTH = 640;
     private final int SMALL_IMAGE_WIDTH = 200;
 
@@ -43,33 +41,32 @@ public class TracksListFragment extends ListFragment {
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Retain this fragment across configuration changes.
+        setRetainInstance(true);
+    }
+
+    @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
     }
 
     public void sendArtistsDataRequestToSpotify(String mArtistId) {
-        setIsRetrievingData(true);
+        if (isSearchStarted()) {
+            return;
+        }
+        setSearchStarted(true);
         TracksDataFetcher artistsFetcher = new TracksDataFetcher();
         artistsFetcher.execute(mArtistId);
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-//        if (mProgressBarHandler == null) {
-//            mProgressBarHandler = new ProgressBarHandler(mActivity);
-//        }
-//        if (isRetrievingData()) {
-//            mProgressBarHandler.show();
-//        }
+    public synchronized void setSearchStarted(boolean value) {
+        searchStarted = value;
     }
 
-    private synchronized boolean isRetrievingData() {
-        return isRetrievingData;
-    }
-
-    private synchronized void setIsRetrievingData(boolean isRetrievingData) {
-        this.isRetrievingData = isRetrievingData;
+    public synchronized boolean isSearchStarted() {
+        return searchStarted;
     }
 
     public class TracksDataFetcher extends AsyncTask<String, Void, List<TrackDetails>> {
@@ -78,34 +75,30 @@ public class TracksListFragment extends ListFragment {
 
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
-//            mProgressBarHandler.hide();
             if (!successfullyAccessedSpotify) {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
                 return;
             } else if (trackDetails == null) {
-                Log.v(LOG_TAG, "showing toast");
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
                 mActivity.goBack();
                 return;
             }
-            List<String> artistsNames = new ArrayList<>(trackDetails.size());
-            TrackArrayAdapter trackArrayAdapter = (TrackArrayAdapter) getListAdapter();
+            TrackArrayAdapter<TrackDetails> trackArrayAdapter = (TrackArrayAdapter) getListAdapter();
             trackArrayAdapter.clear();
             trackArrayAdapter.addAll(trackDetails);
-            setIsRetrievingData(false);
         }
 
         private SpotifyService mSpotifyService;
 
         @Override
         protected List<TrackDetails> doInBackground(String... params) {
+            String artistId = params[0];
 
             // If there's no artist Id, there's nothing to look up.  Verify size of params.
-            if (params.length == 0) {
+            if (artistId.length() == 0) {
                 return null;
             }
             List<TrackDetails> results = null;
-            String artistId = params[0];
             try {
                 if (mSpotifyService == null) {
                     SpotifyApi api = new SpotifyApi();
@@ -114,14 +107,12 @@ public class TracksListFragment extends ListFragment {
                 Map<String, Object> m = new HashMap<>();
                 m.put("country", "US");
                 Tracks tracks = mSpotifyService.getArtistTopTrack(artistId, m);
-                //"GET https://api.spotify.com/v1/artists/43ZHCT0cAZBISjO8DG9PnE/top-tracks?country=SE"
-                // GET https://api.spotify.com/v1/artists/4gzpq5DPGxSnKTe4SA8HAU%3Fcountry%3DUS/top-tracks
 
                 List<Track> listedTracks = tracks.tracks;
                 List<Image> images;
                 int imagesCnt;
                 if (listedTracks.size() > 0) {
-                    results = new ArrayList<TrackDetails>(listedTracks.size());
+                    results = new ArrayList<>(listedTracks.size());
                     for (Track track : listedTracks) {
                         images = track.album.images;
                         imagesCnt = images.size();
@@ -132,7 +123,6 @@ public class TracksListFragment extends ListFragment {
                             trackImages = getImagesUrls(images);
                         }
                         results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
-//                    Log.v(LOG_TAG, "doInBackground - id/trackName/popularity: " + track.name + "/" + track.popularity);
                     }
                 }
             } catch (Exception e) {
@@ -149,22 +139,19 @@ public class TracksListFragment extends ListFragment {
             int imageWidth;
             for (int i = imagesData.size() - 1; i > -1; i--) {
                 oneImage = imagesData.get(i);
-                imageWidth = (int) Integer.valueOf(oneImage.width);
-//                Log.v(LOG_TAG, "getImagesUrls - imageWidth/popularity: " + imageWidth + "/" + oneImage.url);
+                imageWidth = oneImage.width;
                 if (smallImage == null) {
                     if (imageWidth >= SMALL_IMAGE_WIDTH) {
                         smallImage = oneImage.url;
                     }
                 }
-                if (bigImage == null) {
-                    if (imageWidth >= BIG_IMAGE_WIDTH) {
-                        bigImage = oneImage.url;
-                        break;
-                    }
+                if (imageWidth >= BIG_IMAGE_WIDTH) {
+                    bigImage = oneImage.url;
+                    break;
                 }
                 prevImage = oneImage;
             }
-            if (bigImage == null) {
+            if (bigImage == null && prevImage != null) {
                 bigImage = prevImage.url;
             }
             return new TrackImages(bigImage, smallImage);
