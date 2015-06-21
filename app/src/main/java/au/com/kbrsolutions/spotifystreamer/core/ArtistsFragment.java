@@ -34,12 +34,21 @@ import kaaes.spotify.webapi.android.models.Pager;
  */
 public class ArtistsFragment extends Fragment {
 
+    interface ArtistsFragmentCallbacks {
+        void onPreExecute();
+        void onProgressUpdate(int percent);
+        void onCancelled();
+        void onPostExecute();
+    }
+
+    private ArtistsFragmentCallbacks mCallbacks;
     private List<ArtistDetails> artistsDetailsList;
     private TextView sarchText;
     private ListView mListView;
     private ArtistArrayAdapter<TrackDetails> artistArrayAdapter;
     private InputMethodManager imm;
     private Activity mActivity;
+    private boolean searchInProgress;
 
     private final static String LOG_TAG = ArtistsFragment.class.getSimpleName();
 
@@ -47,16 +56,32 @@ public class ArtistsFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         this.mActivity = activity;
+        try {
+            mCallbacks = (ArtistsFragmentCallbacks) activity;
+        } catch (Exception e) {
+            throw new RuntimeException("interface not implemented");
+        }
+        Log.v(LOG_TAG, "onAttach - mCallbacks: " + mCallbacks);
+    }
+
+    @Override
+     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Retain this fragment across configuration changes.
+        setRetainInstance(true);
+    }
+
+    @Override
+     public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+        Log.v(LOG_TAG, "onDetach - mCallbacks: " + mCallbacks);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-//        return super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
         List<ArtistDetails> artistsItemsList = new ArrayList<>();
-//            artistsItemsList.add(new TrackDetails("track0", "id0", "thumbImage0", null, null));
-//            artistsItemsList.add(new TrackDetails("track1", "id1", "thumbImage1", null, null));
-//            artistsItemsList.add(new TrackDetails("track2", "id2", "thumbImage2", null, null));
 
         sarchText = (TextView) rootView.findViewById(R.id.searchTextView);
         sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -118,25 +143,41 @@ public class ArtistsFragment extends Fragment {
         }
     }
 
-    public ArtistsDetailsAndScreenPositionHolder getArtistsDetails() {
+    public SaveRestoreArtistDetailsHolder getArtistsDetails() {
 //        Log.v(LOG_TAG, "getArtistsDetails - visible pos fst/last: " + getListView().getFirstVisiblePosition() + "/" + getListView().getLastVisiblePosition());
-        return new ArtistsDetailsAndScreenPositionHolder(artistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
+        return new SaveRestoreArtistDetailsHolder(sarchText.getText(), artistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
     }
 
-    public void showArtistsDetails(List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
-        this.artistsDetailsList = artistsDetailsList;
-//        Log.v(LOG_TAG, "showArtistsDetails - artistsDetailsList.size: " + artistsDetailsList.size());
-//        ArtistArrayAdapter mArtistArrayAdapter = (ArtistArrayAdapter) getListAdapter();
-        artistArrayAdapter.clear();
-        artistArrayAdapter.addAll(artistsDetailsList);
-        mListView.setSelection(listViewFirstVisiblePosition);
+    public synchronized void setSearchInProgress(boolean value) {
+        searchInProgress = value;
     }
+
+    public synchronized boolean isSearchInProgress() {
+        return searchInProgress;
+    }
+
+    public void showRestoredArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
+        sarchText.setText(artistName);
+        this.artistsDetailsList = artistsDetailsList;
+        showArtistsDetails(listViewFirstVisiblePosition);
+    }
+
+    public void showArtistsDetails(int listViewFirstVisiblePosition) {
+        artistArrayAdapter.clear();
+        if (artistsDetailsList != null) {
+            artistArrayAdapter.addAll(artistsDetailsList);
+            mListView.setSelection(listViewFirstVisiblePosition);
+        }
+    }
+
+//    public void showCurrentArtistsDetails(List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
+//        showArtistsDetails(listViewFirstVisiblePosition);
+//    }
 
     public void sendArtistsDataRequestToSpotify(String artistName) {
 //        Log.v(LOG_TAG, "sendArtistsDataRequestToSpotify - start");
-//        if (artistArrayAdapter != null) {
-            artistArrayAdapter.clear();
-//        }
+        setSearchInProgress(true);
+        artistArrayAdapter.clear();
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
     }
@@ -147,6 +188,7 @@ public class ArtistsFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
+            Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - start");
             if (!successfullyAccessedSpotify) {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
                 return;
@@ -154,7 +196,13 @@ public class ArtistsFragment extends Fragment {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
             }
-            showArtistsDetails(artistsDetailsList, 0);
+//            showArtistsDetails(artistsDetailsList, 0);
+            ArtistsFragment.this.artistsDetailsList = artistsDetailsList;
+            Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - mCallbacks: " + mCallbacks);
+            if (mCallbacks != null) {
+                mCallbacks.onPostExecute();
+            }
+            setSearchInProgress(false);
         }
 
         SpotifyService mSpotifyService;
@@ -166,6 +214,15 @@ public class ArtistsFragment extends Fragment {
             if (params.length == 0) {
                 return null;
             }
+
+            try {
+                Log.v(LOG_TAG, "going to sleep");
+                Thread.sleep(5000);
+                Log.v(LOG_TAG, "woked up");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             List<ArtistDetails> results = null;
             String artistName = params[0];
             try {

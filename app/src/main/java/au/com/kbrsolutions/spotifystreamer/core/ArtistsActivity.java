@@ -11,11 +11,12 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
-public class ArtistsActivity extends ActionBarActivity {
+public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragment.ArtistsFragmentCallbacks {
 
     private ArtistsFragment mArtistsFragment;
-    private final String ARTIST_TAG = "artistTag";
-    private final String ARTISTS_DATA = "artistsData";
+    private final String ARTIST_NAME = "artist_nag";
+    private final String ARTIST_TAG = "artist_tag";
+    private final String ARTISTS_DATA = "artists_data";
     private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "listViewFirstVisiblePosition";
 
     private final static String LOG_TAG = ArtistsActivity.class.getSimpleName();
@@ -24,23 +25,35 @@ public class ArtistsActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_artists);
+
+//        FragmentManager fm = getFragmentManager();
+        mArtistsFragment = (ArtistsFragment)  getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
+
+        Log.v(LOG_TAG, "onCreate - mArtistsFragment: " + mArtistsFragment);
+        // If the Fragment is non-null, then it is currently being
+        // retained across a configuration change.
         if (mArtistsFragment == null) {
             mArtistsFragment = new ArtistsFragment();
+            getSupportFragmentManager().beginTransaction().add(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG).commit();
         }
-        getSupportFragmentManager().beginTransaction()
-                .replace(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG)
-                .commit();
+
+//        if (mArtistsFragment == null) {
+//            mArtistsFragment = new ArtistsFragment();
+//        }
+//        getSupportFragmentManager().beginTransaction()
+//                .replace(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG)
+//                .commit();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-//
-        ArtistsDetailsAndScreenPositionHolder artistsDetailsAndScreenPositionHolder = mArtistsFragment.getArtistsDetails();
-        List<ArtistDetails> artistDetailsList = artistsDetailsAndScreenPositionHolder.artistsDetailsList;
+        SaveRestoreArtistDetailsHolder saveRestoreArtistDetailsHolder = mArtistsFragment.getArtistsDetails();
+        outState.putCharSequence(ARTIST_NAME, saveRestoreArtistDetailsHolder.artistName);
+        List<ArtistDetails> artistDetailsList = saveRestoreArtistDetailsHolder.artistsDetailsList;
         if (artistDetailsList != null && artistDetailsList.size() > 0) {
             outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
-            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, artistsDetailsAndScreenPositionHolder.listViewFirstVisiblePosition);
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, saveRestoreArtistDetailsHolder.listViewFirstVisiblePosition);
             Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
         }
         Log.v(LOG_TAG, "onSaveInstanceState - done");
@@ -50,9 +63,14 @@ public class ArtistsActivity extends ActionBarActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         ArrayList<ArtistDetails> artistDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
+        int listViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
+        if (!mArtistsFragment.isSearchInProgress()) {
+            mArtistsFragment.showRestoredArtistsDetails(
+                    savedInstanceState.getCharSequence(ARTIST_NAME),
+                    artistDetailsList,
+                    listViewFirstVisiblePosition);
+        }
         if (artistDetailsList != null) {
-            int listViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
-            mArtistsFragment.showArtistsDetails(artistDetailsList, listViewFirstVisiblePosition);
             Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + artistDetailsList.size());
         }
         Log.v(LOG_TAG, "onRestoreInstanceState - done");
@@ -78,5 +96,27 @@ public class ArtistsActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+     public void onPreExecute() {
+        Log.v(LOG_TAG, "onPreExecute");
+    }
+
+    @Override
+    public void onProgressUpdate(int percent) {
+        Log.v(LOG_TAG, "onPreExecute");
+    }
+
+    @Override
+    public void onCancelled() {
+        Log.v(LOG_TAG, "onProgressUpdate");
+    }
+
+    @Override
+    public void onPostExecute() {
+        Log.v(LOG_TAG, "onPostExecute - start");
+        mArtistsFragment.showArtistsDetails(0);
+        Log.v(LOG_TAG, "onPostExecute - end");
     }
 }
