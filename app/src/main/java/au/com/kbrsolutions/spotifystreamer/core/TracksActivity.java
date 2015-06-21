@@ -13,7 +13,6 @@ import au.com.kbrsolutions.spotifystreamer.R;
 
 public class TracksActivity extends ActionBarActivity {     //} implements TracksListFragment.TracksListFragmentCallbacks {
 
-//    private String message;
     private TracksListFragment mTracksListFragment;
     private final String TRACK_TAG = "track_tag";
 

@@ -28,7 +28,7 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
 
         mArtistsFragment = (ArtistsFragment) getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
 
-        Log.v(LOG_TAG, "onCreate - mArtistsFragment: " + mArtistsFragment);
+//        Log.v(LOG_TAG, "onCreate - mArtistsFragment: " + mArtistsFragment);
         // If the Fragment is non-null, then it is currently being
         // retained across a configuration change.
         if (mArtistsFragment == null) {

@@ -34,7 +34,6 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-//        Log.i(LOG_TAG, "getView - start");
         View v = convertView;
         ViewHolder holder;
         if (v == null) {

@@ -26,7 +26,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 public class TracksListFragment extends ListFragment {
 
     private TracksActivity mActivity;
-    private boolean searchStarted;
+    private boolean mSearchStarted;
     private final int BIG_IMAGE_WIDTH = 640;
     private final int SMALL_IMAGE_WIDTH = 200;
 
@@ -62,11 +62,11 @@ public class TracksListFragment extends ListFragment {
     }
 
     public synchronized void setSearchStarted(boolean value) {
-        searchStarted = value;
+        mSearchStarted = value;
     }
 
     public synchronized boolean isSearchStarted() {
-        return searchStarted;
+        return mSearchStarted;
     }
 
     public class TracksDataFetcher extends AsyncTask<String, Void, List<TrackDetails>> {

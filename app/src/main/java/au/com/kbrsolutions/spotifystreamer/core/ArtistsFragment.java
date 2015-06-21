@@ -42,13 +42,12 @@ public class ArtistsFragment extends Fragment {
     }
 
     private ArtistsFragmentCallbacks mCallbacks;
-    private List<ArtistDetails> artistsDetailsList;
-    private TextView sarchText;
+    private List<ArtistDetails> mArtistsDetailsList;
+    private TextView mSearchText;
     private ListView mListView;
-    private ArtistArrayAdapter<TrackDetails> artistArrayAdapter;
-//    private InputMethodManager imm;
+    private ArtistArrayAdapter<TrackDetails> mArtistArrayAdapter;
     private Activity mActivity;
-    private boolean searchInProgress;
+    private boolean mSearchInProgress;
 
     private final static String LOG_TAG = ArtistsFragment.class.getSimpleName();
 
@@ -83,21 +82,21 @@ public class ArtistsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
         List<ArtistDetails> artistsItemsList = new ArrayList<>();
 
-        sarchText = (TextView) rootView.findViewById(R.id.searchTextView);
-        sarchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        mSearchText = (TextView) rootView.findViewById(R.id.searchTextView);
+        mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 return handleSearchButtonClicked(actionId);
             }
         });
-        artistArrayAdapter = new ArtistArrayAdapter<>(getActivity(), artistsItemsList);
+        mArtistArrayAdapter = new ArtistArrayAdapter<>(getActivity(), artistsItemsList);
         mListView = (ListView) rootView.findViewById(R.id.listview_artists);
-        mListView.setAdapter(artistArrayAdapter);
+        mListView.setAdapter(mArtistArrayAdapter);
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) artistArrayAdapter.getItem(position)).spotifyId);
+                Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) mArtistArrayAdapter.getItem(position)).spotifyId);
                 startActivity(detailIntent);
             }
         });
@@ -123,20 +122,20 @@ public class ArtistsFragment extends Fragment {
         // from: http://stackoverflow.com/questions/8122625/getextractedtext-on-inactive-inputconnection-warning-on-android
 
         InputMethodManager inputMethodManager = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+        inputMethodManager.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
     }
 
     private boolean handleSearchButtonClicked(int actionId) {
         Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            String artistName = sarchText.getText().toString();
+            String artistName = mSearchText.getText().toString();
             if (artistName.trim().length() > 0) {
                 sendArtistsDataRequestToSpotify(artistName);
                 handled = true;
                 hideKeyboard();
             } else {
-                sarchText.setText("");
+                mSearchText.setText("");
             }
         }
         Log.v(LOG_TAG, "handleSearchButtonClicked - end");
@@ -146,41 +145,41 @@ public class ArtistsFragment extends Fragment {
     private void hideKeyboard() {
 
         InputMethodManager inputMethodManager = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
-        inputMethodManager.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
-//        if (sarchText != null && sarchText.getWindowToken() != null && imm != null) {
-//            imm.hideSoftInputFromWindow(sarchText.getWindowToken(), 0);
+        inputMethodManager.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
+//        if (mSearchText != null && mSearchText.getWindowToken() != null && imm != null) {
+//            imm.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
 //        }
     }
 
     public SaveRestoreArtistDetailsHolder getArtistsDetails() {
-        return new SaveRestoreArtistDetailsHolder(sarchText.getText(), artistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)artistsDetailsList;
+        return new SaveRestoreArtistDetailsHolder(mSearchText.getText(), mArtistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)mArtistsDetailsList;
     }
 
     public synchronized void setSearchInProgress(boolean value) {
-        searchInProgress = value;
+        mSearchInProgress = value;
     }
 
     public synchronized boolean isSearchInProgress() {
-        return searchInProgress;
+        return mSearchInProgress;
     }
 
     public void showRestoredArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
-        sarchText.setText(artistName);
-        this.artistsDetailsList = artistsDetailsList;
+        mSearchText.setText(artistName);
+        this.mArtistsDetailsList = artistsDetailsList;
         showArtistsDetails(listViewFirstVisiblePosition);
     }
 
     public void showArtistsDetails(int listViewFirstVisiblePosition) {
-        artistArrayAdapter.clear();
-        if (artistsDetailsList != null) {
-            artistArrayAdapter.addAll(artistsDetailsList);
+        mArtistArrayAdapter.clear();
+        if (mArtistsDetailsList != null) {
+            mArtistArrayAdapter.addAll(mArtistsDetailsList);
             mListView.setSelection(listViewFirstVisiblePosition);
         }
     }
 
     public void sendArtistsDataRequestToSpotify(String artistName) {
         setSearchInProgress(true);
-        artistArrayAdapter.clear();
+        mArtistArrayAdapter.clear();
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
     }
@@ -199,8 +198,8 @@ public class ArtistsFragment extends Fragment {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
             }
-//            showArtistsDetails(artistsDetailsList, 0);
-            ArtistsFragment.this.artistsDetailsList = artistsDetailsList;
+//            showArtistsDetails(mArtistsDetailsList, 0);
+            ArtistsFragment.this.mArtistsDetailsList = artistsDetailsList;
             Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - mCallbacks: " + mCallbacks);
             if (mCallbacks != null) {
                 mCallbacks.onPostExecute();
