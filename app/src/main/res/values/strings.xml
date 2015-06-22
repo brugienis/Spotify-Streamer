@@ -10,4 +10,12 @@
     <string name="search_artist_hint">Enter artist name</string>
     <string name="title_activity_artists">Spotify Streamer</string>
     <string name="title_activity_tracks">Top 10 tracks</string>
+    <!-- preferences -->
+    <string name="title_activity_settings">Settings</string>
+    <string name="pref_country_label">Country code</string>
+    <string name="pref_country_key" translatable="false">country_code</string>
+    <string name="pref_country_default">US</string>
+
+<!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

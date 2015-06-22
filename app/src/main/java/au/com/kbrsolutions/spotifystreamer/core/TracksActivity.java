@@ -39,7 +39,7 @@ public class TracksActivity extends ActionBarActivity {     //} implements Track
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra(Intent.EXTRA_TEXT)) {
             String message = getIntent().getStringExtra(Intent.EXTRA_TEXT);
-            mTracksListFragment.sendArtistsDataRequestToSpotify(message);
+            mTracksListFragment.sendArtistTracksDataRequestToSpotify(message);
         }
     }
 
@@ -50,7 +50,7 @@ public class TracksActivity extends ActionBarActivity {     //} implements Track
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_tracks, menu);
+//        getMenuInflater().inflate(R.menu.menu_artists_fragment, menu);
         return true;
     }
 

@@ -1,5 +1,6 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
+import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,12 +21,13 @@ import au.com.kbrsolutions.spotifystreamer.R;
 public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
     private List<TrackDetails> mObjects;
-    private TracksActivity mActivity;
+//    private TracksActivity mActivity;
+    private Activity mActivity;
     private int mWidthPx = -1;
 
     private final String LOG_TAG = TrackArrayAdapter.class.getSimpleName();
 
-    public TrackArrayAdapter(TracksActivity activity, List<TrackDetails> objects) {
+    public TrackArrayAdapter(Activity activity, List<TrackDetails> objects) {
 
         super(activity.getApplicationContext(), -1, objects);
         this.mActivity = activity;

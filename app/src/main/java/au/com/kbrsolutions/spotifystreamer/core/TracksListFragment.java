@@ -1,9 +1,12 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ListFragment;
+import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -38,6 +41,7 @@ public class TracksListFragment extends ListFragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         this.mActivity = (TracksActivity) activity;
+        Log.v(LOG_TAG, "mActivity: " + mActivity);
     }
 
     @Override
@@ -52,13 +56,18 @@ public class TracksListFragment extends ListFragment {
         super.onListItemClick(l, v, position, id);
     }
 
-    public void sendArtistsDataRequestToSpotify(String mArtistId) {
+    public void sendArtistTracksDataRequestToSpotify(String mArtistId) {
         if (isSearchStarted()) {
             return;
         }
         setSearchStarted(true);
         TracksDataFetcher artistsFetcher = new TracksDataFetcher();
         artistsFetcher.execute(mArtistId);
+    }
+
+    private SharedPreferences getPrefs() {
+        Log.v(LOG_TAG, "mActivity/getActivity: " + mActivity + "/" + getActivity());
+        return PreferenceManager.getDefaultSharedPreferences(mActivity /* context */);
     }
 
     public synchronized void setSearchStarted(boolean value) {
@@ -71,6 +80,7 @@ public class TracksListFragment extends ListFragment {
 
     public class TracksDataFetcher extends AsyncTask<String, Void, List<TrackDetails>> {
 
+        private SpotifyService mSpotifyService;
         private boolean successfullyAccessedSpotify = true;
 
         @Override
@@ -88,8 +98,6 @@ public class TracksListFragment extends ListFragment {
             trackArrayAdapter.addAll(trackDetails);
         }
 
-        private SpotifyService mSpotifyService;
-
         @Override
         protected List<TrackDetails> doInBackground(String... params) {
             String artistId = params[0];
@@ -98,6 +106,10 @@ public class TracksListFragment extends ListFragment {
             if (artistId.length() == 0) {
                 return null;
             }
+
+            SharedPreferences prefs = getPrefs();
+//            String countryCode = prefs.getString(getResources().getString(R.string.pref_country_key), getResources().getString(R.string.pref_country_default));
+
             List<TrackDetails> results = null;
             try {
                 if (mSpotifyService == null) {
@@ -106,6 +118,7 @@ public class TracksListFragment extends ListFragment {
                 }
                 Map<String, Object> m = new HashMap<>();
                 m.put("country", "US");
+//                m.put("country", countryCode);
                 Tracks tracks = mSpotifyService.getArtistTopTrack(artistId, m);
 
                 List<Track> listedTracks = tracks.tracks;

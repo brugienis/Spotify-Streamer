@@ -28,6 +28,14 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".core.ArtistsActivity" />
         </activity>
+        <activity
+            android:name=".core.SettingsActivity"
+            android:label="@string/title_activity_settings" >
+        android:parentActivityName=".MainActivity" >
+        <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="au.com.kbrsolutions.spotifystreamer.core.ArtistsActivity" />
+        </activity>
     </application>
 
 </manifest><!--

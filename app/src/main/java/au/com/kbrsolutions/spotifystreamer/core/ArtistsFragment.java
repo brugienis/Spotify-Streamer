@@ -2,9 +2,9 @@ package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -19,7 +19,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import kaaes.spotify.webapi.android.SpotifyApi;
@@ -28,6 +30,8 @@ import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
+import kaaes.spotify.webapi.android.models.Track;
+import kaaes.spotify.webapi.android.models.Tracks;
 
 /**
  * Created by business on 20/06/2015.
@@ -38,7 +42,8 @@ public class ArtistsFragment extends Fragment {
 //        void onPreExecute();
 //        void onProgressUpdate(int percent);
 //        void onCancelled();
-        void onPostExecute();
+        void onPostExecute(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition);
+        void showTracks(int selectedArtistRowPosition, List<TrackDetails> trackDetails);
     }
 
     private ArtistsFragmentCallbacks mCallbacks;
@@ -58,7 +63,7 @@ public class ArtistsFragment extends Fragment {
         try {
             mCallbacks = (ArtistsFragmentCallbacks) activity;
         } catch (Exception e) {
-            throw new RuntimeException("interface not implemented");
+            throw new RuntimeException(activity.toString() + " must implement ArtistsFragmentCallbacks");
         }
         Log.v(LOG_TAG, "onAttach - mCallbacks: " + mCallbacks);
     }
@@ -68,6 +73,7 @@ public class ArtistsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         // Retain this fragment across configuration changes.
         setRetainInstance(true);
+//        hasOptionsMenu();
     }
 
     @Override
@@ -96,11 +102,9 @@ public class ArtistsFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                Intent detailIntent = new Intent(getActivity(), TracksActivity.class).putExtra(Intent.EXTRA_TEXT, ((ArtistDetails) mArtistArrayAdapter.getItem(position)).spotifyId);
-                startActivity(detailIntent);
+                handleListItemClicked(position);
             }
         });
-//        hideKeyboard();
         return rootView;
     }
 
@@ -140,6 +144,13 @@ public class ArtistsFragment extends Fragment {
         }
         Log.v(LOG_TAG, "handleSearchButtonClicked - end");
         return handled;
+    }
+
+    private void handleListItemClicked(int position) {
+        Log.v(LOG_TAG, "handleListItemClicked - start");
+        TracksDataFetcher artistsFetcher = new TracksDataFetcher();
+        artistsFetcher.execute(position);
+        Log.v(LOG_TAG, "handleListItemClicked - end");
     }
 
     private void hideKeyboard() {
@@ -187,6 +198,12 @@ public class ArtistsFragment extends Fragment {
     public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {
 
         private boolean successfullyAccessedSpotify = true;
+        String artistName;
+
+//        @Override
+//        protected void onPreExecute() {
+//            SharedPreferences prefs = getPrefs();
+//        }
 
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
@@ -202,7 +219,7 @@ public class ArtistsFragment extends Fragment {
             ArtistsFragment.this.mArtistsDetailsList = artistsDetailsList;
             Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - mCallbacks: " + mCallbacks);
             if (mCallbacks != null) {
-                mCallbacks.onPostExecute();
+                mCallbacks.onPostExecute(artistName, artistsDetailsList, 0);
             }
             setSearchInProgress(false);
         }
@@ -217,6 +234,7 @@ public class ArtistsFragment extends Fragment {
                 return null;
             }
 
+            // todo: remove after tests
             try {
                 Log.v(LOG_TAG, "going to sleep");
                 Thread.sleep(5000);
@@ -226,7 +244,7 @@ public class ArtistsFragment extends Fragment {
             }
 
             List<ArtistDetails> results = null;
-            String artistName = params[0];
+            artistName = params[0];
             try {
                 if (mSpotifyService == null) {
                     SpotifyApi api = new SpotifyApi();
@@ -276,4 +294,107 @@ public class ArtistsFragment extends Fragment {
             return selectedUrl;
         }
     }
+
+    public class TracksDataFetcher extends AsyncTask<Integer, Void, List<TrackDetails>> {
+
+        private SpotifyService mSpotifyService;
+        private boolean successfullyAccessedSpotify = true;
+        private int selectedArtistRowPosition;
+        private final int BIG_IMAGE_WIDTH = 640;
+        private final int SMALL_IMAGE_WIDTH = 200;
+
+        @Override
+        protected void onPostExecute(List<TrackDetails> trackDetails) {
+            if (!successfullyAccessedSpotify) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                return;
+            } else if (trackDetails == null) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
+                return;
+            }
+            mCallbacks.showTracks(selectedArtistRowPosition, trackDetails);
+            Log.v(LOG_TAG, "onPostExecute - trackDetails.size()" + trackDetails.size());
+        }
+
+        @Override
+        protected List<TrackDetails> doInBackground(Integer... params) {
+            selectedArtistRowPosition = params[0];
+            String artistId = (mArtistArrayAdapter.getItem(selectedArtistRowPosition)).spotifyId;
+
+            // If there's no artist Id, there's nothing to look up.  Verify size of params.
+            if (artistId.length() == 0) {
+                return null;
+            }
+            String countryCode = PreferenceManager.getDefaultSharedPreferences(mActivity /* context */).getString(getResources().getString(R.string.pref_country_key), getResources().getString(R.string.pref_country_default));
+
+            List<TrackDetails> results = null;
+            try {
+                if (mSpotifyService == null) {
+                    SpotifyApi api = new SpotifyApi();
+                    mSpotifyService = api.getService();
+                }
+                Map<String, Object> m = new HashMap<>();
+//                m.put("country", "US");
+                m.put("country", countryCode);
+                Tracks tracks = mSpotifyService.getArtistTopTrack(artistId, m);
+
+                List<Track> listedTracks = tracks.tracks;
+                List<Image> images;
+                int imagesCnt;
+                if (listedTracks.size() > 0) {
+                    results = new ArrayList<>(listedTracks.size());
+                    for (Track track : listedTracks) {
+                        images = track.album.images;
+                        imagesCnt = images.size();
+                        TrackImages trackImages;
+                        if (imagesCnt == 0) {
+                            trackImages = new TrackImages(null, null);
+                        } else {
+                            trackImages = getImagesUrls(images);
+                        }
+                        results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
+                    }
+                }
+            } catch (Exception e) {
+                successfullyAccessedSpotify = false;
+            }
+            return results;
+        }
+
+        private TrackImages getImagesUrls(List<Image> imagesData) {
+            Image prevImage = null;
+            String bigImage = null;
+            String smallImage = null;
+            Image oneImage;
+            int imageWidth;
+            for (int i = imagesData.size() - 1; i > -1; i--) {
+                oneImage = imagesData.get(i);
+                imageWidth = oneImage.width;
+                if (smallImage == null) {
+                    if (imageWidth >= SMALL_IMAGE_WIDTH) {
+                        smallImage = oneImage.url;
+                    }
+                }
+                if (imageWidth >= BIG_IMAGE_WIDTH) {
+                    bigImage = oneImage.url;
+                    break;
+                }
+                prevImage = oneImage;
+            }
+            if (bigImage == null && prevImage != null) {
+                bigImage = prevImage.url;
+            }
+            return new TrackImages(bigImage, smallImage);
+        }
+
+        class TrackImages {
+            public final String big;
+            public final String small;
+            TrackImages(String big, String small) {
+                this.big = big;
+                this.small = small;
+            }
+        }
+    }
+
 }
