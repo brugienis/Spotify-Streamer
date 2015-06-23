@@ -162,9 +162,9 @@ public class ArtistsFragment extends Fragment {
 //        }
     }
 
-    public SaveRestoreArtistDetailsHolder getArtistsDetails() {
-        return new SaveRestoreArtistDetailsHolder(mSearchText.getText(), mArtistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)mArtistsDetailsList;
-    }
+//    public SaveRestoreArtistDetailsHolder getArtistsDetails() {
+//        return new SaveRestoreArtistDetailsHolder(mSearchText.getText(), mArtistsDetailsList, mListView.getFirstVisiblePosition());     //(ArrayList)mArtistsDetailsList;
+//    }
 
     public synchronized void setSearchInProgress(boolean value) {
         mSearchInProgress = value;
@@ -246,13 +246,13 @@ public class ArtistsFragment extends Fragment {
             }
 
             // todo: remove after tests
-            try {
-                Log.v(LOG_TAG, "going to sleep");
-                Thread.sleep(5000);
-                Log.v(LOG_TAG, "woked up");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Log.v(LOG_TAG, "going to sleep");
+//                Thread.sleep(5000);
+//                Log.v(LOG_TAG, "woked up");
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
 
             List<ArtistDetails> results = null;
             artistName = params[0];

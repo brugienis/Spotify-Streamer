@@ -13,26 +13,25 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
-public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragment.ArtistsFragmentCallbacks {
+public class SpotifyStreamerActivity extends ActionBarActivity  implements ArtistsFragment.ArtistsFragmentCallbacks {
 
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
     private CharSequence artistName;
     private List<ArtistDetails> artistsDetailsList;
     private int artistsListViewFirstVisiblePosition;
-    private int selectedArtistRowPosition;
     private final String ARTIST_NAME = "artist_name";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
     private final String ARTISTS_DATA = "artists_data";
     private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "listViewFirstVisiblePosition";
 
-    private final static String LOG_TAG = ArtistsActivity.class.getSimpleName();
+    private final static String LOG_TAG = SpotifyStreamerActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_artists);
+        setContentView(R.layout.activity_spotifystreamer);
 
         getSupportFragmentManager().addOnBackStackChangedListener(
                 new FragmentManager.OnBackStackChangedListener() {
@@ -58,11 +57,6 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
             getSupportFragmentManager().beginTransaction().add(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG).commit();
         }
     }
-
-    /** TODO: 22/06/2015 type artistname. When results show turn to lanscape. Scroll artists up and touch one. Tracks show.
-                      turn to portrait and click Up navigation button. The list of artists shows, but the first visible is the first
-                      artist in the list - not the one that was the first visible in landscape
-     */
 
     @Override
     public void showTracks(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
@@ -100,16 +94,14 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        // TODO: 22/06/2015 do not call mArtistsFragment.getArtistsDetails() - use data stored in this class
-        SaveRestoreArtistDetailsHolder saveRestoreArtistDetailsHolder = mArtistsFragment.getArtistsDetails();
-        outState.putCharSequence(ARTIST_NAME, saveRestoreArtistDetailsHolder.artistName);
-        List<ArtistDetails> artistDetailsList = saveRestoreArtistDetailsHolder.artistsDetailsList;
+        outState.putCharSequence(ARTIST_NAME, artistName);
+        List<ArtistDetails> artistDetailsList = artistsDetailsList;
         if (artistDetailsList != null && artistDetailsList.size() > 0) {
             outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
-            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, saveRestoreArtistDetailsHolder.listViewFirstVisiblePosition);
-            Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, artistsListViewFirstVisiblePosition);
+//            Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
         }
-        Log.v(LOG_TAG, "onSaveInstanceState - done");
+//        Log.v(LOG_TAG, "onSaveInstanceState - done");
     }
 
     @Override
@@ -125,9 +117,9 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
                     artistsListViewFirstVisiblePosition);
         }
         if (artistsDetailsList != null) {
-            Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + artistsDetailsList.size());
+//            Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + artistsDetailsList.size());
         }
-        Log.v(LOG_TAG, "onRestoreInstanceState - done");
+//        Log.v(LOG_TAG, "onRestoreInstanceState - done");
     }
 
     @Override
