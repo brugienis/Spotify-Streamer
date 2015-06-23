@@ -59,14 +59,16 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
         }
     }
 
-    // TODO: 22/06/2015 type artistname. When results show turn to lanscape. Scroll artists up and touch one. Tracks show.
-    //                  turn to portrait and click Up navigation button. The list of artists shows, but the first visible is the first
-    //                  artist in the list - not the one that was the first visible in landscape
+    /** TODO: 22/06/2015 type artistname. When results show turn to lanscape. Scroll artists up and touch one. Tracks show.
+                      turn to portrait and click Up navigation button. The list of artists shows, but the first visible is the first
+                      artist in the list - not the one that was the first visible in landscape
+     */
 
     @Override
-    public void showTracks(int selectedArtistRowPosition, List<TrackDetails> trackDetails) {
+    public void showTracks(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
         Log.v(LOG_TAG, "showTracks - start - tracks: " + trackDetails.size());
-        this.selectedArtistRowPosition = selectedArtistRowPosition;
+        getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_tracks));
+        this.artistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
         if (mTracksFragment == null) {
             mTracksFragment = new TracksFragment();
@@ -78,13 +80,9 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
     }
 
     private void showPrevArtistsData() {
-        mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, selectedArtistRowPosition);
+        getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_artists));
+        mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, artistsListViewFirstVisiblePosition);
     }
-
-//    @Override
-//    public void onBackStackChanged() {
-//        shouldDisplayHomeUp();
-//    }
 
     public void shouldDisplayHomeUp(){
         //Enable Up button only  if there are entries in the back stack
@@ -117,12 +115,6 @@ public class ArtistsActivity extends ActionBarActivity  implements ArtistsFragme
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-
-
-//        this.artistsDetailsList = artistsDetailsList;
-//        this.artistName = artistName;
-//        this.artistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
-
         artistName = savedInstanceState.getCharSequence(ARTIST_NAME);
         artistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
         artistsListViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);

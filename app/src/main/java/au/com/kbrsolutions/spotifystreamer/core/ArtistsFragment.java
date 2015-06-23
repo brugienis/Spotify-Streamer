@@ -149,7 +149,7 @@ public class ArtistsFragment extends Fragment {
     private void handleListItemClicked(int position) {
         Log.v(LOG_TAG, "handleListItemClicked - start");
         TracksDataFetcher artistsFetcher = new TracksDataFetcher();
-        artistsFetcher.execute(position);
+        artistsFetcher.execute(new SelectedArtistRowDetails(mListView.getFirstVisiblePosition(), (mArtistArrayAdapter.getItem(position)).spotifyId));
         Log.v(LOG_TAG, "handleListItemClicked - end");
     }
 
@@ -193,6 +193,17 @@ public class ArtistsFragment extends Fragment {
         mArtistArrayAdapter.clear();
         ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
         artistsFetcher.execute(artistName);
+    }
+
+    private class SelectedArtistRowDetails {
+        private final int listViewFirstVisiblePosition;
+        private final String artistId;
+
+        SelectedArtistRowDetails(int listViewFirstVisiblePosition, String artistId) {
+            this.listViewFirstVisiblePosition = listViewFirstVisiblePosition;
+            this.artistId = artistId;
+        }
+
     }
 
     public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {
@@ -295,11 +306,11 @@ public class ArtistsFragment extends Fragment {
         }
     }
 
-    public class TracksDataFetcher extends AsyncTask<Integer, Void, List<TrackDetails>> {
+    public class TracksDataFetcher extends AsyncTask<SelectedArtistRowDetails, Void, List<TrackDetails>> {
 
         private SpotifyService mSpotifyService;
         private boolean successfullyAccessedSpotify = true;
-        private int selectedArtistRowPosition;
+        private int listViewFirstVisiblePosition;
         private final int BIG_IMAGE_WIDTH = 640;
         private final int SMALL_IMAGE_WIDTH = 200;
 
@@ -312,14 +323,15 @@ public class ArtistsFragment extends Fragment {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
                 return;
             }
-            mCallbacks.showTracks(selectedArtistRowPosition, trackDetails);
+            mCallbacks.showTracks(listViewFirstVisiblePosition, trackDetails);
             Log.v(LOG_TAG, "onPostExecute - trackDetails.size()" + trackDetails.size());
         }
 
         @Override
-        protected List<TrackDetails> doInBackground(Integer... params) {
-            selectedArtistRowPosition = params[0];
-            String artistId = (mArtistArrayAdapter.getItem(selectedArtistRowPosition)).spotifyId;
+        protected List<TrackDetails> doInBackground(SelectedArtistRowDetails... params) {
+            listViewFirstVisiblePosition = params[0].listViewFirstVisiblePosition;
+//            String artistId = (mArtistArrayAdapter.getItem(listViewFirstVisiblePosition)).spotifyId;
+            String artistId = params[0].artistId;
 
             // If there's no artist Id, there's nothing to look up.  Verify size of params.
             if (artistId.length() == 0) {
