@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -39,7 +38,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
                         // Update your UI here.
                         shouldDisplayHomeUp();
                         int cnt = getSupportFragmentManager().getBackStackEntryCount();
-                        Log.v(LOG_TAG, "onBackStackChanged - called - cnt: " + cnt);
+//                        Log.v(LOG_TAG, "onBackStackChanged - called - cnt: " + cnt);
                         if (cnt == 0) {      /* we came back from artist's tracks to artists list */
                             showPrevArtistsData();
                         }
@@ -60,7 +59,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
 
     @Override
     public void showTracks(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
-        Log.v(LOG_TAG, "showTracks - start - tracks: " + trackDetails.size());
+//        Log.v(LOG_TAG, "showTracks - start - tracks: " + trackDetails.size());
         getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_tracks));
         this.artistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
@@ -147,12 +146,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
 
     @Override
     public void onPostExecute(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
-        Log.v(LOG_TAG, "onPostExecute - start");
+//        Log.v(LOG_TAG, "onPostExecute - start");
         this.artistsDetailsList = artistsDetailsList;
         this.artistName = artistName;
         this.artistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
         mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, artistsListViewFirstVisiblePosition);
 //        mArtistsFragment.showArtistsDetails(0);
-        Log.v(LOG_TAG, "onPostExecute - end");
+//        Log.v(LOG_TAG, "onPostExecute - end");
     }
 }
