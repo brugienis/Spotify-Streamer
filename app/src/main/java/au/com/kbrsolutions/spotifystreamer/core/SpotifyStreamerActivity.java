@@ -124,7 +124,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_artists_fragment, menu);
+        getMenuInflater().inflate(R.menu.menu_spotifystreamer_activity, menu);
         return true;
     }
 

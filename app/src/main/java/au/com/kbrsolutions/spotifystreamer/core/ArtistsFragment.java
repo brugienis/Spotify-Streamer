@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -51,7 +53,7 @@ public class ArtistsFragment extends Fragment {
 
     private ArtistsFragmentCallbacks mCallbacks;
     private List<ArtistDetails> mArtistsDetailsList;
-    private TextView mSearchText;
+    private EditText mSearchText;
     private ListView mListView;
     private ArtistArrayAdapter<TrackDetails> mArtistArrayAdapter;
     private Activity mActivity;
@@ -91,7 +93,7 @@ public class ArtistsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
         List<ArtistDetails> artistsItemsList = new ArrayList<>();
 
-        mSearchText = (TextView) rootView.findViewById(R.id.searchTextView);
+        mSearchText = (EditText) rootView.findViewById(R.id.searchTextView);
         mSearchText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
@@ -114,6 +116,9 @@ public class ArtistsFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        String searchText = mSearchText.getText().toString();
+        Log.v(LOG_TAG, "onResume - mSearchText: " + searchText);
+        mSearchText.setSelection(searchText.length());
 //        if (imm == null) {
 //            imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
 //        }
@@ -183,6 +188,8 @@ public class ArtistsFragment extends Fragment {
 
     public void showRestoredArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
         mSearchText.setText(artistName);
+        mSearchText.requestFocus();
+        mSearchText.setSelection(artistName.length());
         this.mArtistsDetailsList = artistsDetailsList;
         showArtistsDetails(listViewFirstVisiblePosition);
     }
