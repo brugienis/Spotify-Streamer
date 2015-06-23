@@ -22,9 +22,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import kaaes.spotify.webapi.android.SpotifyApi;
+import kaaes.spotify.webapi.android.SpotifyCallback;
+import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
@@ -32,6 +35,7 @@ import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
+import retrofit.client.Response;
 
 /**
  * Created by business on 20/06/2015.
@@ -65,7 +69,7 @@ public class ArtistsFragment extends Fragment {
         } catch (Exception e) {
             throw new RuntimeException(activity.toString() + " must implement ArtistsFragmentCallbacks");
         }
-        Log.v(LOG_TAG, "onAttach - mCallbacks: " + mCallbacks);
+//        Log.v(LOG_TAG, "onAttach - mCallbacks: " + mCallbacks);
     }
 
     @Override
@@ -80,7 +84,7 @@ public class ArtistsFragment extends Fragment {
      public void onDetach() {
         super.onDetach();
         mCallbacks = null;
-        Log.v(LOG_TAG, "onDetach - mCallbacks: " + mCallbacks);
+//        Log.v(LOG_TAG, "onDetach - mCallbacks: " + mCallbacks);
     }
 
     @Override
@@ -148,7 +152,7 @@ public class ArtistsFragment extends Fragment {
 
     private void handleListItemClicked(int position) {
         Log.v(LOG_TAG, "handleListItemClicked - start");
-        TracksDataFetcher artistsFetcher = new TracksDataFetcher();
+        TracksDataFetcherWithCallbacks artistsFetcher = new TracksDataFetcherWithCallbacks();
         artistsFetcher.execute(new SelectedArtistRowDetails(mListView.getFirstVisiblePosition(), (mArtistArrayAdapter.getItem(position)).spotifyId));
         Log.v(LOG_TAG, "handleListItemClicked - end");
     }
@@ -174,6 +178,10 @@ public class ArtistsFragment extends Fragment {
         return mSearchInProgress;
     }
 
+    public int getListViewFirstVisiblePosition() {
+        return mListView.getFirstVisiblePosition();
+    }
+
     public void showRestoredArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
         mSearchText.setText(artistName);
         this.mArtistsDetailsList = artistsDetailsList;
@@ -191,7 +199,7 @@ public class ArtistsFragment extends Fragment {
     public void sendArtistsDataRequestToSpotify(String artistName) {
         setSearchInProgress(true);
         mArtistArrayAdapter.clear();
-        ArtistsDataFetcher artistsFetcher = new ArtistsDataFetcher();
+        ArtistsDataFetcherWithCallbacks artistsFetcher = new ArtistsDataFetcherWithCallbacks();
         artistsFetcher.execute(artistName);
     }
 
@@ -206,15 +214,248 @@ public class ArtistsFragment extends Fragment {
 
     }
 
+    public class ArtistsDataFetcherWithCallbacks extends AsyncTask<String, Void, List<ArtistDetails>> {
+
+        private boolean networkProblems;
+        private String artistName;
+        private SpotifyService mSpotifyService;
+        private List<ArtistDetails> results = null;
+        private CountDownLatch callBackresultsCountDownLatch;
+
+        @Override
+        protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
+            Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - start");
+            if (networkProblems) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                return;
+            } else if (artistsDetailsList == null) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
+                return;
+            }
+//            ArtistsFragment.this.mArtistsDetailsList = artistsDetailsList;
+            Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - mCallbacks: " + mCallbacks);
+            if (mCallbacks != null) {
+                mCallbacks.onPostExecute(artistName, artistsDetailsList, 0);
+            }
+            setSearchInProgress(false);
+        }
+
+        @Override
+        protected List<ArtistDetails> doInBackground(String... params) {
+
+            // If there's no artist trackName, there's nothing to look up.  Verify size of params.
+            if (params.length == 0) {
+                return null;
+            }
+
+            // todo: remove after tests
+//            try {
+//                Log.v(LOG_TAG, "going to sleep");
+//                Thread.sleep(5000);
+//                Log.v(LOG_TAG, "woked up");
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+
+            artistName = params[0];
+            if (mSpotifyService == null) {
+                SpotifyApi api = new SpotifyApi();
+                mSpotifyService = api.getService();
+            }
+            // if no access to network: java.net.UnknownHostException: Unable to resolve host "api.spotify.com": No address associated with hostname
+//                Log.v(LOG_TAG, "ArtistsDataFetcherWithCallbacks - before");
+            callBackresultsCountDownLatch = new CountDownLatch(1);
+            mSpotifyService.searchArtists(artistName, new SpotifyCallback<ArtistsPager>() {
+                @Override
+                public void failure(SpotifyError spotifyError) {
+                    Log.v(LOG_TAG, "ArtistsDataFetcherWithCallbacks - failure - spotifyError: " + spotifyError.getMessage());
+                    networkProblems = true;
+                    callBackresultsCountDownLatch.countDown();
+                }
+
+                @Override
+                public void success(ArtistsPager artistsPager, Response response) {
+                    Log.v(LOG_TAG, "ArtistsDataFetcherWithCallbacks - success");
+                    Pager<Artist> artists = artistsPager.artists;
+                    List<Image> images;
+                    List<Artist> artistsList = artists.items;
+                    String thumbnailImageUrl;
+                    int imagesCnt;
+                    if (artistsList.size() > 0) {
+                        results = new ArrayList<ArtistDetails>(artistsList.size());
+                        for (Artist artist : artistsList) {
+                            images = artist.images;
+                            imagesCnt = images.size();
+                            if (imagesCnt == 0) {
+                                thumbnailImageUrl = null;
+                            } else {
+                                thumbnailImageUrl = getThumbnaiImagelUrl(images);
+                            }
+                            results.add(new ArtistDetails(artist.name, artist.id, thumbnailImageUrl));
+//                                Log.v(LOG_TAG, "doInBackground .success- id/trackName/popularity: " + artist.name + "/" + artist.popularity + "/" + thumbnailImageUrl);
+                            callBackresultsCountDownLatch.countDown();
+                        }
+                    }
+                }
+            });
+
+            try {
+                callBackresultsCountDownLatch.await();
+                // TODO: 23/06/2015 think about it
+            } catch (InterruptedException nothingCanBeDone) {
+            }
+            return results;
+
+        }
+
+        private final int THUMBNAIL = 100;
+
+        private String getThumbnaiImagelUrl(List<Image> imagesData) {
+            int lastImagaDataIdx = imagesData.size() - 1;
+            String selectedUrl = imagesData.get(lastImagaDataIdx).url;
+            int imageWidth;
+            for (int i = lastImagaDataIdx; i > -1; i--) {
+                imageWidth = (int) Integer.valueOf(imagesData.get(i).width);
+                if (imageWidth > THUMBNAIL) {
+                    selectedUrl = imagesData.get(i).url;
+                    break;
+                }
+            }
+            return selectedUrl;
+        }
+
+    }
+
+    public class TracksDataFetcherWithCallbacks extends AsyncTask<SelectedArtistRowDetails, Void, List<TrackDetails>> {
+
+        private SpotifyService mSpotifyService;
+        private boolean networkProblems = true;
+        private int listViewFirstVisiblePosition;
+        private List<TrackDetails> results;
+        private CountDownLatch callBackresultsCountDownLatch;
+        private final int BIG_IMAGE_WIDTH = 640;
+        private final int SMALL_IMAGE_WIDTH = 200;
+
+        @Override
+        protected void onPostExecute(List<TrackDetails> trackDetails) {
+            if (!networkProblems) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                return;
+            } else if (trackDetails == null) {
+                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
+                return;
+            }
+            mCallbacks.showTracks(listViewFirstVisiblePosition, trackDetails);
+            Log.v(LOG_TAG, "TracksDataFetcherWithCallbacks.onPostExecute - trackDetails.size()" + trackDetails.size());
+        }
+
+        @Override
+        protected List<TrackDetails> doInBackground(SelectedArtistRowDetails... params) {
+            listViewFirstVisiblePosition = params[0].listViewFirstVisiblePosition;
+//            String artistId = (mArtistArrayAdapter.getItem(listViewFirstVisiblePosition)).spotifyId;
+            String artistId = params[0].artistId;
+
+            // If there's no artist Id, there's nothing to look up.  Verify size of params.
+            if (artistId.length() == 0) {
+                return null;
+            }
+            String countryCode = PreferenceManager.getDefaultSharedPreferences(mActivity /* context */).getString(getResources().getString(R.string.pref_country_key), getResources().getString(R.string.pref_country_default));
+
+//            try {
+                if (mSpotifyService == null) {
+                    SpotifyApi api = new SpotifyApi();
+                    mSpotifyService = api.getService();
+                }
+                Map<String, Object> m = new HashMap<>();
+//                m.put("country", "US");
+                m.put("country", countryCode);
+                /*
+
+            callBackresultsCountDownLatch = new CountDownLatch(1);
+            mSpotifyService.searchArtists(artistName, new SpotifyCallback<ArtistsPager>() {
+                 */
+
+                callBackresultsCountDownLatch = new CountDownLatch(1);
+//                Tracks tracks =
+                mSpotifyService.getArtistTopTrack(artistId, m, new SpotifyCallback<Tracks>() {
+                    @Override
+                    public void failure(SpotifyError spotifyError) {
+                        networkProblems = true;
+                        callBackresultsCountDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void success(Tracks tracks, Response response) {
+                        List<Track> listedTracks = tracks.tracks;
+                        List<Image> images;
+                        int imagesCnt;
+                        if (listedTracks.size() > 0) {
+                            results = new ArrayList<>(listedTracks.size());
+                            for (Track track : listedTracks) {
+                                images = track.album.images;
+                                imagesCnt = images.size();
+                                TrackImages trackImages;
+                                if (imagesCnt == 0) {
+                                    trackImages = new TrackImages(null, null);
+                                } else {
+                                    trackImages = getImagesUrls(images);
+                                }
+                                results.add(new TrackDetails(track.name, track.album.name, trackImages.big, trackImages.small, track.preview_url));
+                                callBackresultsCountDownLatch.countDown();
+                            }
+                        }
+                    }
+                });
+
+            try {
+                callBackresultsCountDownLatch.await();
+                // TODO: 23/06/2015 think about it
+            } catch (InterruptedException nothingCanBeDone) {
+            }
+
+            return results;
+        }
+
+        private TrackImages getImagesUrls(List<Image> imagesData) {
+            Image prevImage = null;
+            String bigImage = null;
+            String smallImage = null;
+            Image oneImage;
+            int imageWidth;
+            for (int i = imagesData.size() - 1; i > -1; i--) {
+                oneImage = imagesData.get(i);
+                imageWidth = oneImage.width;
+                if (smallImage == null) {
+                    if (imageWidth >= SMALL_IMAGE_WIDTH) {
+                        smallImage = oneImage.url;
+                    }
+                }
+                if (imageWidth >= BIG_IMAGE_WIDTH) {
+                    bigImage = oneImage.url;
+                    break;
+                }
+                prevImage = oneImage;
+            }
+            if (bigImage == null && prevImage != null) {
+                bigImage = prevImage.url;
+            }
+            return new TrackImages(bigImage, smallImage);
+        }
+
+        class TrackImages {
+            public final String big;
+            public final String small;
+            TrackImages(String big, String small) {
+                this.big = big;
+                this.small = small;
+            }
+        }
+    }
+
     public class ArtistsDataFetcher extends AsyncTask<String, Void, List<ArtistDetails>> {
 
         private boolean successfullyAccessedSpotify = true;
         String artistName;
-
-//        @Override
-//        protected void onPreExecute() {
-//            SharedPreferences prefs = getPrefs();
-//        }
 
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
@@ -226,7 +467,6 @@ public class ArtistsFragment extends Fragment {
                 Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
             }
-//            showArtistsDetails(mArtistsDetailsList, 0);
             ArtistsFragment.this.mArtistsDetailsList = artistsDetailsList;
             Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - mCallbacks: " + mCallbacks);
             if (mCallbacks != null) {
@@ -262,6 +502,17 @@ public class ArtistsFragment extends Fragment {
                     mSpotifyService = api.getService();
                 }
                 // if no access to network: java.net.UnknownHostException: Unable to resolve host "api.spotify.com": No address associated with hostname
+//                mSpotifyService.searchArtists(artistName, new SpotifyCallback<ArtistsPager>() {
+//                    @Override
+//                    public void failure(SpotifyError spotifyError) {
+//
+//                    }
+//
+//                    @Override
+//                    public void success(ArtistsPager artistsPager, Response response) {
+//
+//                    }
+//                });
                 ArtistsPager artistsPager = mSpotifyService.searchArtists(artistName);
                 Pager<Artist> artists = artistsPager.artists;
                 List<Image> images;
@@ -368,6 +619,7 @@ public class ArtistsFragment extends Fragment {
                     }
                 }
             } catch (Exception e) {
+                Log.v(LOG_TAG, "doInBackground - exception: " + e);
                 successfullyAccessedSpotify = false;
             }
             return results;

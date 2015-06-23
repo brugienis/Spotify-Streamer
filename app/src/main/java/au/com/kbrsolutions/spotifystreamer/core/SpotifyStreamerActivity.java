@@ -98,7 +98,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
         List<ArtistDetails> artistDetailsList = artistsDetailsList;
         if (artistDetailsList != null && artistDetailsList.size() > 0) {
             outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
-            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, artistsListViewFirstVisiblePosition);
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, mArtistsFragment.getListViewFirstVisiblePosition());
 //            Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
         }
 //        Log.v(LOG_TAG, "onSaveInstanceState - done");
