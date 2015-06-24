@@ -10,6 +10,7 @@
     <string name="search_artist_hint">Enter artist name</string>
     <string name="title_activity_artists">Spotify Streamer</string>
     <string name="title_activity_tracks">Top 10 tracks</string>
+    <string name="callbacks_not_implemented">"%1$s must implement ArtistsFragmentCallbacks"</string>
 
     <!-- preferences -->
     <string name="title_activity_settings">Settings</string>

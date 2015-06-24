@@ -1,10 +1,14 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ */
+
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Created by business on 9/06/2015.
+ * Stores details of one artist.
  */
 public class ArtistDetails implements Parcelable {
 

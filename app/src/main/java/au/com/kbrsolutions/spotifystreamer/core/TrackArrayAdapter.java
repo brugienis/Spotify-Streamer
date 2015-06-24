@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ */
+
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
@@ -15,9 +19,6 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
-/**
- * Created by business on 13/06/2015.
- */
 public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
     private List<TrackDetails> mObjects;

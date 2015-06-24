@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ */
+
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.content.Intent;
@@ -12,7 +16,12 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
-public class SpotifyStreamerActivity extends ActionBarActivity  implements ArtistsFragment.ArtistsFragmentCallbacks {
+/**
+ * Shows artists details or top 10 tracks of selected artist.
+ */
+
+public class SpotifyStreamerActivity extends ActionBarActivity
+        implements ArtistsFragment.ArtistsFragmentCallbacks {
 
     private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
@@ -29,66 +38,57 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
 
     private final static String LOG_TAG = SpotifyStreamerActivity.class.getSimpleName();
 
+    /**
+     * Adds OnBackStackChangedListener. If there are no entries on the BackStack, user pressed
+     * Back or Home Up button - show recent artists list.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        Log.v(LOG_TAG, "onCreate - start");
-//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_spotifystreamer);
 
         getSupportFragmentManager().addOnBackStackChangedListener(
                 new FragmentManager.OnBackStackChangedListener() {
                     public void onBackStackChanged() {
-                        // Update your UI here.
-                        shouldDisplayHomeUp();
                         int cnt = getSupportFragmentManager().getBackStackEntryCount();
-//                        Log.v(LOG_TAG, "onBackStackChanged - called - cnt: " + cnt);
                         if (cnt == 0) {      /* we came back from artist's tracks to artists list */
-                            showPrevArtistsData();
+                            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                            showArtistsData();
+                        } else {
+                            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                         }
                     }
                 });
-        shouldDisplayHomeUp();
 
-        mArtistsFragment = (ArtistsFragment) getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager()
+                .getBackStackEntryCount() > 0);
 
-//        Log.v(LOG_TAG, "onCreate - mArtistsFragment: " + mArtistsFragment);
-        // If the Fragment is non-null, then it is currently being
-        // retained across a configuration change.
+        mArtistsFragment =
+                (ArtistsFragment) getSupportFragmentManager()
+                        .findFragmentByTag(ARTIST_TAG);
+
         if (mArtistsFragment == null) {
             mArtistsFragment = new ArtistsFragment();
-            getSupportFragmentManager().beginTransaction().add(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG).commit();
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG)
+                    .commit();
         }
     }
 
-    @Override
-    public void showTracks(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
-//        Log.v(LOG_TAG, "showTracks - start - tracks: " + trackDetails.size());
-        mActivityTitle = getResources().getString(R.string.title_activity_tracks);
-        getSupportActionBar().setTitle(mActivityTitle);
-        this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
-        mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
-        if (mTracksFragment == null) {
-            mTracksFragment = new TracksFragment();
-            TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
-            mTracksFragment.setListAdapter(trackArrayAdapter);
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragments_frame, mTracksFragment, TRACK_TAG).addToBackStack(TRACK_TAG).commit();
-        }
-        mTracksFragment.ShowTracksDetails(trackDetails);
-    }
-
-    private void showPrevArtistsData() {
+    /**
+     * Show recent artists data after user pressed Back or Up button.
+     */
+    private void showArtistsData() {
         mActivityTitle = getResources().getString(R.string.title_activity_artists);
         getSupportActionBar().setTitle(mActivityTitle);
-        mArtistsFragment.showRestoredArtistsDetails(mArtistName, mArtistsDetailsList, mArtistsListViewFirstVisiblePosition);
+        mArtistsFragment.showArtistsDetails(mArtistName, mArtistsDetailsList,
+                mArtistsListViewFirstVisiblePosition);
     }
 
-    public void shouldDisplayHomeUp(){
-        //Enable Up button only  if there are entries in the back stack
-        boolean canback = getSupportFragmentManager().getBackStackEntryCount()>0;
-        getSupportActionBar().setDisplayHomeAsUpEnabled(canback);
-    }
-
+    /**
+     * Up button was pressed - remove to top entry Back Stack
+     */
     @Override
     public boolean onSupportNavigateUp() {
         //This method is called when the up button is pressed. Just the pop back stack.
@@ -105,10 +105,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
         List<ArtistDetails> artistDetailsList = mArtistsDetailsList;
         if (artistDetailsList != null && artistDetailsList.size() > 0) {
             outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
-            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, artistFragmentSaveData.listViewFirstVisiblePosition);
-//            Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION,
+                    artistFragmentSaveData.listViewFirstVisiblePosition);
         }
-//        Log.v(LOG_TAG, "onSaveInstanceState - done");
     }
 
     @Override
@@ -118,17 +117,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
         getSupportActionBar().setTitle(mActivityTitle);
         mArtistName = savedInstanceState.getString(ARTIST_NAME);
         mArtistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
-        mArtistsListViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
+        mArtistsListViewFirstVisiblePosition =
+                savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
         if (!mArtistsFragment.isSearchInProgress()) {
-            mArtistsFragment.showRestoredArtistsDetails(
+            mArtistsFragment.showArtistsDetails(
                     savedInstanceState.getCharSequence(ARTIST_NAME),
                     mArtistsDetailsList,
                     mArtistsListViewFirstVisiblePosition);
         }
-        if (mArtistsDetailsList != null) {
-//            Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + mArtistsDetailsList.size());
-        }
-//        Log.v(LOG_TAG, "onRestoreInstanceState - done");
     }
 
     @Override
@@ -154,14 +150,40 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Shows top 10 tracks of the artist selected on the artists screen.
+     */
     @Override
-    public void onPostExecute(String artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
-//        Log.v(LOG_TAG, "onPostExecute - start");
+    public void showTracksData(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
+        mActivityTitle = getResources().getString(R.string.title_activity_tracks);
+        getSupportActionBar().setTitle(mActivityTitle);
+        this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
+        mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
+        if (mTracksFragment == null) {
+            mTracksFragment = new TracksFragment();
+            TrackArrayAdapter<TrackDetails> trackArrayAdapter =
+                    new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
+            mTracksFragment.setListAdapter(trackArrayAdapter);
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragments_frame, mTracksFragment, TRACK_TAG)
+                    .addToBackStack(TRACK_TAG)
+                    .commit();
+        }
+        mTracksFragment.showTracksDetails(trackDetails);
+    }
+
+    /**
+     * Save artists details and show them on the screen.
+     */
+    @Override
+    public void onPostExecute(String artistName, List<ArtistDetails> artistsDetailsList,
+                              int listViewFirstVisiblePosition) {
         this.mArtistsDetailsList = artistsDetailsList;
         this.mArtistName = artistName;
         this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
-        mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, mArtistsListViewFirstVisiblePosition);
-//        mArtistsFragment.showArtistsDetails(0);
-//        Log.v(LOG_TAG, "onPostExecute - end");
+        mArtistsFragment.showArtistsDetails(artistName, artistsDetailsList,
+                mArtistsListViewFirstVisiblePosition);
     }
+
 }

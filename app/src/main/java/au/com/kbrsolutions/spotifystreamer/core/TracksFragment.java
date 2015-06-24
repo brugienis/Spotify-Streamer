@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ */
+
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
@@ -7,8 +11,6 @@ import android.support.v4.app.ListFragment;
 import java.util.List;
 
 public class TracksFragment extends ListFragment {
-
-//    private TracksActivity mActivity;
 
     private final static String LOG_TAG = TracksFragment.class.getSimpleName();
 
@@ -20,8 +22,6 @@ public class TracksFragment extends ListFragment {
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-//        this.mActivity = (TracksActivity) activity;
-//        Log.v(LOG_TAG, "mActivity: " + mActivity);
     }
 
     @Override
@@ -31,7 +31,10 @@ public class TracksFragment extends ListFragment {
         setRetainInstance(true);
     }
 
-    public void ShowTracksDetails(List<TrackDetails> trackDetails) {
+    /**
+     * Show top 10 tracks of the selected artist on the screen.
+     */
+    public void showTracksDetails(List<TrackDetails> trackDetails) {
         TrackArrayAdapter<TrackDetails> trackArrayAdapter = (TrackArrayAdapter) getListAdapter();
         trackArrayAdapter.clear();
         trackArrayAdapter.addAll(trackDetails);

@@ -1,3 +1,7 @@
+/*
+ * Copyright (C) 2013 The Android Open Source Project
+ */
+
 package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.app.Activity;
@@ -16,7 +20,7 @@ import java.util.List;
 import au.com.kbrsolutions.spotifystreamer.R;
 
 /**
- * Created by business on 9/06/2015.
+ * ArrayAdapter used by ArtistsFragment.
  */
 public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
 

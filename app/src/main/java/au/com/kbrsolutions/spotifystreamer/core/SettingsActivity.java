@@ -1,8 +1,8 @@
-package au.com.kbrsolutions.spotifystreamer.core;
-
-/**
- * Created by business on 22/06/2015.
+/*
+ * Copyright (C) 2013 The Android Open Source Project
  */
+
+package au.com.kbrsolutions.spotifystreamer.core;
 
 import android.os.Bundle;
 import android.preference.Preference;
