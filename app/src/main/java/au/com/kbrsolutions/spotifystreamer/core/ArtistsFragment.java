@@ -42,7 +42,7 @@ import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.client.Response;
 
 /**
- * Created by business on 20/06/2015.
+ * Retrieves artists data using search text entered by the user.
  */
 public class ArtistsFragment extends Fragment {
 
@@ -81,16 +81,14 @@ public class ArtistsFragment extends Fragment {
     @Override
      public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Retain this fragment across configuration changes.
+        /* Retain this fragment across configuration changes. */
         setRetainInstance(true);
-//        hasOptionsMenu();
     }
 
     @Override
      public void onDetach() {
         super.onDetach();
         mCallbacks = null;
-//        Log.v(LOG_TAG, "onDetach - mCallbacks: " + mCallbacks);
     }
 
     @Override
@@ -113,7 +111,7 @@ public class ArtistsFragment extends Fragment {
 
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                handleListItemClicked(position);
+                handleArtistRowClicked(position);
             }
         });
         return rootView;
@@ -133,6 +131,9 @@ public class ArtistsFragment extends Fragment {
         hideKeyboard();
     }
 
+    /**
+     * Called when user pressed search button. Starts search if search text is not empty.
+     */
     private boolean handleSearchButtonClicked(int actionId) {
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
@@ -148,7 +149,25 @@ public class ArtistsFragment extends Fragment {
         return handled;
     }
 
-    private void handleListItemClicked(int position) {
+    /**
+     * Contains details needed by the TracksDataFetcherWithCallbacks.
+     */
+    private class SelectedArtistRowDetails {
+        private final int listViewFirstVisiblePosition;
+        private final String artistId;
+
+        SelectedArtistRowDetails(int listViewFirstVisiblePosition, String artistId) {
+            this.listViewFirstVisiblePosition = listViewFirstVisiblePosition;
+            this.artistId = artistId;
+        }
+
+    }
+
+    /**
+     * Called when user click on an artist row. It will start asynchronous search for the artist's
+     * top 10 tracks.
+     */
+    private void handleArtistRowClicked(int position) {
         TracksDataFetcherWithCallbacks artistsFetcher = new TracksDataFetcherWithCallbacks();
         artistsFetcher.execute(
                 new SelectedArtistRowDetails(mListView.getFirstVisiblePosition(),
@@ -161,19 +180,29 @@ public class ArtistsFragment extends Fragment {
         inputMethodManager.hideSoftInputFromWindow(mSearchText.getWindowToken(), 0);
     }
 
-    public synchronized void setSearchInProgress(boolean value) {
+    private synchronized void setSearchInProgress(boolean value) {
         mSearchInProgress = value;
     }
 
+    /**
+     * Should be called before trying to show artists data saved in parent activity in the
+     * onSaveInstanceState method. If search is in progress don't show previously saved data.
+     */
     public synchronized boolean isSearchInProgress() {
         return mSearchInProgress;
     }
 
+    /**
+     * Returns data that should be saved in parent activity onSaveInstanceState method.
+     */
     public ArtistFragmentSaveData getDataToSave() {
         mArtistName = mSearchText.getText().toString();
         return new ArtistFragmentSaveData(mArtistName, mListView.getFirstVisiblePosition());
     }
 
+    /**
+     * Called from the parent activity. Contains artists details that will be placed on the screen.
+     */
     public void showArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList,
                                    int listViewFirstVisiblePosition) {
         mSearchText.setText(artistName);
@@ -181,7 +210,6 @@ public class ArtistsFragment extends Fragment {
         if (artistName != null) {
             mSearchText.setSelection(artistName.length());
         }
-//        showArtistsDetails(artistsDetailsList, listViewFirstVisiblePosition);
         mArtistArrayAdapter.clear();
         if (artistsDetailsList != null) {
             mArtistArrayAdapter.addAll(artistsDetailsList);
@@ -189,24 +217,19 @@ public class ArtistsFragment extends Fragment {
         }
     }
 
-    public void sendArtistsDataRequestToSpotify(String artistName) {
+    /**
+     * Starts asynchronous search for artists details.
+     */
+    private void sendArtistsDataRequestToSpotify(String artistName) {
         setSearchInProgress(true);
         mArtistArrayAdapter.clear();
         ArtistsDataFetcherWithCallbacks artistsFetcher = new ArtistsDataFetcherWithCallbacks();
         artistsFetcher.execute(artistName);
     }
 
-    private class SelectedArtistRowDetails {
-        private final int listViewFirstVisiblePosition;
-        private final String artistId;
-
-        SelectedArtistRowDetails(int listViewFirstVisiblePosition, String artistId) {
-            this.listViewFirstVisiblePosition = listViewFirstVisiblePosition;
-            this.artistId = artistId;
-        }
-
-    }
-
+    /**
+     * Class that contain code to perform asynchronous search for artists.
+     */
     public class ArtistsDataFetcherWithCallbacks
             extends AsyncTask<String, Void, List<ArtistDetails>> {
 
@@ -216,6 +239,10 @@ public class ArtistsFragment extends Fragment {
         private List<ArtistDetails> results = null;
         private CountDownLatch callBackResultsCountDownLatch;
 
+        /**
+         * When background processing id done and artists data found, calls onPostExecute
+         * method onn the class that implemented the ArtistsFragmentCallbacks.
+         */
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
             Context context = mActivity.getApplicationContext();
@@ -238,6 +265,9 @@ public class ArtistsFragment extends Fragment {
             setSearchInProgress(false);
         }
 
+        /**
+         * Calls SpotifyService.searchArtists method with SpotifyCallback.
+         */
         @Override
         protected List<ArtistDetails> doInBackground(String... params) {
 
@@ -245,15 +275,6 @@ public class ArtistsFragment extends Fragment {
             if (params.length == 0) {
                 return null;
             }
-
-            // todo: remove after tests
-//            try {
-//                Log.v(LOG_TAG, "going to sleep");
-//                Thread.sleep(5000);
-//                Log.v(LOG_TAG, "woked up");
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
 
             artistName = params[0];
             if (mSpotifyService == null) {
@@ -305,15 +326,18 @@ public class ArtistsFragment extends Fragment {
 
         }
 
-        private final int THUMBNAIL = 100;
+        private final int THUMBNAIL_MIN_SIZE = 100;
 
+        /**
+         * Returns an URL of the smallest image that has width greater then 100 pixels
+         */
         private String getThumbnaiImagelUrl(List<Image> imagesData) {
             int lastImagaDataIdx = imagesData.size() - 1;
             String selectedUrl = imagesData.get(lastImagaDataIdx).url;
             int imageWidth;
             for (int i = lastImagaDataIdx; i > -1; i--) {
                 imageWidth = (int) Integer.valueOf(imagesData.get(i).width);
-                if (imageWidth > THUMBNAIL) {
+                if (imageWidth > THUMBNAIL_MIN_SIZE) {
                     selectedUrl = imagesData.get(i).url;
                     break;
                 }
@@ -323,6 +347,9 @@ public class ArtistsFragment extends Fragment {
 
     }
 
+    /**
+     * Class that contain code to perform asynchronous search for artist's top 10 tracks.
+     */
     public class TracksDataFetcherWithCallbacks
             extends AsyncTask<SelectedArtistRowDetails, Void, List<TrackDetails>> {
 
@@ -332,6 +359,10 @@ public class ArtistsFragment extends Fragment {
         private List<TrackDetails> results;
         private CountDownLatch callBackResultsCountDownLatch;
 
+        /**
+         * When background processing id done and artists data found, calls onPostExecute
+         * method onn the class that implemented the ArtistsFragmentCallbacks.
+         */
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
             Context context = mActivity.getApplicationContext();
@@ -351,6 +382,12 @@ public class ArtistsFragment extends Fragment {
             mCallbacks.showTracksData(listViewFirstVisiblePosition, trackDetails);
         }
 
+
+        /**
+         * Calls SpotifyService.getArtistTopTrack method with SpotifyCallback.
+         *
+         * The country code is taken from the preferences.
+         */
         @Override
         protected List<TrackDetails> doInBackground(SelectedArtistRowDetails... params) {
             listViewFirstVisiblePosition = params[0].listViewFirstVisiblePosition;
@@ -360,6 +397,7 @@ public class ArtistsFragment extends Fragment {
             if (artistId.length() == 0) {
                 return null;
             }
+
             String countryCode = PreferenceManager.getDefaultSharedPreferences(mActivity)
                     .getString(getResources().getString(R.string.pref_country_key),
                             getResources().getString(R.string.pref_country_default));
@@ -370,11 +408,11 @@ public class ArtistsFragment extends Fragment {
                 SpotifyApi api = new SpotifyApi();
                 mSpotifyService = api.getService();
             }
-            Map<String, Object> m = new HashMap<>();
-            m.put("country", countryCode);
+            Map<String, Object> options = new HashMap<>();
+            options.put(mActivity.getResources().getString(R.string.country_string), countryCode);
 
             callBackResultsCountDownLatch = new CountDownLatch(1);
-            mSpotifyService.getArtistTopTrack(artistId, m, new SpotifyCallback<Tracks>() {
+            mSpotifyService.getArtistTopTrack(artistId, options, new SpotifyCallback<Tracks>() {
                 @Override
                 public void failure(SpotifyError spotifyError) {
                     networkProblems = true;
@@ -398,7 +436,7 @@ public class ArtistsFragment extends Fragment {
                                 trackImages = getImagesUrls(images);
                             }
                             results.add(
-                                    new TrackDetails(track.name, track.album.name, trackImages.big,
+                                    new TrackDetails(track.name, track.album.name, trackImages.large,
                                             trackImages.small, track.preview_url));
                         }
                     }
@@ -418,9 +456,12 @@ public class ArtistsFragment extends Fragment {
             return results;
         }
 
-        private final int BIG_IMAGE_WIDTH = 640;
-        private final int SMALL_IMAGE_WIDTH = 200;
+        private final int LARGE_IMAGE_MIN_WIDTH = 640;
+        private final int SMALL_IMAGE_MIN_WIDTH = 200;
 
+        /**
+         * Returns TrackImages class which contains URLs of the big and small images.
+         */
         private TrackImages getImagesUrls(List<Image> imagesData) {
             Image prevImage = null;
             String bigImage = null;
@@ -431,11 +472,11 @@ public class ArtistsFragment extends Fragment {
                 oneImage = imagesData.get(i);
                 imageWidth = oneImage.width;
                 if (smallImage == null) {
-                    if (imageWidth >= SMALL_IMAGE_WIDTH) {
+                    if (imageWidth >= SMALL_IMAGE_MIN_WIDTH) {
                         smallImage = oneImage.url;
                     }
                 }
-                if (imageWidth >= BIG_IMAGE_WIDTH) {
+                if (imageWidth >= LARGE_IMAGE_MIN_WIDTH) {
                     bigImage = oneImage.url;
                     break;
                 }
@@ -448,10 +489,10 @@ public class ArtistsFragment extends Fragment {
         }
 
         class TrackImages {
-            public final String big;
+            public final String large;
             public final String small;
-            TrackImages(String big, String small) {
-                this.big = big;
+            TrackImages(String large, String small) {
+                this.large = large;
                 this.small = small;
             }
         }

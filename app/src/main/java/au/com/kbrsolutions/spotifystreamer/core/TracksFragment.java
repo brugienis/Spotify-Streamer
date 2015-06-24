@@ -10,6 +10,9 @@ import android.support.v4.app.ListFragment;
 
 import java.util.List;
 
+/**
+ * Retrieves artists data using search text entered by the user.
+ */
 public class TracksFragment extends ListFragment {
 
     private final static String LOG_TAG = TracksFragment.class.getSimpleName();
@@ -32,7 +35,7 @@ public class TracksFragment extends ListFragment {
     }
 
     /**
-     * Show top 10 tracks of the selected artist on the screen.
+     * Shows top 10 tracks of the selected artist on the screen.
      */
     public void showTracksDetails(List<TrackDetails> trackDetails) {
         TrackArrayAdapter<TrackDetails> trackArrayAdapter = (TrackArrayAdapter) getListAdapter();

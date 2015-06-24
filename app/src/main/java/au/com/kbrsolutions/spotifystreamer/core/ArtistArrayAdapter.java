@@ -42,7 +42,8 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
         View v = convertView;
         ViewHolder holder;
         if (v == null) {
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater inflater =
+                    (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.artists_listview_item, parent, false);
 
             holder = new ViewHolder();

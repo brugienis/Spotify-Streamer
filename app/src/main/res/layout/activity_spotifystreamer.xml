@@ -16,19 +16,3 @@
     </FrameLayout>
 
 </RelativeLayout>
-
-<!--
-
-
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/searchTextView"
-        android:layout_gravity="left|top"
-        android:hint="@string/search_artist_hint"
-        android:inputType="text"
-        android:imeOptions="actionSearch"/>
-
-        android:layout_below="@id/searchTextView"
-
--->

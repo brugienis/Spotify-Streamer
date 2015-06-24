@@ -19,10 +19,12 @@ import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
+/**
+ * ArrayAdapter used by TracksFragment.
+ */
 public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
     private List<TrackDetails> mObjects;
-//    private TracksActivity mActivity;
     private Activity mActivity;
     private int mWidthPx = -1;
 
@@ -40,7 +42,8 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
         View v = convertView;
         ViewHolder holder;
         if (v == null) {
-            LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater inflater =
+                    (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.tracks_listview_item, parent, false);
 
             holder = new ViewHolder();

@@ -8,7 +8,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 /**
- * Stores details of one artist.
+ * Stores details of one artist. Implements Parcelable so it can be saved in a Bundle.
  */
 public class ArtistDetails implements Parcelable {
 
@@ -41,7 +41,8 @@ public class ArtistDetails implements Parcelable {
         dest.writeString(thumbnailImageUrl);
     }
 
-    public static final Parcelable.Creator<ArtistDetails> CREATOR = new Parcelable.Creator<ArtistDetails>() {
+    public static final Parcelable.Creator<ArtistDetails> CREATOR =
+            new Parcelable.Creator<ArtistDetails>() {
         public ArtistDetails createFromParcel(Parcel in) {
             return new ArtistDetails(in);
         }

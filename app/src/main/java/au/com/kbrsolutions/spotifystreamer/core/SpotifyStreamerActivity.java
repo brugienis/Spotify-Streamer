@@ -99,6 +99,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         ArtistFragmentSaveData artistFragmentSaveData = mArtistsFragment.getDataToSave();
         outState.putString(ARTIST_NAME, artistFragmentSaveData.artistName);
@@ -110,9 +111,15 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         }
     }
 
+    /**
+     * Retrieves saved data. If search for artist's data is not in progress, show retrieved
+     * on the screen.
+     *
+     */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
         mArtistName = savedInstanceState.getString(ARTIST_NAME);

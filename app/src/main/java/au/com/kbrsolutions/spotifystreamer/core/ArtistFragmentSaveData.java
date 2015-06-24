@@ -5,7 +5,8 @@
 package au.com.kbrsolutions.spotifystreamer.core;
 
 /**
- * Created by business on 24/06/2015.
+ * Contains ArtistsFragment data that need to be saved in parent activity's
+ * onSaveInstanceState method.
  */
 public class ArtistFragmentSaveData {
     public final String artistName;
