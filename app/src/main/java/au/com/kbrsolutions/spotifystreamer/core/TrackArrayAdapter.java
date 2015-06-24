@@ -67,7 +67,12 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
                           (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
             }
 
-            Picasso.with(mActivity.getApplication()).load(trackDetails.albumArtSmallImageUrl).resize(mWidthPx, mWidthPx).centerCrop().into(holder.albumImage);
+            if (trackDetails.albumArtSmallImageUrl != null) {
+                Picasso.with(mActivity.getApplication())
+                        .load(trackDetails.albumArtSmallImageUrl)
+                        .resize(mWidthPx, mWidthPx).centerCrop()
+                        .into(holder.albumImage);
+            }
         }
 
         return v;

@@ -65,7 +65,14 @@ public class ArtistArrayAdapter<T> extends ArrayAdapter<ArtistDetails> {
                           (int) mActivity.getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
             }
 
-            Picasso.with(mActivity.getApplication()).load(artistDetails.thumbnailImageUrl).resize(mWidthPx, mWidthPx).centerCrop().into(holder.artistImage);
+            if (artistDetails.thumbnailImageUrl != null) {
+                Picasso.with(
+                        mActivity.getApplication())
+                        .load(artistDetails.thumbnailImageUrl)
+                        .resize(mWidthPx, mWidthPx)
+                        .centerCrop().into(holder
+                        .artistImage);
+            }
         }
 
         return v;

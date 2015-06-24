@@ -11,8 +11,7 @@
         android:layout_width="@dimen/artist_thumbnail_image_size"
         android:layout_height="@dimen/artist_thumbnail_image_size"
         android:adjustViewBounds="true"
-        android:padding="@dimen/artist_thumbnail_image_padding"
-        android:src="@mipmap/ic_launcher"/>
+        android:padding="@dimen/artist_thumbnail_image_padding"/>
 
     <TextView
         android:id="@+id/artistNameId"
@@ -26,3 +25,9 @@
         android:textColor="@android:color/black" />
 
 </LinearLayout>
+
+<!--
+
+        android:src="@mipmap/ic_launcher"
+
+-->
