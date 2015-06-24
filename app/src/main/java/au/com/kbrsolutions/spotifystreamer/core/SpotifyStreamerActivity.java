@@ -14,22 +14,26 @@ import au.com.kbrsolutions.spotifystreamer.R;
 
 public class SpotifyStreamerActivity extends ActionBarActivity  implements ArtistsFragment.ArtistsFragmentCallbacks {
 
+    private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
-    private CharSequence artistName;
-    private List<ArtistDetails> artistsDetailsList;
-    private int artistsListViewFirstVisiblePosition;
+    private String mArtistName;
+    private List<ArtistDetails> mArtistsDetailsList;
+    private int mArtistsListViewFirstVisiblePosition;
+    private final String ACTIVITY_TITLE = "activity_title";
     private final String ARTIST_NAME = "artist_name";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
     private final String ARTISTS_DATA = "artists_data";
-    private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "listViewFirstVisiblePosition";
+    private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "list_view_first_visible_position";
 
     private final static String LOG_TAG = SpotifyStreamerActivity.class.getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        Log.v(LOG_TAG, "onCreate - start");
+//        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         setContentView(R.layout.activity_spotifystreamer);
 
         getSupportFragmentManager().addOnBackStackChangedListener(
@@ -60,8 +64,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
     @Override
     public void showTracks(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
 //        Log.v(LOG_TAG, "showTracks - start - tracks: " + trackDetails.size());
-        getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_tracks));
-        this.artistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
+        mActivityTitle = getResources().getString(R.string.title_activity_tracks);
+        getSupportActionBar().setTitle(mActivityTitle);
+        this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
         if (mTracksFragment == null) {
             mTracksFragment = new TracksFragment();
@@ -73,8 +78,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
     }
 
     private void showPrevArtistsData() {
-        getSupportActionBar().setTitle(getResources().getString(R.string.title_activity_artists));
-        mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, artistsListViewFirstVisiblePosition);
+        mActivityTitle = getResources().getString(R.string.title_activity_artists);
+        getSupportActionBar().setTitle(mActivityTitle);
+        mArtistsFragment.showRestoredArtistsDetails(mArtistName, mArtistsDetailsList, mArtistsListViewFirstVisiblePosition);
     }
 
     public void shouldDisplayHomeUp(){
@@ -93,11 +99,13 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putCharSequence(ARTIST_NAME, artistName);
-        List<ArtistDetails> artistDetailsList = artistsDetailsList;
+        outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
+        ArtistFragmentSaveData artistFragmentSaveData = mArtistsFragment.getDataToSave();
+        outState.putString(ARTIST_NAME, artistFragmentSaveData.artistName);
+        List<ArtistDetails> artistDetailsList = mArtistsDetailsList;
         if (artistDetailsList != null && artistDetailsList.size() > 0) {
             outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
-            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, mArtistsFragment.getListViewFirstVisiblePosition());
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, artistFragmentSaveData.listViewFirstVisiblePosition);
 //            Log.v(LOG_TAG, "onSaveInstanceState - done - saved: " + artistDetailsList.size());
         }
 //        Log.v(LOG_TAG, "onSaveInstanceState - done");
@@ -106,17 +114,19 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        artistName = savedInstanceState.getCharSequence(ARTIST_NAME);
-        artistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
-        artistsListViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
+        mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
+        getSupportActionBar().setTitle(mActivityTitle);
+        mArtistName = savedInstanceState.getString(ARTIST_NAME);
+        mArtistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
+        mArtistsListViewFirstVisiblePosition = savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
         if (!mArtistsFragment.isSearchInProgress()) {
             mArtistsFragment.showRestoredArtistsDetails(
                     savedInstanceState.getCharSequence(ARTIST_NAME),
-                    artistsDetailsList,
-                    artistsListViewFirstVisiblePosition);
+                    mArtistsDetailsList,
+                    mArtistsListViewFirstVisiblePosition);
         }
-        if (artistsDetailsList != null) {
-//            Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + artistsDetailsList.size());
+        if (mArtistsDetailsList != null) {
+//            Log.v(LOG_TAG, "onRestoreInstanceState - done - artistDetailsList: " + mArtistsDetailsList.size());
         }
 //        Log.v(LOG_TAG, "onRestoreInstanceState - done");
     }
@@ -145,12 +155,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity  implements Artis
     }
 
     @Override
-    public void onPostExecute(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
+    public void onPostExecute(String artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
 //        Log.v(LOG_TAG, "onPostExecute - start");
-        this.artistsDetailsList = artistsDetailsList;
-        this.artistName = artistName;
-        this.artistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
-        mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, artistsListViewFirstVisiblePosition);
+        this.mArtistsDetailsList = artistsDetailsList;
+        this.mArtistName = artistName;
+        this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
+        mArtistsFragment.showRestoredArtistsDetails(artistName, artistsDetailsList, mArtistsListViewFirstVisiblePosition);
 //        mArtistsFragment.showArtistsDetails(0);
 //        Log.v(LOG_TAG, "onPostExecute - end");
     }

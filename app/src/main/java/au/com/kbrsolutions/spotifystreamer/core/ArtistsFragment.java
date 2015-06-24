@@ -47,7 +47,8 @@ public class ArtistsFragment extends Fragment {
 //        void onPreExecute();
 //        void onProgressUpdate(int percent);
 //        void onCancelled();
-        void onPostExecute(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition);
+        void onPostExecute(String artistName, List<ArtistDetails> artistsDetailsList,
+                           int listViewFirstVisiblePosition);
         void showTracks(int selectedArtistRowPosition, List<TrackDetails> trackDetails);
     }
 
@@ -58,6 +59,7 @@ public class ArtistsFragment extends Fragment {
     private ArtistArrayAdapter<TrackDetails> mArtistArrayAdapter;
     private Activity mActivity;
     private boolean mSearchInProgress;
+    private String mArtistName;
 
     private final static String LOG_TAG = ArtistsFragment.class.getSimpleName();
 
@@ -117,7 +119,7 @@ public class ArtistsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         String searchText = mSearchText.getText().toString();
-        Log.v(LOG_TAG, "onResume - mSearchText: " + searchText);
+//        Log.v(LOG_TAG, "onResume - mSearchText: " + searchText);
         mSearchText.setSelection(searchText.length());
 //        if (imm == null) {
 //            imm = (InputMethodManager) mActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -141,9 +143,9 @@ public class ArtistsFragment extends Fragment {
 //        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-            String artistName = mSearchText.getText().toString();
-            if (artistName.trim().length() > 0) {
-                sendArtistsDataRequestToSpotify(artistName);
+            mArtistName = mSearchText.getText().toString();
+            if (mArtistName.trim().length() > 0) {
+                sendArtistsDataRequestToSpotify(mArtistName);
                 handled = true;
                 hideKeyboard();
             } else {
@@ -182,18 +184,23 @@ public class ArtistsFragment extends Fragment {
         return mSearchInProgress;
     }
 
-    public int getListViewFirstVisiblePosition() {
-        return mListView.getFirstVisiblePosition();
+    public ArtistFragmentSaveData getDataToSave() {
+        mArtistName = mSearchText.getText().toString();
+        return new ArtistFragmentSaveData(mArtistName, mListView.getFirstVisiblePosition());
     }
 
     public void showRestoredArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList, int listViewFirstVisiblePosition) {
         mSearchText.setText(artistName);
         mSearchText.requestFocus();
-        mSearchText.setSelection(artistName.length());
+        Log.v(LOG_TAG, "artistName: " + artistName);
+        if (artistName != null) {
+            mSearchText.setSelection(artistName.length());
+        }
         this.mArtistsDetailsList = artistsDetailsList;
         showArtistsDetails(listViewFirstVisiblePosition);
     }
 
+    // TODO: 24/06/2015  remove field mArtistsDetailsList and pass it when callinh method below
     public void showArtistsDetails(int listViewFirstVisiblePosition) {
         mArtistArrayAdapter.clear();
         if (mArtistsDetailsList != null) {
@@ -231,11 +238,12 @@ public class ArtistsFragment extends Fragment {
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
 //            Log.v(LOG_TAG, "ArtistsDataFetcher.onPostExecute - start - artistsDetailsList: " + artistsDetailsList);
+            Context context = mActivity.getApplicationContext();
             if (networkProblems) {
-                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
                 return;
             } else if (artistsDetailsList == null) {
-                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, mActivity.getResources().getString(R.string.search_returned_no_artist_data), Toast.LENGTH_LONG).show();
                 return;
             }
 //            ArtistsFragment.this.mArtistsDetailsList = artistsDetailsList;
@@ -305,8 +313,8 @@ public class ArtistsFragment extends Fragment {
 
             try {
                 callBackresultsCountDownLatch.await();
-                // TODO: 23/06/2015 think about it
             } catch (InterruptedException nothingCanBeDone) {
+                Toast.makeText(mActivity.getApplicationContext(), mActivity.getResources().getString(R.string.search_unsuccessful_internal_problems), Toast.LENGTH_LONG).show();
             }
             return results;
 
@@ -342,11 +350,12 @@ public class ArtistsFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
+            Context context = mActivity.getApplicationContext();
             if (!networkProblems) {
-                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, mActivity.getResources().getString(R.string.search_unsuccessful_network_problems), Toast.LENGTH_LONG).show();
                 return;
             } else if (trackDetails == null) {
-                Toast.makeText(mActivity, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
+                Toast.makeText(context, mActivity.getResources().getString(R.string.search_returned_no_track_data), Toast.LENGTH_LONG).show();
                 return;
             }
             mCallbacks.showTracks(listViewFirstVisiblePosition, trackDetails);
@@ -410,8 +419,8 @@ public class ArtistsFragment extends Fragment {
 
             try {
                 callBackresultsCountDownLatch.await();
-                // TODO: 23/06/2015 think about it
             } catch (InterruptedException nothingCanBeDone) {
+                Toast.makeText(mActivity.getApplicationContext(), mActivity.getResources().getString(R.string.search_unsuccessful_internal_problems), Toast.LENGTH_LONG).show();
             }
 
             return results;
