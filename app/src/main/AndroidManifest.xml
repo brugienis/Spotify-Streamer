@@ -30,12 +30,4 @@
         </activity>
     </application>
 
-</manifest><!--
-            android:configChanges="screenSize|orientation"
-
-        <activity
-            android:name=".core.ArtistsActivity"
-            android:label="@string/title_activity_artists" >
-        </activity>
-
--->
+</manifest>
