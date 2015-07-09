@@ -71,7 +71,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             mArtistsFragment = new ArtistsFragment();
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.fragments_frame, mArtistsFragment, ARTIST_TAG)
+                    .add(R.id.dynamic_fragments_frame, mArtistsFragment, ARTIST_TAG)
                     .commit();
         }
     }
@@ -103,7 +103,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         ArtistFragmentSaveData artistFragmentSaveData = mArtistsFragment.getDataToSave();
         outState.putString(ARTIST_NAME, artistFragmentSaveData.artistName);
-        List<ArtistDetails> artistDetailsList = mArtistsDetailsList;
+//        List<ArtistDetails> artistDetailsList = mArtistsDetailsList;
+        List<ArtistDetails> artistDetailsList = artistFragmentSaveData.mArtistsDetailsList;
         if (artistDetailsList != null && artistDetailsList.size() > 0) {
             outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
             outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION,
@@ -173,24 +174,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             mTracksFragment.setListAdapter(trackArrayAdapter);
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.fragments_frame, mTracksFragment, TRACK_TAG)
+                    .replace(R.id.dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
                     .addToBackStack(TRACK_TAG)
                     .commit();
         }
         mTracksFragment.showTracksDetails(trackDetails);
-    }
-
-    /**
-     * Save artists details and show them on the screen.
-     */
-    @Override
-    public void onPostExecute(String artistName, List<ArtistDetails> artistsDetailsList,
-                              int listViewFirstVisiblePosition) {
-        this.mArtistsDetailsList = artistsDetailsList;
-        this.mArtistName = artistName;
-        this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
-        mArtistsFragment.showArtistsDetails(artistName, artistsDetailsList,
-                mArtistsListViewFirstVisiblePosition);
     }
 
 }

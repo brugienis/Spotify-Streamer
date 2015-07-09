@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -50,14 +51,13 @@ public class ArtistsFragment extends Fragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     interface ArtistsFragmentCallbacks {
-        void onPostExecute(String artistName, List<ArtistDetails> artistsDetailsList,
-                           int listViewFirstVisiblePosition);
         void showTracksData(int selectedArtistRowPosition, List<TrackDetails> trackDetails);
     }
 
     private ArtistsFragmentCallbacks mCallbacks;
     private EditText mSearchText;
     private ListView mListView;
+    private List<ArtistDetails> mArtistsDetailsList;
     private ArtistArrayAdapter<TrackDetails> mArtistArrayAdapter;
     private Activity mActivity;
     private boolean mSearchInProgress;
@@ -135,6 +135,7 @@ public class ArtistsFragment extends Fragment {
      * Called when user pressed search button. Starts search if search text is not empty.
      */
     private boolean handleSearchButtonClicked(int actionId) {
+        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             mArtistName = mSearchText.getText().toString();
@@ -197,7 +198,7 @@ public class ArtistsFragment extends Fragment {
      */
     public ArtistFragmentSaveData getDataToSave() {
         mArtistName = mSearchText.getText().toString();
-        return new ArtistFragmentSaveData(mArtistName, mListView.getFirstVisiblePosition());
+        return new ArtistFragmentSaveData(mArtistName, mArtistsDetailsList, mListView.getFirstVisiblePosition());
     }
 
     /**
@@ -259,9 +260,11 @@ public class ArtistsFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
                 return;
             }
-            if (mCallbacks != null) {
-                mCallbacks.onPostExecute(artistName, artistsDetailsList, 0);
-            }
+//            if (mCallbacks != null) {
+//                mCallbacks.onPostExecute(artistName, artistsDetailsList, 0);
+//            }
+            mArtistsDetailsList = artistsDetailsList;
+            showArtistsDetails(artistName, artistsDetailsList, 0);
             setSearchInProgress(false);
         }
 
