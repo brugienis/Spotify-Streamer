@@ -27,6 +27,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
     private String mArtistName;
+    private boolean mTwoPane;
     private List<ArtistDetails> mArtistsDetailsList;
     private int mArtistsListViewFirstVisiblePosition;
     private final String ACTIVITY_TITLE = "activity_title";
@@ -63,6 +64,37 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager()
                 .getBackStackEntryCount() > 0);
 
+
+        if (findViewById(R.id.right_dynamic_fragments_frame) != null) {
+            // The detail container view will be present only in the large-screen layouts
+            // (res/layout-sw600dp). If this view is present, then the activity should be
+            // in two-pane mode.
+            mTwoPane = true;
+            // In two-pane mode, show the detail view in this activity by
+            // adding or replacing the detail fragment using a
+            // fragment transaction.
+            if (savedInstanceState == null) {
+
+
+                mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
+                if (mTracksFragment == null) {
+                    mTracksFragment = new TracksFragment();
+                    TrackArrayAdapter<TrackDetails> trackArrayAdapter =
+                            new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
+                    mTracksFragment.setListAdapter(trackArrayAdapter);
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.right_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
+                            .addToBackStack(TRACK_TAG)
+                            .commit();
+                }
+//                mTracksFragment.showTracksDetails(trackDetails);
+            }
+        } else {
+            mTwoPane = false;
+//            getSupportActionBar().setElevation(0f);
+        }
+
         mArtistsFragment =
                 (ArtistsFragment) getSupportFragmentManager()
                         .findFragmentByTag(ARTIST_TAG);
@@ -71,7 +103,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             mArtistsFragment = new ArtistsFragment();
             getSupportFragmentManager()
                     .beginTransaction()
-                    .add(R.id.dynamic_fragments_frame, mArtistsFragment, ARTIST_TAG)
+                    .add(R.id.left_dynamic_fragments_frame, mArtistsFragment, ARTIST_TAG)
                     .commit();
         }
     }
@@ -172,9 +204,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             TrackArrayAdapter<TrackDetails> trackArrayAdapter =
                     new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
             mTracksFragment.setListAdapter(trackArrayAdapter);
+            int frameLayout = mTwoPane ? R.id.right_dynamic_fragments_frame : R.id.left_dynamic_fragments_frame;
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
+                    .replace(frameLayout, mTracksFragment, TRACK_TAG)
                     .addToBackStack(TRACK_TAG)
                     .commit();
         }
