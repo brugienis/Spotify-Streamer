@@ -51,7 +51,7 @@ public class ArtistsFragment extends Fragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     interface ArtistsFragmentCallbacks {
-        void showTracksData(int selectedArtistRowPosition, List<TrackDetails> trackDetails);
+        void showTracksData(String artistName, int selectedArtistRowPosition, List<TrackDetails> trackDetails);
     }
 
     private ArtistsFragmentCallbacks mCallbacks;
@@ -155,10 +155,12 @@ public class ArtistsFragment extends Fragment {
      */
     private class SelectedArtistRowDetails {
         private final int listViewFirstVisiblePosition;
+        private final String artistName;
         private final String artistId;
 
-        SelectedArtistRowDetails(int listViewFirstVisiblePosition, String artistId) {
+        SelectedArtistRowDetails(int listViewFirstVisiblePosition, String artistName, String artistId) {
             this.listViewFirstVisiblePosition = listViewFirstVisiblePosition;
+            this.artistName = artistName;
             this.artistId = artistId;
         }
 
@@ -169,10 +171,12 @@ public class ArtistsFragment extends Fragment {
      * top 10 tracks.
      */
     private void handleArtistRowClicked(int position) {
-        TracksDataFetcherWithCallbacks artistsFetcher = new TracksDataFetcherWithCallbacks();
-        artistsFetcher.execute(
+        ArtistDetails artistDetails = mArtistArrayAdapter.getItem(position);
+        TracksDataFetcherWithCallbacks tracksFetcher = new TracksDataFetcherWithCallbacks();
+        tracksFetcher.execute(
                 new SelectedArtistRowDetails(mListView.getFirstVisiblePosition(),
-                        (mArtistArrayAdapter.getItem(position)).spotifyId));
+                        artistDetails.name,
+                        artistDetails.spotifyId));
     }
 
     private void hideKeyboard() {
@@ -359,6 +363,7 @@ public class ArtistsFragment extends Fragment {
         private SpotifyService mSpotifyService;
         private boolean networkProblems = true;
         private int listViewFirstVisiblePosition;
+        private String artistName;
         private List<TrackDetails> results;
         private CountDownLatch callBackResultsCountDownLatch;
 
@@ -382,7 +387,7 @@ public class ArtistsFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
                 return;
             }
-            mCallbacks.showTracksData(listViewFirstVisiblePosition, trackDetails);
+            mCallbacks.showTracksData(artistName, listViewFirstVisiblePosition, trackDetails);
         }
 
 
@@ -395,6 +400,7 @@ public class ArtistsFragment extends Fragment {
         protected List<TrackDetails> doInBackground(SelectedArtistRowDetails... params) {
             listViewFirstVisiblePosition = params[0].listViewFirstVisiblePosition;
             String artistId = params[0].artistId;
+            artistName = params[0].artistName;
 
             // If there's no artist Id, there's nothing to look up.  Verify size of params.
             if (artistId.length() == 0) {

@@ -194,9 +194,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity
      * Shows top 10 tracks of the artist selected on the artists screen.
      */
     @Override
-    public void showTracksData(int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
+    public void showTracksData(String artistName, int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
         mActivityTitle = getResources().getString(R.string.title_activity_tracks);
         getSupportActionBar().setTitle(mActivityTitle);
+        getSupportActionBar().setSubtitle(artistName);
         this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
         if (mTracksFragment == null) {
