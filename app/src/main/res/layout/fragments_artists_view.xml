@@ -14,6 +14,7 @@
         android:imeOptions="actionSearch"/>
 
     <ListView
+        style="@style/ArtistsListStyle"
         android:id="@+id/listview_artists"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

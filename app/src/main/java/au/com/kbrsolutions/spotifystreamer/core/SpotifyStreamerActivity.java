@@ -24,6 +24,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         implements ArtistsFragment.ArtistsFragmentCallbacks {
 
     private CharSequence mActivityTitle;
+    private CharSequence mActivitySubtitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
     private String mArtistName;
@@ -31,6 +32,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     private List<ArtistDetails> mArtistsDetailsList;
     private int mArtistsListViewFirstVisiblePosition;
     private final String ACTIVITY_TITLE = "activity_title";
+    private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
     private final String ARTIST_NAME = "artist_name";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
@@ -133,6 +135,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         super.onSaveInstanceState(outState);
 
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
+        outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
         ArtistFragmentSaveData artistFragmentSaveData = mArtistsFragment.getDataToSave();
         outState.putString(ARTIST_NAME, artistFragmentSaveData.artistName);
 //        List<ArtistDetails> artistDetailsList = mArtistsDetailsList;
@@ -155,6 +158,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
+        mActivitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
+        getSupportActionBar().setSubtitle(mActivitySubtitle);
         mArtistName = savedInstanceState.getString(ARTIST_NAME);
         mArtistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
         mArtistsListViewFirstVisiblePosition =
