@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -24,20 +25,13 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         implements ArtistsFragment.ArtistsFragmentCallbacks {
 
     private CharSequence mActivityTitle;
-    private CharSequence mActivitySubtitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
-    private String mArtistName;
     private boolean mTwoPane;
-    private List<ArtistDetails> mArtistsDetailsList;
-    private int mArtistsListViewFirstVisiblePosition;
     private final String ACTIVITY_TITLE = "activity_title";
     private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
-    private final String ARTIST_NAME = "artist_name";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
-    private final String ARTISTS_DATA = "artists_data";
-    private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "list_view_first_visible_position";
 
     private final static String LOG_TAG = SpotifyStreamerActivity.class.getSimpleName();
 
@@ -90,7 +84,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity
                             .addToBackStack(TRACK_TAG)
                             .commit();
                 }
-//                mTracksFragment.showTracksDetails(trackDetails);
             }
         } else {
             mTwoPane = false;
@@ -116,8 +109,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     private void showArtistsData() {
         mActivityTitle = getResources().getString(R.string.title_activity_artists);
         getSupportActionBar().setTitle(mActivityTitle);
-        mArtistsFragment.showArtistsDetails(mArtistName, mArtistsDetailsList,
-                mArtistsListViewFirstVisiblePosition);
+        mArtistsFragment.showArtistsDetails();
     }
 
     /**
@@ -133,18 +125,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        Log.v(LOG_TAG, "onSaveInstanceState");
 
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
-        ArtistFragmentSaveData artistFragmentSaveData = mArtistsFragment.getDataToSave();
-        outState.putString(ARTIST_NAME, artistFragmentSaveData.artistName);
-//        List<ArtistDetails> artistDetailsList = mArtistsDetailsList;
-        List<ArtistDetails> artistDetailsList = artistFragmentSaveData.mArtistsDetailsList;
-        if (artistDetailsList != null && artistDetailsList.size() > 0) {
-            outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList)artistDetailsList);
-            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION,
-                    artistFragmentSaveData.listViewFirstVisiblePosition);
-        }
     }
 
     /**
@@ -155,20 +139,15 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        Log.v(LOG_TAG, "onRestoreInstanceState");
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
-        mActivitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
-        getSupportActionBar().setSubtitle(mActivitySubtitle);
-        mArtistName = savedInstanceState.getString(ARTIST_NAME);
-        mArtistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
-        mArtistsListViewFirstVisiblePosition =
-                savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
-        if (!mArtistsFragment.isSearchInProgress()) {
-            mArtistsFragment.showArtistsDetails(
-                    savedInstanceState.getCharSequence(ARTIST_NAME),
-                    mArtistsDetailsList,
-                    mArtistsListViewFirstVisiblePosition);
+        CharSequence activitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
+        getSupportActionBar().setSubtitle(activitySubtitle);
+        
+        if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
+            mArtistsFragment.showArtistsDetails();
         }
     }
 
@@ -199,16 +178,15 @@ public class SpotifyStreamerActivity extends ActionBarActivity
      * Shows top 10 tracks of the artist selected on the artists screen.
      */
     @Override
-    public void showTracksData(String artistName, int listViewFirstVisiblePosition, List<TrackDetails> trackDetails) {
+    public void showTracksData(String artistName, List<TrackDetails> trackDetails) {
         mActivityTitle = getResources().getString(R.string.title_activity_tracks);
         getSupportActionBar().setTitle(mActivityTitle);
         getSupportActionBar().setSubtitle(artistName);
-        this.mArtistsListViewFirstVisiblePosition = listViewFirstVisiblePosition;
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
         if (mTracksFragment == null) {
             mTracksFragment = new TracksFragment();
             TrackArrayAdapter<TrackDetails> trackArrayAdapter =
-                    new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
+                    new TrackArrayAdapter<>(this, trackDetails);
             mTracksFragment.setListAdapter(trackArrayAdapter);
             int frameLayout = mTwoPane ? R.id.right_dynamic_fragments_frame : R.id.left_dynamic_fragments_frame;
             getSupportFragmentManager()
@@ -217,7 +195,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity
                     .addToBackStack(TRACK_TAG)
                     .commit();
         }
-        mTracksFragment.showTracksDetails(trackDetails);
     }
 
 }

@@ -51,17 +51,21 @@ public class ArtistsFragment extends Fragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     interface ArtistsFragmentCallbacks {
-        void showTracksData(String artistName, int selectedArtistRowPosition, List<TrackDetails> trackDetails);
+        void showTracksData(String artistName, List<TrackDetails> trackDetails);
     }
 
     private ArtistsFragmentCallbacks mCallbacks;
     private EditText mSearchText;
     private ListView mListView;
     private List<ArtistDetails> mArtistsDetailsList;
+    private int mArtistsListViewFirstVisiblePosition;
     private ArtistArrayAdapter<TrackDetails> mArtistArrayAdapter;
     private Activity mActivity;
     private boolean mSearchInProgress;
     private String mArtistName;
+    private final String ARTIST_NAME = "artist_name";
+    private final String ARTISTS_DATA = "artists_data";
+    private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "list_view_first_visible_position";
 
     private final static String LOG_TAG = ArtistsFragment.class.getSimpleName();
 
@@ -94,6 +98,7 @@ public class ArtistsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
         List<ArtistDetails> artistsItemsList = new ArrayList<>();
 
@@ -114,6 +119,22 @@ public class ArtistsFragment extends Fragment {
                 handleArtistRowClicked(position);
             }
         });
+
+
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(ARTIST_NAME)) {
+                mArtistName = savedInstanceState.getString(ARTIST_NAME);
+                mSearchText.setText(mArtistName);
+            }
+            if (savedInstanceState.containsKey(ARTISTS_DATA)) {
+                mArtistsDetailsList = savedInstanceState.getParcelableArrayList(ARTISTS_DATA);
+            }
+            if (savedInstanceState.containsKey(LIST_VIEW_FIRST_VISIBLE_POSITION)) {
+                mArtistsListViewFirstVisiblePosition =
+                        savedInstanceState.getInt(LIST_VIEW_FIRST_VISIBLE_POSITION);
+            }
+        }
+
         return rootView;
     }
 
@@ -154,12 +175,10 @@ public class ArtistsFragment extends Fragment {
      * Contains details needed by the TracksDataFetcherWithCallbacks.
      */
     private class SelectedArtistRowDetails {
-        private final int listViewFirstVisiblePosition;
         private final String artistName;
         private final String artistId;
 
-        SelectedArtistRowDetails(int listViewFirstVisiblePosition, String artistName, String artistId) {
-            this.listViewFirstVisiblePosition = listViewFirstVisiblePosition;
+        SelectedArtistRowDetails(String artistName, String artistId) {
             this.artistName = artistName;
             this.artistId = artistId;
         }
@@ -174,7 +193,7 @@ public class ArtistsFragment extends Fragment {
         ArtistDetails artistDetails = mArtistArrayAdapter.getItem(position);
         TracksDataFetcherWithCallbacks tracksFetcher = new TracksDataFetcherWithCallbacks();
         tracksFetcher.execute(
-                new SelectedArtistRowDetails(mListView.getFirstVisiblePosition(),
+                new SelectedArtistRowDetails(
                         artistDetails.name,
                         artistDetails.spotifyId));
     }
@@ -198,28 +217,34 @@ public class ArtistsFragment extends Fragment {
     }
 
     /**
-     * Returns data that should be saved in parent activity onSaveInstanceState method.
+     * Called from the parent activity.
      */
-    public ArtistFragmentSaveData getDataToSave() {
-        mArtistName = mSearchText.getText().toString();
-        return new ArtistFragmentSaveData(mArtistName, mArtistsDetailsList, mListView.getFirstVisiblePosition());
-    }
-
-    /**
-     * Called from the parent activity. Contains artists details that will be placed on the screen.
-     */
-    public void showArtistsDetails(CharSequence artistName, List<ArtistDetails> artistsDetailsList,
-                                   int listViewFirstVisiblePosition) {
-        mSearchText.setText(artistName);
+    public void showArtistsDetails() {
+        mSearchText.setText(mArtistName);
         mSearchText.requestFocus();
-        if (artistName != null) {
-            mSearchText.setSelection(artistName.length());
+        if (mArtistName != null) {
+            mSearchText.setSelection(mArtistName.length());
         }
         mArtistArrayAdapter.clear();
-        if (artistsDetailsList != null) {
-            mArtistArrayAdapter.addAll(artistsDetailsList);
-            mListView.setSelection(listViewFirstVisiblePosition);
+        if (mArtistsDetailsList != null) {
+            mArtistArrayAdapter.addAll(mArtistsDetailsList);
+            mListView.setSelection(mArtistsListViewFirstVisiblePosition);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.v(LOG_TAG, "onSaveInstanceState");
+        mArtistName = mSearchText.getText().toString();
+        outState.putString(ARTIST_NAME, mArtistName);
+        if (mArtistsDetailsList != null) {
+            outState.putParcelableArrayList(ARTISTS_DATA, (ArrayList) mArtistsDetailsList);
+        }
+        mArtistsListViewFirstVisiblePosition = mListView.getFirstVisiblePosition();
+        if (mListView != null) {
+            outState.putInt(LIST_VIEW_FIRST_VISIBLE_POSITION, mListView.getFirstVisiblePosition());
+        }
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -268,7 +293,9 @@ public class ArtistsFragment extends Fragment {
 //                mCallbacks.onPostExecute(artistName, artistsDetailsList, 0);
 //            }
             mArtistsDetailsList = artistsDetailsList;
-            showArtistsDetails(artistName, artistsDetailsList, 0);
+//            showArtistsDetails(artistName, artistsDetailsList, 0);
+            mArtistsListViewFirstVisiblePosition = 0;
+            showArtistsDetails();
             setSearchInProgress(false);
         }
 
@@ -362,7 +389,6 @@ public class ArtistsFragment extends Fragment {
 
         private SpotifyService mSpotifyService;
         private boolean networkProblems = true;
-        private int listViewFirstVisiblePosition;
         private String artistName;
         private List<TrackDetails> results;
         private CountDownLatch callBackResultsCountDownLatch;
@@ -387,7 +413,7 @@ public class ArtistsFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
                 return;
             }
-            mCallbacks.showTracksData(artistName, listViewFirstVisiblePosition, trackDetails);
+            mCallbacks.showTracksData(artistName, trackDetails);
         }
 
 
@@ -398,7 +424,6 @@ public class ArtistsFragment extends Fragment {
          */
         @Override
         protected List<TrackDetails> doInBackground(SelectedArtistRowDetails... params) {
-            listViewFirstVisiblePosition = params[0].listViewFirstVisiblePosition;
             String artistId = params[0].artistId;
             artistName = params[0].artistName;
 
