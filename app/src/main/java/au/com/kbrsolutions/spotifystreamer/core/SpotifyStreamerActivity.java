@@ -172,37 +172,39 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
+
+    @Override
+    public void artistSearchStart() {
+//        TrackArrayAdapter<TrackDetails> trackArrayAdapter =
+//                new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
+        mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
+        // TODO: 12/07/2015 move to strings 
+        mTracksFragment.setEmptyText("Artist search started - no tracks are available");
+    }
+
     /**
      * Shows top 10 tracks of the artist selected on the artists screen.
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> trackDetails) {
-        Log.v(LOG_TAG, "showTracksData - mTwoPane: " + mTwoPane);
-        mActivityTitle = getResources().getString(R.string.title_activity_tracks);
-        getSupportActionBar().setTitle(mActivityTitle);
+//        Log.v(LOG_TAG, "showTracksData - mTwoPane: " + mTwoPane);
+//        getSupportActionBar().setTitle(mActivityTitle);
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
-        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
+//        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
         if (mTracksFragment == null) {
             mTracksFragment = new TracksFragment();
         }
-        TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, trackDetails);
-        mTracksFragment.setListAdapter(trackArrayAdapter);
-        if (mTwoPane) {
-            Log.v(LOG_TAG, "showTracksData - replacing right");
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.right_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
-                    .addToBackStack(TRACK_TAG)
-                    .commit();
-        } else {
-            Log.v(LOG_TAG, "showTracksData - replacing left");
+        if (!mTwoPane) {
+            mActivityTitle = getResources().getString(R.string.title_activity_tracks);
             getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.left_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
                     .addToBackStack(TRACK_TAG)
                     .commit();
         }
+        TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, trackDetails);
+        mTracksFragment.setListAdapter(trackArrayAdapter);
     }
 
 }

@@ -51,6 +51,7 @@ public class ArtistsFragment extends Fragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     interface ArtistsFragmentCallbacks {
+        void artistSearchStart();
         void showTracksData(String artistName, List<TrackDetails> trackDetails);
     }
 
@@ -251,6 +252,7 @@ public class ArtistsFragment extends Fragment {
      * Starts asynchronous search for artists details.
      */
     private void sendArtistsDataRequestToSpotify(String artistName) {
+        mCallbacks.artistSearchStart();
         setSearchInProgress(true);
         mArtistArrayAdapter.clear();
         ArtistsDataFetcherWithCallbacks artistsFetcher = new ArtistsDataFetcherWithCallbacks();
