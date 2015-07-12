@@ -42,6 +42,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "onCreate - start");
         setContentView(R.layout.activity_spotifystreamer);
 
         getSupportFragmentManager().addOnBackStackChangedListener(
@@ -70,8 +71,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
-
-
                 mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
                 if (mTracksFragment == null) {
                     mTracksFragment = new TracksFragment();
@@ -81,7 +80,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
                     getSupportFragmentManager()
                             .beginTransaction()
                             .replace(R.id.right_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
-                            .addToBackStack(TRACK_TAG)
+//                            .addToBackStack(TRACK_TAG)
                             .commit();
                 }
             }
@@ -91,8 +90,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         }
 
         mArtistsFragment =
-                (ArtistsFragment) getSupportFragmentManager()
-                        .findFragmentByTag(ARTIST_TAG);
+                (ArtistsFragment) getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
 
         if (mArtistsFragment == null) {
             mArtistsFragment = new ArtistsFragment();
@@ -145,7 +143,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         getSupportActionBar().setTitle(mActivityTitle);
         CharSequence activitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
         getSupportActionBar().setSubtitle(activitySubtitle);
-        
+
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
@@ -179,19 +177,29 @@ public class SpotifyStreamerActivity extends ActionBarActivity
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> trackDetails) {
+        Log.v(LOG_TAG, "showTracksData - mTwoPane: " + mTwoPane);
         mActivityTitle = getResources().getString(R.string.title_activity_tracks);
         getSupportActionBar().setTitle(mActivityTitle);
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
+        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
         if (mTracksFragment == null) {
             mTracksFragment = new TracksFragment();
-            TrackArrayAdapter<TrackDetails> trackArrayAdapter =
-                    new TrackArrayAdapter<>(this, trackDetails);
-            mTracksFragment.setListAdapter(trackArrayAdapter);
-            int frameLayout = mTwoPane ? R.id.right_dynamic_fragments_frame : R.id.left_dynamic_fragments_frame;
+        }
+        TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, trackDetails);
+        mTracksFragment.setListAdapter(trackArrayAdapter);
+        if (mTwoPane) {
+            Log.v(LOG_TAG, "showTracksData - replacing right");
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(frameLayout, mTracksFragment, TRACK_TAG)
+                    .replace(R.id.right_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
+                    .addToBackStack(TRACK_TAG)
+                    .commit();
+        } else {
+            Log.v(LOG_TAG, "showTracksData - replacing left");
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.left_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
                     .addToBackStack(TRACK_TAG)
                     .commit();
         }
