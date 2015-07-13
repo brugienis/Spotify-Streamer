@@ -51,13 +51,16 @@ public class ArtistsFragment extends Fragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     interface ArtistsFragmentCallbacks {
-        void artistSearchStart();
+        void artistSearchStarted();
+        void artistSearchEnded();
+//        void setTracksFragmentEmptyText(String emptyText);
         void showTracksData(String artistName, List<TrackDetails> trackDetails);
     }
 
     private ArtistsFragmentCallbacks mCallbacks;
     private EditText mSearchText;
     private ListView mListView;
+    private TextView mEmptyView;
     private List<ArtistDetails> mArtistsDetailsList;
     private int mArtistsListViewFirstVisiblePosition;
     private ArtistArrayAdapter<TrackDetails> mArtistArrayAdapter;
@@ -120,7 +123,9 @@ public class ArtistsFragment extends Fragment {
                 handleArtistRowClicked(position);
             }
         });
-
+        mEmptyView = (TextView) rootView.findViewById(R.id.emptyView);
+        mEmptyView.setText(mActivity.getResources()
+                .getString(R.string.no_artists_available));
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(ARTIST_NAME)) {
@@ -213,12 +218,13 @@ public class ArtistsFragment extends Fragment {
      * Should be called before trying to show artists data saved in parent activity in the
      * onSaveInstanceState method. If search is in progress don't show previously saved data.
      */
+    // TODO: 13/07/2015 thionk about it - it was probably called from activity onSaveInstanceState method
     public synchronized boolean isSearchInProgress() {
         return mSearchInProgress;
     }
 
     /**
-     * Called from the parent activity.
+     * Show artists details or empty view if no data found.
      */
     public void showArtistsDetails() {
         mSearchText.setText(mArtistName);
@@ -229,10 +235,21 @@ public class ArtistsFragment extends Fragment {
         mArtistArrayAdapter.clear();
         if (mArtistsDetailsList != null) {
             mArtistArrayAdapter.addAll(mArtistsDetailsList);
+            mListView.clearChoices();    /* will clear previously selected artist row */
+            mArtistArrayAdapter.notifyDataSetChanged(); /* call after clearChoices above */
             mListView.setSelection(mArtistsListViewFirstVisiblePosition);
+            if (mArtistArrayAdapter.isEmpty()) {
+                mEmptyView.setVisibility(View.VISIBLE);
+//                mEmptyView.setText();
+            } else {
+                mEmptyView.setVisibility(View.GONE);
+            }
         }
     }
 
+    /**
+     * Save data if configuration changed - device rotation, etc.
+     */
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.v(LOG_TAG, "onSaveInstanceState");
@@ -252,9 +269,11 @@ public class ArtistsFragment extends Fragment {
      * Starts asynchronous search for artists details.
      */
     private void sendArtistsDataRequestToSpotify(String artistName) {
-        mCallbacks.artistSearchStart();
+        mCallbacks.artistSearchStarted();
         setSearchInProgress(true);
         mArtistArrayAdapter.clear();
+        mEmptyView.setText(mActivity.getResources().getString(R.string.search_in_progress));
+        mEmptyView.setVisibility(View.VISIBLE);
         ArtistsDataFetcherWithCallbacks artistsFetcher = new ArtistsDataFetcherWithCallbacks();
         artistsFetcher.execute(artistName);
     }
@@ -279,26 +298,19 @@ public class ArtistsFragment extends Fragment {
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
             Context context = mActivity.getApplicationContext();
             if (networkProblems) {
-                Toast.makeText(context,
-                        mActivity.getResources()
-                                .getString(R.string.search_unsuccessful_network_problems),
-                        Toast.LENGTH_LONG).show();
+                mEmptyView.setText(mActivity.getResources()
+                        .getString(R.string.search_unsuccessful_network_problems));
                 return;
             } else if (artistsDetailsList == null) {
-                Toast.makeText(context,
-                        mActivity.getResources()
-                                .getString(R.string.search_returned_no_artist_data),
-                        Toast.LENGTH_LONG).show();
+                mEmptyView.setText(mActivity.getResources()
+                        .getString(R.string.search_returned_no_artist_data));
                 return;
             }
-//            if (mCallbacks != null) {
-//                mCallbacks.onPostExecute(artistName, artistsDetailsList, 0);
-//            }
             mArtistsDetailsList = artistsDetailsList;
-//            showArtistsDetails(artistName, artistsDetailsList, 0);
             mArtistsListViewFirstVisiblePosition = 0;
             showArtistsDetails();
             setSearchInProgress(false);
+            mCallbacks.artistSearchEnded();
         }
 
         /**
@@ -396,7 +408,7 @@ public class ArtistsFragment extends Fragment {
         private CountDownLatch callBackResultsCountDownLatch;
 
         /**
-         * When background processing id done and artists data found, calls onPostExecute
+         * When background processing is done and artists data found, calls onPostExecute
          * method onn the class that implemented the ArtistsFragmentCallbacks.
          */
         @Override

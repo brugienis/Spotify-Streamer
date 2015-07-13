@@ -14,6 +14,11 @@
     <string name="search_artist_hint">Enter artist name</string>
     <string name="callbacks_not_implemented">"%1$s must implement ArtistsFragmentCallbacks"</string>
     <string name="country_string" translatable="false">country</string>
+    <string name="search_in_progress">Search in progress</string>
+    <string name="no_artists_available">No artists available</string>
+
+    <!-- TracksFragment -->
+    <string name="tracks_data_not_found">No tracks available</string>
 
     <!-- preferences -->
     <string name="title_activity_settings">Settings</string>

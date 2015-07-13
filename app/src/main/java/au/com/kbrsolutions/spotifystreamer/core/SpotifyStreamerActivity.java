@@ -172,14 +172,27 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         return super.onOptionsItemSelected(item);
     }
 
-
+    /**
+     * On tablet - TracksFragment is visible - show empty list text.
+     */
     @Override
-    public void artistSearchStart() {
-//        TrackArrayAdapter<TrackDetails> trackArrayAdapter =
-//                new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>());
-        mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
-        // TODO: 12/07/2015 move to strings 
-        mTracksFragment.setEmptyText("Artist search started - no tracks are available");
+    public void artistSearchStarted() {
+        Log.v(LOG_TAG, "artistSearchStarted - mTracksFragment: " + mTracksFragment);
+        if (mTracksFragment != null && mTracksFragment.isVisible()) {
+            mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
+            mTracksFragment.setEmptyText("No tracks available");
+        }
+    }
+
+    /**
+     * On tablet - TracksFragment is visible - show empty list text.
+     */
+    @Override
+    public void artistSearchEnded() {
+        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
+        if (mTracksFragment != null && mTracksFragment.isVisible()) {
+            mTracksFragment.setEmptyText("Select an artist to see top 10 tracks");
+        }
     }
 
     /**
