@@ -7,6 +7,7 @@ package au.com.kbrsolutions.spotifystreamer.core;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 
 /**
  * Shows artists details or top 10 tracks of selected artist.
@@ -167,9 +169,21 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
+        } else if (id == R.id.action_show_player) {
+            showPlayer();
+            return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void showPlayer() {
+        PlayerControllerUi dialog = new PlayerControllerUi();   //.newInstance(tracks,position);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        transaction.add(android.R.id.content, dialog)
+                .addToBackStack(null)
+                .commit();
     }
 
     /**

@@ -35,31 +35,31 @@
         android:orientation="horizontal">
 
         <ImageView
-            android:layout_width="46dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:id="@+id/playerPrev"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.09"
             android:layout_margin="10dp"
-            android:src="@android:drawable/ic_media_previous"/>
+            android:src="@drawable/ic_action_previous"/>
 
         <ImageView
-            android:layout_width="46dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:id="@+id/playerPousePlay"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.09"
             android:layout_margin="10dp"
-            android:src="@android:drawable/ic_media_play"/>
+            android:src="@drawable/ic_action_play"/>
 
         <ImageView
-            android:layout_width="46dp"
+            android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:id="@+id/playerNext"
             android:layout_gravity="center_horizontal"
             android:layout_weight="0.09"
             android:layout_margin="10dp"
-            android:src="@android:drawable/ic_media_next"/>
+            android:src="@drawable/ic_action_next"/>
 
     </LinearLayout>
 </LinearLayout>
