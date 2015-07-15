@@ -24,7 +24,7 @@ import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
  */
 
 public class SpotifyStreamerActivity extends ActionBarActivity
-        implements ArtistsFragment.ArtistsFragmentCallbacks {
+        implements ArtistsFragment.ArtistsFragmentCallbacks, PlayerControllerUi.PlayerControllerUiCallbacks {
 
     private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
@@ -170,6 +170,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             startActivity(new Intent(this, SettingsActivity.class));
             return true;
         } else if (id == R.id.action_show_player) {
+            // TODO: 15/07/2015 remove this menu after testing 
             showPlayer();
             return true;
         }
@@ -181,7 +182,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         PlayerControllerUi dialog = new PlayerControllerUi();   //.newInstance(tracks,position);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        transaction.add(android.R.id.content, dialog)
+//        transaction.replace(android.R.id.content, dialog)
+        transaction.replace(R.id.left_dynamic_fragments_frame, dialog)
                 .addToBackStack(null)
                 .commit();
     }
@@ -234,4 +236,18 @@ public class SpotifyStreamerActivity extends ActionBarActivity
         mTracksFragment.setListAdapter(trackArrayAdapter);
     }
 
+    @Override
+    public void playPreviousTrack() {
+        Log.v(LOG_TAG, "playPreviousTrack");
+    }
+
+    @Override
+    public void startStopPlaying() {
+        Log.v(LOG_TAG, "startStopPlaying");
+    }
+
+    @Override
+    public void playNextTrack() {
+        Log.v(LOG_TAG, "playNextTrack");
+    }
 }

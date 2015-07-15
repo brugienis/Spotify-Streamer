@@ -4,7 +4,7 @@
       tools:context="au.com.kbrsolutions.spotifystreamer.core.TracksActivity">
 
     <item android:id="@+id/action_show_player"
-          android:title="@string/action_settings"
+          android:title="Show player"
           android:orderInCategory="10"
           app:showAsAction="never"/>
 

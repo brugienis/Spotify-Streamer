@@ -15,8 +15,8 @@
         android:layout_margin="10dp"/>
 
     <ImageView
-        android:layout_width="46dp"
-        android:layout_height="wrap_content"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
         android:id="@+id/imageView"
         android:layout_gravity="center_horizontal"
         android:layout_weight="0.09"
@@ -25,7 +25,7 @@
     <SeekBar
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/seekBar"
+        android:id="@+id/splayerSeekBar"
         android:layout_gravity="center_horizontal"
         android:layout_margin="10dp"/>
 
@@ -34,32 +34,49 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="@dimen/player_controls_size"
+            android:layout_weight="0.09"/>
+
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/player_controls_size"
+            android:layout_height="@dimen/player_controls_size"
             android:id="@+id/playerPrev"
             android:layout_gravity="center_horizontal"
-            android:layout_weight="0.09"
             android:layout_margin="10dp"
             android:src="@drawable/ic_action_previous"/>
 
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="@dimen/player_controls_size"
+            android:layout_weight="0.09"/>
+
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
-            android:id="@+id/playerPousePlay"
+            android:layout_width="@dimen/player_controls_size"
+            android:layout_height="@dimen/player_controls_size"
+            android:id="@+id/playerStartStopPlaying"
             android:layout_gravity="center_horizontal"
-            android:layout_weight="0.09"
             android:layout_margin="10dp"
             android:src="@drawable/ic_action_play"/>
 
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="@dimen/player_controls_size"
+            android:layout_weight="0.09"/>
+
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="wrap_content"
+            android:layout_width="@dimen/player_controls_size"
+            android:layout_height="@dimen/player_controls_size"
             android:id="@+id/playerNext"
             android:layout_gravity="center_horizontal"
-            android:layout_weight="0.09"
             android:layout_margin="10dp"
             android:src="@drawable/ic_action_next"/>
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="@dimen/player_controls_size"
+            android:layout_weight="0.09"/>
 
     </LinearLayout>
 </LinearLayout>

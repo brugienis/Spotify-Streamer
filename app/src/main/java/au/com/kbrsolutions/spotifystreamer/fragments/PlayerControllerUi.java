@@ -1,5 +1,6 @@
 package au.com.kbrsolutions.spotifystreamer.fragments;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -14,6 +15,30 @@ import au.com.kbrsolutions.spotifystreamer.R;
  * Created by business on 14/07/2015.
  */
 public class PlayerControllerUi extends DialogFragment {
+
+    /**
+     * Declares callback methods that have to be implemented by parent Activity
+     */
+    public interface PlayerControllerUiCallbacks {
+        void playPreviousTrack();
+        void startStopPlaying();
+        void playNextTrack();
+    }
+
+    private PlayerControllerUiCallbacks mCallbacks;
+
+    @Override
+    public void onAttach(Activity activity) {
+        try {
+            mCallbacks = (PlayerControllerUiCallbacks) activity;
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    getActivity().getResources()
+                            .getString(R.string.callbacks_not_implemented, activity.toString()));
+        }
+        super.onAttach(activity);
+    }
+
     /**
      * The system calls this to get the DialogFragment's layout, regardless
      * of whether it's being displayed as a dialog or an embedded fragment.
@@ -22,7 +47,33 @@ public class PlayerControllerUi extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
-        return inflater.inflate(R.layout.player, container, false);
+        View playerView = inflater.inflate(R.layout.player_ui, container, false);
+
+        final View playPrev = playerView.findViewById(R.id.playerPrev);
+        playPrev.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playPrevClicked();
+            }
+        });
+
+        final View startStop = playerView.findViewById(R.id.playerStartStopPlaying);
+        startStop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startStopClicked();
+            }
+        });
+
+        final View playNext = playerView.findViewById(R.id.playerNext);
+        playNext.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                playNextClicked();
+            }
+        });
+
+        return playerView;
     }
 
     /**
@@ -37,5 +88,17 @@ public class PlayerControllerUi extends DialogFragment {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         return dialog;
+    }
+
+    private void playPrevClicked() {
+        mCallbacks.playPreviousTrack();
+    }
+
+    private void startStopClicked() {
+        mCallbacks.startStopPlaying();
+    }
+
+    private void playNextClicked() {
+        mCallbacks.playNextTrack();
     }
 }
