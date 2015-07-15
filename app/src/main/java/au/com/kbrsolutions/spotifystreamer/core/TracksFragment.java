@@ -7,6 +7,10 @@ package au.com.kbrsolutions.spotifystreamer.core;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
+import android.view.View;
+import android.widget.ListView;
+
+import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 
@@ -14,8 +18,16 @@ import au.com.kbrsolutions.spotifystreamer.R;
  * Retrieves artists data using search text entered by the user.
  */
 public class TracksFragment extends ListFragment {
-//    private TrackArrayAdapter<TrackDetails> mTrackArrayAdapter;
-//    public final static String TRACKS_DATA = "tracks_data";
+
+    /**
+     * Declares callback methods that have to be implemented by parent Activity
+     */
+    public interface TracksFragmentCallbacks {
+        void playNewTrack(ArrayList<TrackDetails> tracksDetails, int selectedTrack);
+
+    }
+
+    private TracksFragmentCallbacks mCallbacks;
 
     private final static String LOG_TAG = TracksFragment.class.getSimpleName();
 
@@ -25,6 +37,13 @@ public class TracksFragment extends ListFragment {
 
     @Override
     public void onAttach(Activity activity) {
+        try {
+            mCallbacks = (TracksFragmentCallbacks) activity;
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    getActivity().getResources()
+                            .getString(R.string.callbacks_not_implemented, activity.toString()));
+        }
         super.onAttach(activity);
     }
 
@@ -33,6 +52,19 @@ public class TracksFragment extends ListFragment {
         super.onCreate(savedInstanceState);
         // Retain this fragment across configuration changes.
         setRetainInstance(true);
+    }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        ArrayList<TrackDetails> tracksDetails = ((TrackArrayAdapter) getListAdapter()).getTracksDetails();
+        mCallbacks.playNewTrack(tracksDetails, position);
+//        TrackDetails  trackDetails = (TrackDetails) getListAdapter().getItem(position);
+//        Log.v(LOG_TAG, "onListItemClick - " + trackDetails.trackName);
+//        if (mActivity.isNotConnectedToGoogleDrive(LOG_TAG + "onListItemClick")) {
+//            return;
+//        }
+//        mActivity.fileOrFolderClicked(position);
     }
 
     @Override

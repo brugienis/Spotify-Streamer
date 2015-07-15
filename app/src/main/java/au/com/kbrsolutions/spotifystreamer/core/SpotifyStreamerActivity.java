@@ -24,7 +24,10 @@ import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
  */
 
 public class SpotifyStreamerActivity extends ActionBarActivity
-        implements ArtistsFragment.ArtistsFragmentCallbacks, PlayerControllerUi.PlayerControllerUiCallbacks {
+        implements
+        ArtistsFragment.ArtistsFragmentCallbacks,
+        PlayerControllerUi.PlayerControllerUiCallbacks,
+        TracksFragment.TracksFragmentCallbacks {
 
     private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
@@ -171,15 +174,20 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             return true;
         } else if (id == R.id.action_show_player) {
             // TODO: 15/07/2015 remove this menu after testing 
-            showPlayer();
+            showPlayer(null, -1);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
 
-    private void showPlayer() {
-        PlayerControllerUi dialog = new PlayerControllerUi();   //.newInstance(tracks,position);
+    @Override
+    public void playNewTrack(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        showPlayer(tracksDetails, selectedTrack);
+    }
+
+    private void showPlayer(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        PlayerControllerUi dialog = PlayerControllerUi.newInstance(tracksDetails, selectedTrack);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 //        transaction.replace(android.R.id.content, dialog)

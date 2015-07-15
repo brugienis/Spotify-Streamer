@@ -4,12 +4,20 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.squareup.picasso.Picasso;
+
+import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.core.TrackDetails;
 
 /**
  * Created by business on 14/07/2015.
@@ -26,6 +34,29 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private PlayerControllerUiCallbacks mCallbacks;
+    private ArrayList<TrackDetails> tracksDetails;
+    private int selectedTrack;
+    private int mWidthPx = -1;
+    public final static String TRACKS_DETAILS = "tracks_details";
+    public final static String SELECTED_TRACK = "selected_track";
+
+    private final static String LOG_TAG = PlayerControllerUi.class.getSimpleName();
+
+    /**
+     * Create a new instance of MyDialogFragment, providing "num"
+     * as an argument.
+     */
+    public static PlayerControllerUi newInstance(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        PlayerControllerUi f = new PlayerControllerUi();
+
+        // Supply num input as an argument.
+        Bundle args = new Bundle();
+        args.putParcelableArrayList(TRACKS_DETAILS, tracksDetails);
+        args.putInt(SELECTED_TRACK, selectedTrack);
+        f.setArguments(args);
+
+        return f;
+    }
 
     @Override
     public void onAttach(Activity activity) {
@@ -39,6 +70,22 @@ public class PlayerControllerUi extends DialogFragment {
         super.onAttach(activity);
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.v(LOG_TAG, "onCreate - start");
+
+        if (getArguments() != null) {
+            if (getArguments().containsKey(TRACKS_DETAILS)) {
+                tracksDetails = getArguments().getParcelableArrayList(TRACKS_DETAILS);
+            }
+            if (getArguments().containsKey(SELECTED_TRACK)) {
+                selectedTrack = getArguments().getInt(SELECTED_TRACK);
+            }
+        }
+//        Log.v(LOG_TAG, "onCreate - tracksDetails/selectedTrack: " + tracksDetails + "/" + selectedTrack);
+    }
+
     /**
      * The system calls this to get the DialogFragment's layout, regardless
      * of whether it's being displayed as a dialog or an embedded fragment.
@@ -47,7 +94,30 @@ public class PlayerControllerUi extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
+        Log.v(LOG_TAG, "onCreateView - start");
         View playerView = inflater.inflate(R.layout.player_ui, container, false);
+
+        final TextView artistName = (TextView) playerView.findViewById(R.id.playerArtistName);
+        artistName.setText(tracksDetails.get(selectedTrack).albumName);
+
+        final TextView albumName = (TextView) playerView.findViewById(R.id.playerAlbumName);
+        albumName.setText(tracksDetails.get(selectedTrack).albumName);
+
+        final ImageView albumImage = (ImageView) playerView.findViewById(R.id.playerAlbumImageView);
+
+        if (mWidthPx == -1) {
+            mWidthPx = (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
+                    (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
+            if (albumImage != null) {
+                Picasso.with(getActivity())
+                        .load(tracksDetails.get(selectedTrack).albumArtLargeImageUrl)
+                        .resize(mWidthPx, mWidthPx).centerCrop()
+                        .into(albumImage);
+            }
+        }
+
+        final TextView trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
+        trackName.setText(tracksDetails.get(selectedTrack).trackName);
 
         final View playPrev = playerView.findViewById(R.id.playerPrev);
         playPrev.setOnClickListener(new View.OnClickListener() {

@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
@@ -24,17 +25,21 @@ import au.com.kbrsolutions.spotifystreamer.R;
  */
 public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
 
-    private List<TrackDetails> mObjects;
+    private List<TrackDetails> mTracksDetails;
     private Activity mActivity;
     private int mWidthPx = -1;
 
     private final String LOG_TAG = TrackArrayAdapter.class.getSimpleName();
 
-    public TrackArrayAdapter(Activity activity, List<TrackDetails> objects) {
+    public TrackArrayAdapter(Activity activity, List<TrackDetails> mTracksDetails) {
 
-        super(activity.getApplicationContext(), -1, objects);
+        super(activity.getApplicationContext(), -1, mTracksDetails);
         this.mActivity = activity;
-        this.mObjects = objects;
+        this.mTracksDetails = mTracksDetails;
+    }
+
+    public ArrayList<TrackDetails> getTracksDetails() {
+        return (ArrayList<TrackDetails>) mTracksDetails;
     }
 
     @Override
@@ -56,7 +61,7 @@ public class TrackArrayAdapter<T> extends ArrayAdapter<TrackDetails> {
             holder = (ViewHolder) v.getTag();
         }
 
-        TrackDetails trackDetails = mObjects.get(position);
+        TrackDetails trackDetails = mTracksDetails.get(position);
 
         if (trackDetails != null) {
             holder.trackName.setText(trackDetails.trackName);
