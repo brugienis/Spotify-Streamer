@@ -2,7 +2,7 @@
  * Copyright (C) 2013 The Android Open Source Project
  */
 
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -17,7 +17,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.adapters.TrackArrayAdapter;
+import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.fragments.ArtistsFragment;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
+import au.com.kbrsolutions.spotifystreamer.fragments.TracksFragment;
 
 /**
  * Shows artists details or top 10 tracks of selected artist.

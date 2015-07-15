@@ -2,7 +2,7 @@
  * Copyright (C) 2013 The Android Open Source Project
  */
 
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.data;
 
 import java.util.List;
 

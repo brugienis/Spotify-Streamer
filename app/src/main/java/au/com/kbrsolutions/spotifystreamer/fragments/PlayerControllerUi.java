@@ -17,7 +17,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
-import au.com.kbrsolutions.spotifystreamer.core.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 
 /**
  * Created by business on 14/07/2015.

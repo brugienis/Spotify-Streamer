@@ -2,7 +2,7 @@
  * Copyright (C) 2013 The Android Open Source Project
  */
 
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.adapters;
 
 import android.app.Activity;
 import android.content.Context;
@@ -18,6 +18,7 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.data.ArtistDetails;
 
 /**
  * ArrayAdapter used by ArtistsFragment.

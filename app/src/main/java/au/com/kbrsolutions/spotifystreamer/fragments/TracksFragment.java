@@ -2,7 +2,7 @@
  * Copyright (C) 2013 The Android Open Source Project
  */
 
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.fragments;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -13,6 +13,8 @@ import android.widget.ListView;
 import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.adapters.TrackArrayAdapter;
+import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 
 /**
  * Retrieves artists data using search text entered by the user.

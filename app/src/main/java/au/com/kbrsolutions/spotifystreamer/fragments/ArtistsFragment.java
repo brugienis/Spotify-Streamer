@@ -2,7 +2,7 @@
  * Copyright (C) 2013 The Android Open Source Project
  */
 
-package au.com.kbrsolutions.spotifystreamer.core;
+package au.com.kbrsolutions.spotifystreamer.fragments;
 
 import android.app.Activity;
 import android.content.Context;
@@ -30,6 +30,9 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.adapters.ArtistArrayAdapter;
+import au.com.kbrsolutions.spotifystreamer.data.ArtistDetails;
+import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import kaaes.spotify.webapi.android.SpotifyApi;
 import kaaes.spotify.webapi.android.SpotifyCallback;
 import kaaes.spotify.webapi.android.SpotifyError;
