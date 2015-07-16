@@ -254,6 +254,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     public void startStopPlaying() {
         Log.v(LOG_TAG, "startStopPlaying");
+        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(0));
     }
 
     @Override
@@ -300,4 +301,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             isMusicPlayerServiceBound = false;
         }
     };
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Unbind from the service
+        if (isMusicPlayerServiceBound) {
+            unbindService(mConnection);
+            isMusicPlayerServiceBound = false;
+        }
+    }
 }

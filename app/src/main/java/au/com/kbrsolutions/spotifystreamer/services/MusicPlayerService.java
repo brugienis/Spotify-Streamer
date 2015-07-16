@@ -10,6 +10,7 @@ import android.os.PowerManager;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
@@ -63,6 +64,7 @@ public class MusicPlayerService extends Service {
         Log.i(LOG_TAG, "onCreate - start");
         player = new MediaPlayer();
         configurePlayer();
+        Log.i(LOG_TAG, "onCreate - end");
     }
 
     public void configurePlayer() {
@@ -89,14 +91,16 @@ public class MusicPlayerService extends Service {
     }
 
     private void handleOnCompletion() {
-
+        Log.i(LOG_TAG, "handleOnCompletion - start");
     }
 
     private void handleOnPrepared() {
-
+        Log.i(LOG_TAG, "handleOnPrepared - start");
+        player.start();
     }
 
     private boolean handleOnError() {
+        Log.i(LOG_TAG, "handleOnError - start");
         return false;
     }
     public class LocalBinder extends Binder {
@@ -104,6 +108,20 @@ public class MusicPlayerService extends Service {
         public MusicPlayerService getService() {
             return MusicPlayerService.this;
         }
+    }
+
+    public void playTrack(TrackDetails trackDetails) {
+        player.reset();
+        try {
+            player.setDataSource(trackDetails.previewUrl);
+            player.prepareAsync();
+            player.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+//        Uri trackUri = ContentUris.withAppendedId(
+//                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+//                trackDetails.previewUrl);
     }
 
 //    @Override
