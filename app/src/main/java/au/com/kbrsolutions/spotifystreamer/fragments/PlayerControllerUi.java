@@ -49,7 +49,6 @@ public class PlayerControllerUi extends DialogFragment {
     public static PlayerControllerUi newInstance(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
         PlayerControllerUi f = new PlayerControllerUi();
 
-        // Supply num input as an argument.
         Bundle args = new Bundle();
         args.putParcelableArrayList(TRACKS_DETAILS, tracksDetails);
         args.putInt(SELECTED_TRACK, selectedTrack);

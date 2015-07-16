@@ -4,8 +4,12 @@
 
 package au.com.kbrsolutions.spotifystreamer.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
@@ -22,21 +26,26 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.fragments.ArtistsFragment;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import au.com.kbrsolutions.spotifystreamer.fragments.TracksFragment;
+import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
 
 /**
  * Shows artists details or top 10 tracks of selected artist.
  */
 
-public class SpotifyStreamerActivity extends ActionBarActivity
-        implements
+public class SpotifyStreamerActivity extends ActionBarActivity implements
         ArtistsFragment.ArtistsFragmentCallbacks,
         PlayerControllerUi.PlayerControllerUiCallbacks,
         TracksFragment.TracksFragmentCallbacks {
+//        ServiceConnection {
 
     private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
+    private String mCurrArtistName;
+    private List<TrackDetails> mCurrArtistTacksDetails;
     private boolean mTwoPane;
+    private MusicPlayerService mMusicPlayerService;
+    private boolean isMusicPlayerServiceBound;
     private final String ACTIVITY_TITLE = "activity_title";
     private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
     private final String ARTIST_TAG = "artist_tag";
@@ -178,26 +187,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity
             return true;
         } else if (id == R.id.action_show_player) {
             // TODO: 15/07/2015 remove this menu after testing 
-            showPlayer(null, -1);
+            showPlayer(-1);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
-    }
-
-    @Override
-    public void playNewTrack(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
-        showPlayer(tracksDetails, selectedTrack);
-    }
-
-    private void showPlayer(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
-        PlayerControllerUi dialog = PlayerControllerUi.newInstance(tracksDetails, selectedTrack);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-//        transaction.replace(android.R.id.content, dialog)
-        transaction.replace(R.id.left_dynamic_fragments_frame, dialog)
-                .addToBackStack(null)
-                .commit();
     }
 
     /**
@@ -206,6 +200,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     @Override
     public void artistSearchStarted() {
         Log.v(LOG_TAG, "artistSearchStarted - mTracksFragment: " + mTracksFragment);
+        mCurrArtistName = null;
+        mCurrArtistTacksDetails = null;
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
             mTracksFragment.setEmptyText("No tracks available");
@@ -227,9 +223,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity
      * Shows top 10 tracks of the artist selected on the artists screen.
      */
     @Override
-    public void showTracksData(String artistName, List<TrackDetails> trackDetails) {
+    public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
 //        Log.v(LOG_TAG, "showTracksData - mTwoPane: " + mTwoPane);
 //        getSupportActionBar().setTitle(mActivityTitle);
+        mCurrArtistName = artistName;
+        mCurrArtistTacksDetails = tracksDetails;
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
 //        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
@@ -244,7 +242,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity
                     .addToBackStack(TRACK_TAG)
                     .commit();
         }
-        TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, trackDetails);
+        TrackArrayAdapter<TrackDetails> trackArrayAdapter = new TrackArrayAdapter<>(this, tracksDetails);
         mTracksFragment.setListAdapter(trackArrayAdapter);
     }
 
@@ -262,4 +260,44 @@ public class SpotifyStreamerActivity extends ActionBarActivity
     public void playNextTrack() {
         Log.v(LOG_TAG, "playNextTrack");
     }
+
+    @Override
+    public void playNewTrack(int selectedTrack) {
+        Log.v(LOG_TAG, "playNewTrack - start");
+        showPlayer(selectedTrack);
+
+        Log.v(LOG_TAG, "playNewTrack - sending intent to service");
+        Intent intent = new Intent(this, MusicPlayerService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        startService(intent);
+        Log.v(LOG_TAG, "playNewTrack - sent intent to service");
+    }
+
+    private void showPlayer(int selectedTrack) {
+        PlayerControllerUi dialog = PlayerControllerUi.newInstance((ArrayList<TrackDetails>) mCurrArtistTacksDetails, selectedTrack);
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+//        transaction.replace(android.R.id.content, dialog)
+        transaction.replace(R.id.left_dynamic_fragments_frame, dialog)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i(LOG_TAG, "onServiceConnected - start");
+            mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
+            isMusicPlayerServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.i(LOG_TAG, "onServiceDisconnected - start");
+            mMusicPlayerService = null;
+            isMusicPlayerServiceBound = false;
+        }
+    };
 }

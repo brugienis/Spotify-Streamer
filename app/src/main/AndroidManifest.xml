@@ -27,6 +27,11 @@
             android:name="android.support.PARENT_ACTIVITY"
             android:value=".activities.SpotifyStreamerActivity" />
         </activity>
+
+        <service
+            android:name="au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService"
+            android:enabled="true"
+            android:permission="au.com.kbrsolutions.spotifystreamer.GOOGLE_DRIVE_ACCESSOR_SERVICE_PERMISSION" />
     </application>
 
 </manifest>

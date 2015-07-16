@@ -53,7 +53,7 @@ public class ArtistsFragment extends Fragment {
     /**
      * Declares callback methods that have to be implemented by parent Activity
      */
-    interface ArtistsFragmentCallbacks {
+    public interface ArtistsFragmentCallbacks {
         void artistSearchStarted();
         void artistSearchEnded();
 //        void setTracksFragmentEmptyText(String emptyText);
