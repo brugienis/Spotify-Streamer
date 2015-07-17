@@ -252,7 +252,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void startStopPlaying() {
+    public void startStopPlaying(int trackNo) {
         Log.v(LOG_TAG, "startStopPlaying");
         mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(0));
     }
@@ -267,11 +267,15 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         Log.v(LOG_TAG, "playNewTrack - start");
         showPlayer(selectedTrack);
 
-        Log.v(LOG_TAG, "playNewTrack - sending intent to service");
-        Intent intent = new Intent(this, MusicPlayerService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        startService(intent);
-        Log.v(LOG_TAG, "playNewTrack - sent intent to service");
+        if (!isMusicPlayerServiceBound) {
+            Log.v(LOG_TAG, "playNewTrack - sending intent to service");
+            Intent intent = new Intent(this, MusicPlayerService.class);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+            startService(intent);
+            Log.v(LOG_TAG, "playNewTrack - sent intent to service");
+        } else {
+            Log.v(LOG_TAG, "playNewTrack - service is ALREADY bound");
+        }
     }
 
     private void showPlayer(int selectedTrack) {

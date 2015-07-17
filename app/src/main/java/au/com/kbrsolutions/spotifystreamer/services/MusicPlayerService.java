@@ -19,11 +19,8 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
  * Created by business on 16/07/2015.
  */
 public class MusicPlayerService extends Service {
-//        implements
-//        MediaPlayer.OnPreparedListener, MediaPlayer.OnErrorListener,
-//        MediaPlayer.OnCompletionListener {
 
-    private MediaPlayer player;
+    private MediaPlayer mMediaPlayer;
     private ArrayList<TrackDetails> tracksDetails;
     private int selectedTrack;
     private LocalBinder mLocalBinder = new LocalBinder();
@@ -62,44 +59,46 @@ public class MusicPlayerService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.i(LOG_TAG, "onCreate - start");
-        player = new MediaPlayer();
+        mMediaPlayer = new MediaPlayer();
         configurePlayer();
         Log.i(LOG_TAG, "onCreate - end");
     }
 
     public void configurePlayer() {
-        player.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
-        player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-        player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+        mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
+        mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mp) {
-                handleOnPrepared();
+                handleOnPrepared(mp);
             }
         });
-        player.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+        mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mp) {
                 handleOnCompletion();
             }
         });
-        player.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+        mMediaPlayer.setOnErrorListener(new MediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(MediaPlayer mp, int what, int extra) {
-                return handleOnError();
+                return handleOnError(mp, what, extra);
             }
         });
     }
 
     private void handleOnCompletion() {
         Log.i(LOG_TAG, "handleOnCompletion - start");
+        mMediaPlayer.release();
+        mMediaPlayer = null;
     }
 
-    private void handleOnPrepared() {
+    private void handleOnPrepared(MediaPlayer player) {
         Log.i(LOG_TAG, "handleOnPrepared - start");
         player.start();
     }
 
-    private boolean handleOnError() {
+    private boolean handleOnError(MediaPlayer mp, int what, int extra) {
         Log.i(LOG_TAG, "handleOnError - start");
         return false;
     }
@@ -111,11 +110,12 @@ public class MusicPlayerService extends Service {
     }
 
     public void playTrack(TrackDetails trackDetails) {
-        player.reset();
+        Log.i(LOG_TAG, "handleOnError - playTrack - previewUrl: " + trackDetails.previewUrl);
+        mMediaPlayer.reset();
         try {
-            player.setDataSource(trackDetails.previewUrl);
-            player.prepareAsync();
-            player.start();
+            mMediaPlayer.setDataSource(trackDetails.previewUrl);
+            mMediaPlayer.prepareAsync();
+//            mMediaPlayer.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -124,18 +124,4 @@ public class MusicPlayerService extends Service {
 //                trackDetails.previewUrl);
     }
 
-//    @Override
-//    public void onCompletion(MediaPlayer mp) {
-//
-//    }
-//
-//    @Override
-//    public boolean onError(MediaPlayer mp, int what, int extra) {
-//        return false;
-//    }
-//
-//    @Override
-//    public void onPrepared(MediaPlayer mp) {
-//
-//    }
 }

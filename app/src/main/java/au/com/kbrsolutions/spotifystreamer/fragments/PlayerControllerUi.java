@@ -29,7 +29,7 @@ public class PlayerControllerUi extends DialogFragment {
      */
     public interface PlayerControllerUiCallbacks {
         void playPreviousTrack();
-        void startStopPlaying();
+        void startStopPlaying(int trackNo);
         void playNextTrack();
     }
 
@@ -164,7 +164,7 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void startStopClicked() {
-        mCallbacks.startStopPlaying();
+        mCallbacks.startStopPlaying(selectedTrack);
     }
 
     private void playNextClicked() {
