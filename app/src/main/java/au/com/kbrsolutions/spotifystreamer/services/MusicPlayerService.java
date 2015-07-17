@@ -94,7 +94,8 @@ public class MusicPlayerService extends Service {
     }
 
     private void handleOnPrepared(MediaPlayer player) {
-        Log.i(LOG_TAG, "handleOnPrepared - start");
+        int duration = player.getDuration();
+        Log.i(LOG_TAG, "handleOnPrepared - start - duration: " + duration);
         player.start();
     }
 
@@ -122,6 +123,14 @@ public class MusicPlayerService extends Service {
 //        Uri trackUri = ContentUris.withAppendedId(
 //                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
 //                trackDetails.previewUrl);
+    }
+
+    public void pause() {
+        mMediaPlayer.pause();
+    }
+
+    public void resume() {
+        mMediaPlayer.start();
     }
 
 }
