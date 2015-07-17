@@ -224,8 +224,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
-//        Log.v(LOG_TAG, "showTracksData - mTwoPane: " + mTwoPane);
-//        getSupportActionBar().setTitle(mActivityTitle);
         mCurrArtistName = artistName;
         mCurrArtistTacksDetails = tracksDetails;
         getSupportActionBar().setSubtitle(artistName);
@@ -252,8 +250,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void startStopPlaying(int trackNo) {
-        Log.v(LOG_TAG, "startStopPlaying");
+    public void startPausePlaying(int trackNo) {
+        Log.v(LOG_TAG, "startPausePlaying");
         mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(0));
     }
 

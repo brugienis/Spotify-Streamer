@@ -21,7 +21,7 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 public class MusicPlayerService extends Service {
 
     private MediaPlayer mMediaPlayer;
-    private ArrayList<TrackDetails> tracksDetails;
+    private ArrayList<TrackDetails> mTracksDetails;
     private int selectedTrack;
     private LocalBinder mLocalBinder = new LocalBinder();
 
@@ -64,7 +64,7 @@ public class MusicPlayerService extends Service {
         Log.i(LOG_TAG, "onCreate - end");
     }
 
-    public void configurePlayer() {
+    private void configurePlayer() {
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
         mMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -110,19 +110,29 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    /**
+     * Passes trackd of the selected artis.
+     *
+     * @param trackDetails - top 10 tracks of the selected artist
+     */
+    public void setTracks(ArrayList<TrackDetails> trackDetails) {
+        mTracksDetails = trackDetails;
+    }
+
     public void playTrack(TrackDetails trackDetails) {
+        if (mMediaPlayer.isPlaying()) {
+            Log.i(LOG_TAG, "handleOnError - playTrack - pause requested");
+            mMediaPlayer.pause();
+            return;
+        }
         Log.i(LOG_TAG, "handleOnError - playTrack - previewUrl: " + trackDetails.previewUrl);
         mMediaPlayer.reset();
         try {
             mMediaPlayer.setDataSource(trackDetails.previewUrl);
             mMediaPlayer.prepareAsync();
-//            mMediaPlayer.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
-//        Uri trackUri = ContentUris.withAppendedId(
-//                android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-//                trackDetails.previewUrl);
     }
 
     public void pause() {
