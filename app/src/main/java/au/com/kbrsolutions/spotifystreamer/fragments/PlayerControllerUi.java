@@ -38,7 +38,7 @@ public class PlayerControllerUi extends DialogFragment {
     private PlayerControllerUiCallbacks mCallbacks;
     private String mArtistName;
     private ArrayList<TrackDetails> tracksDetails;
-    private int mAelectedTrack;
+    private int mSelectedTrack;
     private int mWidthPx = -1;
     private boolean isPlaying;
     private boolean mPlayClickedAtLeastOnceForTheArtist;
@@ -49,7 +49,7 @@ public class PlayerControllerUi extends DialogFragment {
     private final static String LOG_TAG = PlayerControllerUi.class.getSimpleName();
 
     /**
-     * Create a new instance of PlayerControllerUi, providing "tracksDetails" and "mAelectedTrack"
+     * Create a new instance of PlayerControllerUi, providing "tracksDetails" and "mSelectedTrack"
      * as arguments.
      */
     public static PlayerControllerUi newInstance(String artistName, ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
@@ -89,10 +89,10 @@ public class PlayerControllerUi extends DialogFragment {
                 mArtistName = getArguments().getString(ARTIST_NAME);
             }
             if (getArguments().containsKey(SELECTED_TRACK)) {
-                mAelectedTrack = getArguments().getInt(SELECTED_TRACK);
+                mSelectedTrack = getArguments().getInt(SELECTED_TRACK);
             }
         }
-//        Log.v(LOG_TAG, "onCreate - tracksDetails/mAelectedTrack: " + tracksDetails + "/" + mAelectedTrack);
+//        Log.v(LOG_TAG, "onCreate - tracksDetails/mSelectedTrack: " + tracksDetails + "/" + mSelectedTrack);
     }
 
     /**
@@ -110,7 +110,7 @@ public class PlayerControllerUi extends DialogFragment {
         artistName.setText(mArtistName);
 
         final TextView albumName = (TextView) playerView.findViewById(R.id.playerAlbumName);
-        albumName.setText(tracksDetails.get(mAelectedTrack).albumName);
+        albumName.setText(tracksDetails.get(mSelectedTrack).albumName);
 
         final ImageView albumImage = (ImageView) playerView.findViewById(R.id.playerAlbumImageView);
 
@@ -119,14 +119,14 @@ public class PlayerControllerUi extends DialogFragment {
                     (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
             if (albumImage != null) {
                 Picasso.with(getActivity())
-                        .load(tracksDetails.get(mAelectedTrack).albumArtLargeImageUrl)
+                        .load(tracksDetails.get(mSelectedTrack).albumArtLargeImageUrl)
                         .resize(mWidthPx, mWidthPx).centerCrop()
                         .into(albumImage);
             }
         }
 
         final TextView trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
-        trackName.setText(tracksDetails.get(mAelectedTrack).trackName);
+        trackName.setText(tracksDetails.get(mSelectedTrack).trackName);
 
         final View playPrev = playerView.findViewById(R.id.playerPrev);
         playPrev.setOnClickListener(new View.OnClickListener() {
@@ -152,7 +152,33 @@ public class PlayerControllerUi extends DialogFragment {
             }
         });
 
+        if (savedInstanceState != null) {
+            if (savedInstanceState.containsKey(ARTIST_NAME)) {
+                mArtistName = savedInstanceState.getString(ARTIST_NAME);
+            }
+            if (savedInstanceState.containsKey(TRACKS_DETAILS)) {
+                tracksDetails = savedInstanceState.getParcelableArrayList(TRACKS_DETAILS);
+            }
+            if (savedInstanceState.containsKey(SELECTED_TRACK)) {
+                mSelectedTrack = savedInstanceState.getInt(SELECTED_TRACK);
+            }
+        }
+
         return playerView;
+    }
+
+    /**
+     * Save data if configuration changed - device rotation, etc.
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.v(LOG_TAG, "onSaveInstanceState");
+            outState.putString(ARTIST_NAME, mArtistName);
+        if (tracksDetails != null) {
+            outState.putParcelableArrayList(TRACKS_DETAILS, (ArrayList) tracksDetails);
+        }
+        outState.putInt(SELECTED_TRACK, mSelectedTrack);
+        super.onSaveInstanceState(outState);
     }
 
     /**
@@ -179,7 +205,7 @@ public class PlayerControllerUi extends DialogFragment {
         } else if (mPlayClickedAtLeastOnceForTheArtist) {
             mCallbacks.resume();
         } else {
-            mCallbacks.startPlaying(mAelectedTrack);
+            mCallbacks.startPlaying(mSelectedTrack);
         }
         isPlaying = !isPlaying;
         mPlayClickedAtLeastOnceForTheArtist = true;
