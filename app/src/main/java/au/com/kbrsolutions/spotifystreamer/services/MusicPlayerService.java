@@ -111,7 +111,7 @@ public class MusicPlayerService extends Service {
     }
 
     /**
-     * Passes trackd of the selected artis.
+     * Passes trackd of the selected artist.
      *
      * @param trackDetails - top 10 tracks of the selected artist
      */

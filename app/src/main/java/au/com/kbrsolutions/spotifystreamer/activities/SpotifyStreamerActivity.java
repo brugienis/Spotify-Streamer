@@ -187,7 +187,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             return true;
         } else if (id == R.id.action_show_player) {
             // TODO: 15/07/2015 remove this menu after testing 
-            showPlayer(-1);
+            showPlayerController(-1);
             return true;
         }
 
@@ -224,6 +224,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
+        startMusicServiceIfNotAlreadyBound();
         mCurrArtistName = artistName;
         mCurrArtistTacksDetails = tracksDetails;
         getSupportActionBar().setSubtitle(artistName);
@@ -244,15 +245,41 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mTracksFragment.setListAdapter(trackArrayAdapter);
     }
 
+    /**
+     * Starts MusicService as soon as possible - if it wasn't already started - when user clicks on
+     * the track - users will most likely want to hear some tracks at that stage
+     */
+    private void startMusicServiceIfNotAlreadyBound() {
+        if (!isMusicPlayerServiceBound) {
+            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
+            Intent intent = new Intent(this, MusicPlayerService.class);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+            startService(intent);
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service");
+        } else {
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
+        }
+    }
+
     @Override
     public void playPreviousTrack() {
         Log.v(LOG_TAG, "playPreviousTrack");
     }
 
     @Override
-    public void startPausePlaying(int trackNo) {
-        Log.v(LOG_TAG, "startPausePlaying");
+    public void startPlaying(int trackNo) {
+        Log.v(LOG_TAG, "startPlaying");
         mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(0));
+    }
+
+    @Override
+    public void pause() {
+        Log.v(LOG_TAG, "pause");
+    }
+
+    @Override
+    public void resume() {
+        Log.v(LOG_TAG, "resume");
     }
 
     @Override
@@ -261,23 +288,23 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void playNewTrack(int selectedTrack) {
-        Log.v(LOG_TAG, "playNewTrack - start");
-        showPlayer(selectedTrack);
+    public void newTrackClicked(int selectedTrack) {
+        Log.v(LOG_TAG, "newTrackClicked - start");
+        showPlayerController(selectedTrack);
 
-        if (!isMusicPlayerServiceBound) {
-            Log.v(LOG_TAG, "playNewTrack - sending intent to service");
-            Intent intent = new Intent(this, MusicPlayerService.class);
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-            startService(intent);
-            Log.v(LOG_TAG, "playNewTrack - sent intent to service");
-        } else {
-            Log.v(LOG_TAG, "playNewTrack - service is ALREADY bound");
-        }
+//        if (!isMusicPlayerServiceBound) {
+//            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
+//            Intent intent = new Intent(this, MusicPlayerService.class);
+//            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//            startService(intent);
+//            Log.v(LOG_TAG, "newTrackClicked - sent intent to service");
+//        } else {
+//            Log.v(LOG_TAG, "newTrackClicked - service is ALREADY bound");
+//        }
     }
-
-    private void showPlayer(int selectedTrack) {
-        PlayerControllerUi dialog = PlayerControllerUi.newInstance((ArrayList<TrackDetails>) mCurrArtistTacksDetails, selectedTrack);
+    private void showPlayerController(int selectedTrack) {
+        // TODO: 18/07/2015 - different logic required for tablets - display fragment dialog by calling show() method 
+        PlayerControllerUi dialog = PlayerControllerUi.newInstance(mCurrArtistName, (ArrayList<TrackDetails>) mCurrArtistTacksDetails, selectedTrack);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 //        transaction.replace(android.R.id.content, dialog)

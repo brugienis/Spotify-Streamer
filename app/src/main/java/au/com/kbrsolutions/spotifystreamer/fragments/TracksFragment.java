@@ -25,7 +25,7 @@ public class TracksFragment extends ListFragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     public interface TracksFragmentCallbacks {
-        void playNewTrack(int selectedTrack);
+        void newTrackClicked(int selectedTrack);
     }
 
     private TracksFragmentCallbacks mCallbacks;
@@ -59,7 +59,7 @@ public class TracksFragment extends ListFragment {
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
         ArrayList<TrackDetails> tracksDetails = ((TrackArrayAdapter) getListAdapter()).getTracksDetails();
-        mCallbacks.playNewTrack(position);
+        mCallbacks.newTrackClicked(position);
 //        TrackDetails  trackDetails = (TrackDetails) getListAdapter().getItem(position);
 //        Log.v(LOG_TAG, "onListItemClick - " + trackDetails.trackName);
 //        if (mActivity.isNotConnectedToGoogleDrive(LOG_TAG + "onListItemClick")) {
