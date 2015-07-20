@@ -2,7 +2,12 @@ package au.com.kbrsolutions.spotifystreamer.fragments;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,6 +23,7 @@ import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
 
 /**
  * Created by business on 14/07/2015.
@@ -28,11 +34,11 @@ public class PlayerControllerUi extends DialogFragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     public interface PlayerControllerUiCallbacks {
-        void playPreviousTrack();
-        void startPlaying(int trackNo);
-        void pause();
-        void resume();
-        void playNextTrack();
+//        void playPreviousTrack();
+//        void startPlaying(int trackNo);
+//        void pause();
+//        void resume();
+//        void playNextTrack();
     }
 
     View playPause;
@@ -43,6 +49,9 @@ public class PlayerControllerUi extends DialogFragment {
     private int mWidthPx = -1;
     private boolean isPlaying;
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
+    private boolean isMusicPlayerServiceBound;
+    private MusicPlayerService mMusicPlayerService;
+
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
     public final static String SELECTED_TRACK = "selected_track";
@@ -94,6 +103,7 @@ public class PlayerControllerUi extends DialogFragment {
                 mSelectedTrack = getArguments().getInt(SELECTED_TRACK);
             }
         }
+        setRetainInstance(true);
 //        Log.v(LOG_TAG, "onCreate - tracksDetails/mSelectedTrack: " + tracksDetails + "/" + mSelectedTrack);
     }
 
@@ -169,7 +179,14 @@ public class PlayerControllerUi extends DialogFragment {
                 isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
             }
         }
-
+        Log.v(LOG_TAG, "onCreateView - mMusicPlayerService/mServiceConnection: " + mMusicPlayerService + "/" + mServiceConnection);
+//        if (mServiceConnection == null) {
+        if (mMusicPlayerService == null) {
+            Log.v(LOG_TAG, "onCreateView -     CALLING startMusicServiceIfNotAlreadyBound - mServiceConnection: " + mServiceConnection);
+            startMusicServiceIfNotAlreadyBound();
+        } else {
+            Log.v(LOG_TAG, "onCreateView - NOT CALLING startMusicServiceIfNotAlreadyBound - mServiceConnection: " + mServiceConnection);
+        }
         return playerView;
     }
 
@@ -202,20 +219,59 @@ public class PlayerControllerUi extends DialogFragment {
         return dialog;
     }
 
+    /**
+     * Starts MusicService as soon as possible - if it wasn't already started - when users clicks on
+     * the track, most likely they will want to hear some tracks.
+     */
+    private void startMusicServiceIfNotAlreadyBound() {
+        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBound: " + mServiceConnection + "/" + isMusicPlayerServiceBound);
+        if (!isMusicPlayerServiceBound) {
+            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
+            Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+            getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+            getActivity().startService(intent);
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service");
+        } else {
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
+        }
+    }
+
+    /** Defines callbacks for service binding, passed to bindService() */
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i(LOG_TAG, "onServiceConnected - start");
+            mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
+            isMusicPlayerServiceBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.i(LOG_TAG, "onServiceDisconnected - start");
+            mMusicPlayerService = null;
+            isMusicPlayerServiceBound = false;
+        }
+    };
+
     private void playPrevClicked() {
-        mCallbacks.playPreviousTrack();
+//        mCallbacks.playPreviousTrack();
     }
 
     private void startStopClicked() {
+//        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(trackNo));
         if (isPlaying) {
             playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
-            mCallbacks.pause();
+//            mCallbacks.pause();
+            mMusicPlayerService.pause();
         } else {
             playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_pause));
             if (mPlayClickedAtLeastOnceForCurrArtist) {
-                mCallbacks.resume();
+//                mCallbacks.resume();
+                mMusicPlayerService.resume();
             } else {
-                mCallbacks.startPlaying(mSelectedTrack);
+//                mCallbacks.startPlaying(mSelectedTrack);
+                mMusicPlayerService.playTrack(tracksDetails.get(mSelectedTrack));
             }
         }
         isPlaying = !isPlaying;
@@ -223,6 +279,18 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void playNextClicked() {
-        mCallbacks.playNextTrack();
+//        mCallbacks.playNextTrack();
+    }
+    when I turn phone the unBind is called and 60 seconds later the service stops. Whe rebind is not called? That should stop 60 seconds wait to stop the service.
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.i(LOG_TAG, "onStop - start");
+        // Unbind from the service
+        if (isMusicPlayerServiceBound) {
+            getActivity().unbindService(mServiceConnection);
+            isMusicPlayerServiceBound = false;
+        }
+        Log.i(LOG_TAG, "onStop - end");
     }
 }

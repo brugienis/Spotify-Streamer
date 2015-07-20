@@ -4,12 +4,8 @@
 
 package au.com.kbrsolutions.spotifystreamer.activities;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
@@ -224,7 +220,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
-        startMusicServiceIfNotAlreadyBound();
+//        startMusicServiceIfNotAlreadyBound();
         mCurrArtistName = artistName;
         mCurrArtistTacksDetails = tracksDetails;
         getSupportActionBar().setSubtitle(artistName);
@@ -249,45 +245,45 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      * Starts MusicService as soon as possible - if it wasn't already started - when user clicks on
      * the track - users will most likely want to hear some tracks at that stage
      */
-    private void startMusicServiceIfNotAlreadyBound() {
-        if (!isMusicPlayerServiceBound) {
-            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
-            Intent intent = new Intent(this, MusicPlayerService.class);
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-            startService(intent);
-            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service");
-        } else {
-            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
-        }
-    }
+//    private void startMusicServiceIfNotAlreadyBound() {
+//        if (!isMusicPlayerServiceBound) {
+//            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
+//            Intent intent = new Intent(this, MusicPlayerService.class);
+//            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//            startService(intent);
+//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service");
+//        } else {
+//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
+//        }
+//    }
 
-    @Override
-    public void playPreviousTrack() {
-        Log.v(LOG_TAG, "playPreviousTrack");
-    }
-
-    @Override
-    public void startPlaying(int trackNo) {
-        Log.v(LOG_TAG, "startPlaying");
-        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(trackNo));
-    }
-
-    @Override
-    public void pause() {
-        Log.v(LOG_TAG, "pause");
-        mMusicPlayerService.pause();
-    }
-
-    @Override
-    public void resume() {
-        Log.v(LOG_TAG, "resume");
-        mMusicPlayerService.resume();
-    }
-
-    @Override
-    public void playNextTrack() {
-        Log.v(LOG_TAG, "playNextTrack");
-    }
+//    @Override
+//    public void playPreviousTrack() {
+//        Log.v(LOG_TAG, "playPreviousTrack");
+//    }
+//
+//    @Override
+//    public void startPlaying(int trackNo) {
+//        Log.v(LOG_TAG, "startPlaying");
+//        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(trackNo));
+//    }
+//
+//    @Override
+//    public void pause() {
+//        Log.v(LOG_TAG, "pause");
+//        mMusicPlayerService.pause();
+//    }
+//
+//    @Override
+//    public void resume() {
+//        Log.v(LOG_TAG, "resume");
+//        mMusicPlayerService.resume();
+//    }
+//
+//    @Override
+//    public void playNextTrack() {
+//        Log.v(LOG_TAG, "playNextTrack");
+//    }
 
     @Override
     public void newTrackClicked(int selectedTrack) {
@@ -316,29 +312,29 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     /** Defines callbacks for service binding, passed to bindService() */
-    private ServiceConnection mConnection = new ServiceConnection() {
-
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(LOG_TAG, "onServiceConnected - start");
-            mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
-            isMusicPlayerServiceBound = true;
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            Log.i(LOG_TAG, "onServiceDisconnected - start");
-            mMusicPlayerService = null;
-            isMusicPlayerServiceBound = false;
-        }
-    };
+//    private ServiceConnection mConnection = new ServiceConnection() {
+//
+//        @Override
+//        public void onServiceConnected(ComponentName name, IBinder service) {
+//            Log.i(LOG_TAG, "onServiceConnected - start");
+//            mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
+//            isMusicPlayerServiceBound = true;
+//        }
+//
+//        @Override
+//        public void onServiceDisconnected(ComponentName name) {
+//            Log.i(LOG_TAG, "onServiceDisconnected - start");
+//            mMusicPlayerService = null;
+//            isMusicPlayerServiceBound = false;
+//        }
+//    };
 
     @Override
     protected void onStop() {
         super.onStop();
         // Unbind from the service
         if (isMusicPlayerServiceBound) {
-            unbindService(mConnection);
+//            unbindService(mConnection);
             isMusicPlayerServiceBound = false;
         }
     }

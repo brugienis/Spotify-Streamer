@@ -91,8 +91,8 @@ public class MusicPlayerService extends Service {
 
     private void handleOnCompletion() {
         Log.i(LOG_TAG, "handleOnCompletion - start");
-        mMediaPlayer.release();
-        mMediaPlayer = null;
+//        mMediaPlayer.release();
+//        mMediaPlayer = null;
     }
 
     private void handleOnPrepared(MediaPlayer player) {
@@ -192,12 +192,16 @@ public class MusicPlayerService extends Service {
     public boolean onUnbind(Intent intent) {
         Log.i(LOG_TAG, "onUnbind - start");
         mostRecentUnboundTime = System.currentTimeMillis();
-        scheduleStopForegroundChecker();
+        scheduleStopForegroundChecker("onUnbind");
         Log.i(LOG_TAG, "onUnbind - end");
         return true;
     }
 
     private class StopForegroundRunnable implements Runnable {
+
+        StopForegroundRunnable(String source) {
+            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
+        }
 
         @Override
         public void run() {
@@ -210,20 +214,21 @@ public class MusicPlayerService extends Service {
                 Log.i(LOG_TAG, "StopForegroundRunnable.run - called  stopForeground()");
             } else {
                 Log.i(LOG_TAG, "StopForegroundRunnable.run - scheduling StopForegroindRunnable task again");
-                scheduleStopForegroundChecker();
+                scheduleStopForegroundChecker("StopForegroundRunnable.run");
             }
             Log.i(LOG_TAG, "StopForegroundRunnable.run - end");
         }
 
     }
 
-    private void scheduleStopForegroundChecker() {
+    private void scheduleStopForegroundChecker(String source) {
+        Log.i(LOG_TAG, "scheduleStopForegroundChecker - source: " + source);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
-        stopForegroundRunnable = new StopForegroundRunnable();
+        stopForegroundRunnable = new StopForegroundRunnable(source + ".scheduleStopForegroundChecker");
         handler.postDelayed(stopForegroundRunnable, WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS * 1000);
-    })
+    }
 
     @Override
     public void onDestroy() {
