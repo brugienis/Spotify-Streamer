@@ -269,17 +269,19 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     public void startPlaying(int trackNo) {
         Log.v(LOG_TAG, "startPlaying");
-        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(0));
+        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(trackNo));
     }
 
     @Override
     public void pause() {
         Log.v(LOG_TAG, "pause");
+        mMusicPlayerService.pause();
     }
 
     @Override
     public void resume() {
         Log.v(LOG_TAG, "resume");
+        mMusicPlayerService.resume();
     }
 
     @Override

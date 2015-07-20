@@ -35,16 +35,18 @@ public class PlayerControllerUi extends DialogFragment {
         void playNextTrack();
     }
 
+    View playPause;
     private PlayerControllerUiCallbacks mCallbacks;
     private String mArtistName;
     private ArrayList<TrackDetails> tracksDetails;
     private int mSelectedTrack;
     private int mWidthPx = -1;
     private boolean isPlaying;
-    private boolean mPlayClickedAtLeastOnceForTheArtist;
+    private boolean mPlayClickedAtLeastOnceForCurrArtist;
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
     public final static String SELECTED_TRACK = "selected_track";
+    public final static String IS_PLAYING = "is_playing";
 
     private final static String LOG_TAG = PlayerControllerUi.class.getSimpleName();
 
@@ -136,13 +138,14 @@ public class PlayerControllerUi extends DialogFragment {
             }
         });
 
-        final View startStop = playerView.findViewById(R.id.playerStartStopPlaying);
-        startStop.setOnClickListener(new View.OnClickListener() {
+        playPause = playerView.findViewById(R.id.playerStartStopPlaying);
+        playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startStopClicked();
             }
         });
+        playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
 
         final View playNext = playerView.findViewById(R.id.playerNext);
         playNext.setOnClickListener(new View.OnClickListener() {
@@ -162,6 +165,9 @@ public class PlayerControllerUi extends DialogFragment {
             if (savedInstanceState.containsKey(SELECTED_TRACK)) {
                 mSelectedTrack = savedInstanceState.getInt(SELECTED_TRACK);
             }
+            if (savedInstanceState.containsKey(IS_PLAYING)) {
+                isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
+            }
         }
 
         return playerView;
@@ -178,6 +184,7 @@ public class PlayerControllerUi extends DialogFragment {
             outState.putParcelableArrayList(TRACKS_DETAILS, (ArrayList) tracksDetails);
         }
         outState.putInt(SELECTED_TRACK, mSelectedTrack);
+        outState.putBoolean(IS_PLAYING, Boolean.valueOf(isPlaying));
         super.onSaveInstanceState(outState);
     }
 
@@ -201,14 +208,18 @@ public class PlayerControllerUi extends DialogFragment {
 
     private void startStopClicked() {
         if (isPlaying) {
+            playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
             mCallbacks.pause();
-        } else if (mPlayClickedAtLeastOnceForTheArtist) {
-            mCallbacks.resume();
         } else {
-            mCallbacks.startPlaying(mSelectedTrack);
+            playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_pause));
+            if (mPlayClickedAtLeastOnceForCurrArtist) {
+                mCallbacks.resume();
+            } else {
+                mCallbacks.startPlaying(mSelectedTrack);
+            }
         }
         isPlaying = !isPlaying;
-        mPlayClickedAtLeastOnceForTheArtist = true;
+        mPlayClickedAtLeastOnceForCurrArtist = true;
     }
 
     private void playNextClicked() {

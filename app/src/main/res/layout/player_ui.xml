@@ -5,10 +5,10 @@
               android:layout_height="match_parent"
               android:weightSum="1">
     <LinearLayout
-                                                  android:orientation="vertical"
-                                                  android:layout_width="match_parent"
-                                                  android:layout_height="match_parent"
-                                                  android:weightSum="1">
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="1">
 
     <TextView
         android:id="@+id/playerArtistName"
@@ -78,8 +78,7 @@
             android:layout_width="@dimen/player_controls_size"
             android:layout_height="@dimen/player_controls_size"
             android:layout_gravity="center_horizontal"
-            android:layout_margin="10dp"
-            android:src="@drawable/ic_action_play"/>
+            android:layout_margin="10dp"/>
 
         <Space
             android:layout_width="0dp"
@@ -102,3 +101,9 @@
     </LinearLayout>
     </LinearLayout>
 </ScrollView>
+
+<!--
+
+            android:src="@drawable/ic_action_play"
+
+-->
