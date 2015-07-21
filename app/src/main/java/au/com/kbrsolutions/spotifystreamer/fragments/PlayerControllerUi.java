@@ -103,7 +103,7 @@ public class PlayerControllerUi extends DialogFragment {
                 mSelectedTrack = getArguments().getInt(SELECTED_TRACK);
             }
         }
-        setRetainInstance(true);
+//        setRetainInstance(true);
 //        Log.v(LOG_TAG, "onCreate - tracksDetails/mSelectedTrack: " + tracksDetails + "/" + mSelectedTrack);
     }
 
@@ -129,12 +129,13 @@ public class PlayerControllerUi extends DialogFragment {
         if (mWidthPx == -1) {
             mWidthPx = (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
                     (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
-            if (albumImage != null) {
-                Picasso.with(getActivity())
-                        .load(tracksDetails.get(mSelectedTrack).albumArtLargeImageUrl)
-                        .resize(mWidthPx, mWidthPx).centerCrop()
-                        .into(albumImage);
-            }
+        }
+
+        if (albumImage != null) {
+            Picasso.with(getActivity())
+                    .load(tracksDetails.get(mSelectedTrack).albumArtLargeImageUrl)
+                    .resize(mWidthPx, mWidthPx).centerCrop()
+                    .into(albumImage);
         }
 
         final TextView trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
@@ -186,6 +187,7 @@ public class PlayerControllerUi extends DialogFragment {
             startMusicServiceIfNotAlreadyBound();
         } else {
             Log.v(LOG_TAG, "onCreateView - NOT CALLING startMusicServiceIfNotAlreadyBound - mServiceConnection: " + mServiceConnection);
+            mMusicPlayerService.reconnectedToMusicPlayerService();
         }
         return playerView;
     }
@@ -281,7 +283,7 @@ public class PlayerControllerUi extends DialogFragment {
     private void playNextClicked() {
 //        mCallbacks.playNextTrack();
     }
-    when I turn phone the unBind is called and 60 seconds later the service stops. Whe rebind is not called? That should stop 60 seconds wait to stop the service.
+
     @Override
     public void onStop() {
         super.onStop();
@@ -289,6 +291,7 @@ public class PlayerControllerUi extends DialogFragment {
         // Unbind from the service
         if (isMusicPlayerServiceBound) {
             getActivity().unbindService(mServiceConnection);
+            Log.i(LOG_TAG, "onStop - unbindService called");
             isMusicPlayerServiceBound = false;
         }
         Log.i(LOG_TAG, "onStop - end");

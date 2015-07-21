@@ -43,14 +43,26 @@ public class MusicPlayerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(LOG_TAG, "onBind - start");
+        if (stopForegroundRunnable != null) {
+            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+        }
         return mLocalBinder;
     }
 
     @Override
     public void onRebind(Intent intent) {
         Log.i(LOG_TAG, "onRebind - start");
-//        mSomeGuiActivitiesBounded = true;
+        if (stopForegroundRunnable != null) {
+            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+        }
         return;
+    }
+
+    public void reconnectedToMusicPlayerService() {
+        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start");
+        if (stopForegroundRunnable != null) {
+            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+        }
     }
 
     @Override
