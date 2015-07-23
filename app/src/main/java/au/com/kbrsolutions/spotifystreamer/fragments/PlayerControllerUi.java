@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by business on 14/07/2015.
@@ -49,6 +50,7 @@ public class PlayerControllerUi extends DialogFragment {
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
     private boolean isMusicPlayerServiceBound;
     private MusicPlayerService mMusicPlayerService;
+    private EventBus eventBus;
 
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
@@ -72,13 +74,17 @@ public class PlayerControllerUi extends DialogFragment {
         args.putParcelableArrayList(TRACKS_DETAILS, tracksDetails);
         args.putInt(SELECTED_TRACK, selectedTrack);
         f.setArguments(args);
-        Log.v(LOG_TAG, "newInstance - artistName/: " + artistName + "/" + tracksDetails);
+//        Log.v(LOG_TAG, "newInstance - artistName/: " + artistName + "/" + tracksDetails);
 
         return f;
     }
 
     @Override
     public void onAttach(Activity activity) {
+        if (eventBus == null) {
+            eventBus = EventBus.getDefault();
+            eventBus.register(this);
+        }
 //        try {
 //            mCallbacks = (PlayerControllerUiCallbacks) activity;
 //        } catch (Exception e) {
@@ -117,7 +123,7 @@ public class PlayerControllerUi extends DialogFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
-        Log.v(LOG_TAG, "onCreateView - start - savedInstanceState: " + savedInstanceState);
+//        Log.v(LOG_TAG, "onCreateView - start - savedInstanceState: " + savedInstanceState);
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(ARTIST_NAME)) {
@@ -134,8 +140,6 @@ public class PlayerControllerUi extends DialogFragment {
             }
         }
 
-        resultReceiver = new PlayerResultReceiver(new Handler());
-        Log.v(LOG_TAG, "onCreateView - resultReceiver hash code: " + resultReceiver.hashCode());
         View playerView = inflater.inflate(R.layout.player_ui, container, false);
 
         final TextView artistName = (TextView) playerView.findViewById(R.id.playerArtistName);
@@ -235,13 +239,17 @@ public class PlayerControllerUi extends DialogFragment {
     private void startMusicServiceIfNotAlreadyBound() {
 //        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBound: " + mServiceConnection + "/" + isMusicPlayerServiceBound);
         if (!isMusicPlayerServiceBound) {
-            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
+//            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - has PLAYER_RESULT_RECEIVER extra: " + intent.hasExtra(PLAYER_RESULT_RECEIVER));
+            resultReceiver = new PlayerResultReceiver(new Handler());
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - resultReceiver hash code: " + resultReceiver.hashCode());
             intent.putExtra(PLAYER_RESULT_RECEIVER, resultReceiver);
             intent.putExtra("hash", resultReceiver.hashCode());
+            intent.putExtra("activityHash", resultReceiver.getActivityHashCode());
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
-//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service");
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - activity hash: " + resultReceiver.getActivityHashCode());
         } else {
 //            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
         }
@@ -297,14 +305,14 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onStop() {
         super.onStop();
-        Log.i(LOG_TAG, "onStop - start");
+//        Log.i(LOG_TAG, "onStop - start");
         // Unbind from the service
         if (isMusicPlayerServiceBound) {
             getActivity().unbindService(mServiceConnection);
-            Log.i(LOG_TAG, "onStop - unbindService called");
+//            Log.i(LOG_TAG, "onStop - unbindService called");
             isMusicPlayerServiceBound = false;
         }
-        Log.i(LOG_TAG, "onStop - end");
+//        Log.i(LOG_TAG, "onStop - end");
     }
 
 //    public View getPlayPause() {

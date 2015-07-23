@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
+import de.greenrobot.event.EventBus;
 
 /**
  * Created by business on 16/07/2015.
@@ -47,6 +48,7 @@ public class MusicPlayerService extends Service {
     private long mostRecentUnboundTime;
     //    private int selectedTrack;
     private CountDownLatch callBackResultsCountDownLatch;
+    private EventBus eventBus;
     private LocalBinder mLocalBinder = new LocalBinder();
     private static final int NOTIFICATION_ID = 2015;
 
@@ -58,8 +60,8 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "onBind - start");
         resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
         int hash = intent.getIntExtra("hash", -1);
-//                intent.putExtra("hash", resultReceiver.hashCode());
-        Log.i(LOG_TAG, "onBind - passed/hash code: " + hash + "/" + resultReceiver.hashCode());
+        int activityHash = intent.getIntExtra("activityHash", -1);
+        Log.i(LOG_TAG, "onBind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
         sendResultToClient(10, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
@@ -79,7 +81,9 @@ public class MusicPlayerService extends Service {
     public void onRebind(Intent intent) {
 //        Log.i(LOG_TAG, "onRebind - start");
         resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
-        Log.i(LOG_TAG, "onRebind - hash code: " + resultReceiver.hashCode());
+        int hash = intent.getIntExtra("hash", -1);
+        int activityHash = intent.getIntExtra("activityHash", -1);
+        Log.i(LOG_TAG, "onRebind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
         sendResultToClient(20, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
@@ -110,6 +114,10 @@ public class MusicPlayerService extends Service {
     public void onCreate() {
         super.onCreate();
 //        Log.i(LOG_TAG, "onCreate - start");
+        if (eventBus == null) {
+            eventBus = EventBus.getDefault();
+            eventBus.register(this);
+        }
         configurePlayer();
 //        Log.i(LOG_TAG, "onCreate - end");
     }
