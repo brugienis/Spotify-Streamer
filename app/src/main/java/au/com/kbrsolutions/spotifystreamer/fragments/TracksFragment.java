@@ -58,14 +58,7 @@ public class TracksFragment extends ListFragment {
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
-        ArrayList<TrackDetails> tracksDetails = ((TrackArrayAdapter) getListAdapter()).getTracksDetails();
         mCallbacks.newTrackClicked(position);
-//        TrackDetails  trackDetails = (TrackDetails) getListAdapter().getItem(position);
-//        Log.v(LOG_TAG, "onListItemClick - " + trackDetails.trackName);
-//        if (mActivity.isNotConnectedToGoogleDrive(LOG_TAG + "onListItemClick")) {
-//            return;
-//        }
-//        mActivity.fileOrFolderClicked(position);
     }
 
     @Override
@@ -74,5 +67,9 @@ public class TracksFragment extends ListFragment {
         if (getListAdapter().getCount() == 0) {
             setEmptyText(getActivity().getResources().getString(R.string.tracks_data_not_found));
         }
+    }
+
+    public ArrayList<TrackDetails> getTrackDetails() {
+        return ((TrackArrayAdapter) getListAdapter()).getTracksDetails();
     }
 }

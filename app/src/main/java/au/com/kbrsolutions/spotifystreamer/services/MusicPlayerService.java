@@ -6,9 +6,11 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.ResultReceiver;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
@@ -19,39 +21,66 @@ import java.util.concurrent.CountDownLatch;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 
 /**
  * Created by business on 16/07/2015.
  */
 public class MusicPlayerService extends Service {
 
+    /**
+     * Declares callback methods that have to be implemented by parent Activity
+     */
+//    public interface MusicPlayerServiceCallbacks {
+//        void playerStarted();
+//        void playerPaused();
+//    }
+
     private MediaPlayer mMediaPlayer;
+//    private MusicPlayerServiceCallbacks mCallbacks;
     private ArrayList<TrackDetails> mTracksDetails;
     private boolean mIsForegroundStarted;
-    private static final int NOTIFICATION_ID = 2015;
     protected Handler handler = new Handler();
+    private ResultReceiver resultReceiver;
     private StopForegroundRunnable stopForegroundRunnable;
     private long WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS = 60;
     private long mostRecentUnboundTime;
     //    private int selectedTrack;
     private CountDownLatch callBackResultsCountDownLatch;
     private LocalBinder mLocalBinder = new LocalBinder();
+    private static final int NOTIFICATION_ID = 2015;
 
     private final String LOG_TAG = MusicPlayerService.class.getSimpleName();
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i(LOG_TAG, "onBind - start");
+//        Log.i(LOG_TAG, "onBind - start");
+        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
+        int hash = intent.getIntExtra("hash", -1);
+//                intent.putExtra("hash", resultReceiver.hashCode());
+        Log.i(LOG_TAG, "onBind - passed/hash code: " + hash + "/" + resultReceiver.hashCode());
+        sendResultToClient(10, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         return mLocalBinder;
     }
 
+    private void sendResultToClient(int resultCode, Bundle resultData) {
+        if (resultReceiver != null) {
+            resultReceiver.send(resultCode, resultData);
+        } else {
+            Log.i(LOG_TAG, "sendResultToClient - resultReceiver is null");
+        }
+    }
+
     @Override
     public void onRebind(Intent intent) {
-        Log.i(LOG_TAG, "onRebind - start");
+//        Log.i(LOG_TAG, "onRebind - start");
+        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
+        Log.i(LOG_TAG, "onRebind - hash code: " + resultReceiver.hashCode());
+        sendResultToClient(20, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -59,22 +88,34 @@ public class MusicPlayerService extends Service {
     }
 
     public void reconnectedToMusicPlayerService() {
-        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start");
+//        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start");
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
     }
 
+//    private PlayerControllerUi playerControllerUi;
+//    public void setPlayerControllerUi(PlayerControllerUi playerControllerUi) {
+//        this.mCallbacks = playerControllerUi;
+//        try {
+//            mCallbacks = (MusicPlayerServiceCallbacks) playerControllerUi;
+//        } catch (Exception e) {
+//            throw new RuntimeException(
+//                    getApplicationContext().getResources()
+//                            .getString(R.string.callbacks_not_implemented, playerControllerUi.toString()));
+//        }
+//    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(LOG_TAG, "onCreate - start");
+//        Log.i(LOG_TAG, "onCreate - start");
         configurePlayer();
-        Log.i(LOG_TAG, "onCreate - end");
+//        Log.i(LOG_TAG, "onCreate - end");
     }
 
     private void configurePlayer() {
-        Log.i(LOG_TAG, "configurePlayer - start");
+//        Log.i(LOG_TAG, "configurePlayer - start");
         callBackResultsCountDownLatch = new CountDownLatch(1);
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
@@ -98,11 +139,11 @@ public class MusicPlayerService extends Service {
             }
         });
         callBackResultsCountDownLatch.countDown();
-        Log.i(LOG_TAG, "configurePlayer - end");
+//        Log.i(LOG_TAG, "configurePlayer - end");
     }
 
     private void handleOnCompletion() {
-        Log.i(LOG_TAG, "handleOnCompletion - start");
+//        Log.i(LOG_TAG, "handleOnCompletion - start");
 //        mMediaPlayer.release();
 //        mMediaPlayer = null;
     }
@@ -112,12 +153,16 @@ public class MusicPlayerService extends Service {
         if (!mIsForegroundStarted) {
             startForeground(NOTIFICATION_ID, buildNotification());
             mIsForegroundStarted = true;
-            Log.i(LOG_TAG, "handleOnPrepared - startForeground executed");
+//            Log.i(LOG_TAG, "handleOnPrepared - startForeground executed");
         } else {
-            Log.i(LOG_TAG, "handleOnPrepared - startForeground ALREADY active - not executed now");
+//            Log.i(LOG_TAG, "handleOnPrepared - startForeground ALREADY active - not executed now");
         }
         Log.i(LOG_TAG, "handleOnPrepared - start - duration: " + duration);
         player.start();
+        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
+//        if (mCallbacks != null) {
+//            mCallbacks.playerStarted();
+//        }
     }
 
     private boolean handleOnError(MediaPlayer mp, int what, int extra) {
@@ -145,7 +190,7 @@ public class MusicPlayerService extends Service {
     TrackDetails currTrackDetails;
 
     private void waitForPlayer(String source) {
-        Log.i(LOG_TAG, "waitForPlayer - start - source: " + source);
+//        Log.i(LOG_TAG, "waitForPlayer - start - source: " + source);
         try {
             callBackResultsCountDownLatch.await();
         } catch (InterruptedException nothingCanBeDone) {
@@ -154,7 +199,7 @@ public class MusicPlayerService extends Service {
                             .getString(R.string.search_unsuccessful_internal_problems),
                     Toast.LENGTH_LONG).show();
         }
-        Log.i(LOG_TAG, "waitForPlayer - end   - source: " + source);
+//        Log.i(LOG_TAG, "waitForPlayer - end   - source: " + source);
     }
 
     public void playTrack(TrackDetails trackDetails) {
@@ -174,6 +219,10 @@ public class MusicPlayerService extends Service {
         waitForPlayer("pause");
         if (mMediaPlayer != null) {
             mMediaPlayer.pause();
+            sendResultToClient(PlayerControllerUi.TRACK_PAUSED, null);
+//            if (mCallbacks != null) {
+//                mCallbacks.playerPaused();
+//            }
         }
     }
 
@@ -186,6 +235,10 @@ public class MusicPlayerService extends Service {
             return;
         }
         mMediaPlayer.start();
+        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
+//        if (mCallbacks != null) {
+//            mCallbacks.playerStarted();
+//        }
     }
 
     private Notification buildNotification() {
@@ -202,9 +255,11 @@ public class MusicPlayerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.i(LOG_TAG, "onUnbind - start");
+//        Log.i(LOG_TAG, "onUnbind - start");
+//        mCallbacks = null;
         mostRecentUnboundTime = System.currentTimeMillis();
         scheduleStopForegroundChecker("onUnbind");
+        resultReceiver = null;
         Log.i(LOG_TAG, "onUnbind - end");
         return true;
     }
@@ -212,20 +267,20 @@ public class MusicPlayerService extends Service {
     private class StopForegroundRunnable implements Runnable {
 
         StopForegroundRunnable(String source) {
-            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
+//            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
         }
 
         @Override
         public void run() {
-            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
+//            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
             if (System.currentTimeMillis() - mostRecentUnboundTime > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS * 1000)) {
                 Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground()");
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 stopForeground(true);
-                Log.i(LOG_TAG, "StopForegroundRunnable.run - called  stopForeground()");
+//                Log.i(LOG_TAG, "StopForegroundRunnable.run - called  stopForeground()");
             } else {
-                Log.i(LOG_TAG, "StopForegroundRunnable.run - scheduling StopForegroindRunnable task again");
+//                Log.i(LOG_TAG, "StopForegroundRunnable.run - scheduling StopForegroindRunnable task again");
                 scheduleStopForegroundChecker("StopForegroundRunnable.run");
             }
             Log.i(LOG_TAG, "StopForegroundRunnable.run - end");
@@ -234,7 +289,7 @@ public class MusicPlayerService extends Service {
     }
 
     private void scheduleStopForegroundChecker(String source) {
-        Log.i(LOG_TAG, "scheduleStopForegroundChecker - source: " + source);
+//        Log.i(LOG_TAG, "scheduleStopForegroundChecker - source: " + source);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }

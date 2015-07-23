@@ -30,15 +30,15 @@ import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
 
 public class SpotifyStreamerActivity extends ActionBarActivity implements
         ArtistsFragment.ArtistsFragmentCallbacks,
-        PlayerControllerUi.PlayerControllerUiCallbacks,
+//        PlayerControllerUi.PlayerControllerUiCallbacks,
         TracksFragment.TracksFragmentCallbacks {
 //        ServiceConnection {
 
     private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
-    private String mCurrArtistName;
-    private List<TrackDetails> mCurrArtistTacksDetails;
+//    private String mCurrArtistName;
+//    private List<TrackDetails> mCurrArtistTacksDetails;
     private boolean mTwoPane;
     private MusicPlayerService mMusicPlayerService;
     private boolean isMusicPlayerServiceBound;
@@ -56,7 +56,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(LOG_TAG, "onCreate - start");
+        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
         setContentView(R.layout.activity_spotifystreamer);
 
         getSupportFragmentManager().addOnBackStackChangedListener(
@@ -76,6 +76,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 .getBackStackEntryCount() > 0);
 
 
+        mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
         if (findViewById(R.id.right_dynamic_fragments_frame) != null) {
             // The detail container view will be present only in the large-screen layouts
             // (res/layout-sw600dp). If this view is present, then the activity should be
@@ -85,7 +86,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             // adding or replacing the detail fragment using a
             // fragment transaction.
             if (savedInstanceState == null) {
-                mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
                 if (mTracksFragment == null) {
                     mTracksFragment = new TracksFragment();
                     TrackArrayAdapter<TrackDetails> trackArrayAdapter =
@@ -137,7 +137,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.v(LOG_TAG, "onSaveInstanceState");
+//        Log.v(LOG_TAG, "onSaveInstanceState");
 
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
@@ -146,12 +146,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     /**
      * Retrieves saved data. If search for artist's data is not in progress, show retrieved
      * on the screen.
-     *
      */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        Log.v(LOG_TAG, "onRestoreInstanceState");
+//        Log.v(LOG_TAG, "onRestoreInstanceState");
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
@@ -195,9 +194,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void artistSearchStarted() {
-        Log.v(LOG_TAG, "artistSearchStarted - mTracksFragment: " + mTracksFragment);
-        mCurrArtistName = null;
-        mCurrArtistTacksDetails = null;
+//        Log.v(LOG_TAG, "artistSearchStarted - mTracksFragment: " + mTracksFragment);
+//        mCurrArtistName = null;
+//        mCurrArtistTacksDetails = null;
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
             mTracksFragment.setEmptyText("No tracks available");
@@ -209,7 +208,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void artistSearchEnded() {
-        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
+//        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setEmptyText("Select an artist to see top 10 tracks");
         }
@@ -221,8 +220,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
 //        startMusicServiceIfNotAlreadyBound();
-        mCurrArtistName = artistName;
-        mCurrArtistTacksDetails = tracksDetails;
+//        mCurrArtistName = artistName;
+//        mCurrArtistTacksDetails = tracksDetails;
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
 //        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
@@ -241,68 +240,15 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mTracksFragment.setListAdapter(trackArrayAdapter);
     }
 
-    /**
-     * Starts MusicService as soon as possible - if it wasn't already started - when user clicks on
-     * the track - users will most likely want to hear some tracks at that stage
-     */
-//    private void startMusicServiceIfNotAlreadyBound() {
-//        if (!isMusicPlayerServiceBound) {
-//            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
-//            Intent intent = new Intent(this, MusicPlayerService.class);
-//            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-//            startService(intent);
-//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service");
-//        } else {
-//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
-//        }
-//    }
-
-//    @Override
-//    public void playPreviousTrack() {
-//        Log.v(LOG_TAG, "playPreviousTrack");
-//    }
-//
-//    @Override
-//    public void startPlaying(int trackNo) {
-//        Log.v(LOG_TAG, "startPlaying");
-//        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(trackNo));
-//    }
-//
-//    @Override
-//    public void pause() {
-//        Log.v(LOG_TAG, "pause");
-//        mMusicPlayerService.pause();
-//    }
-//
-//    @Override
-//    public void resume() {
-//        Log.v(LOG_TAG, "resume");
-//        mMusicPlayerService.resume();
-//    }
-//
-//    @Override
-//    public void playNextTrack() {
-//        Log.v(LOG_TAG, "playNextTrack");
-//    }
-
     @Override
     public void newTrackClicked(int selectedTrack) {
-        Log.v(LOG_TAG, "newTrackClicked - start");
+//        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(selectedTrack);
-
-//        if (!isMusicPlayerServiceBound) {
-//            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
-//            Intent intent = new Intent(this, MusicPlayerService.class);
-//            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-//            startService(intent);
-//            Log.v(LOG_TAG, "newTrackClicked - sent intent to service");
-//        } else {
-//            Log.v(LOG_TAG, "newTrackClicked - service is ALREADY bound");
-//        }
     }
     private void showPlayerController(int selectedTrack) {
         // TODO: 18/07/2015 - different logic required for tablets - display fragment dialog by calling show() method 
-        PlayerControllerUi dialog = PlayerControllerUi.newInstance(mCurrArtistName, (ArrayList<TrackDetails>) mCurrArtistTacksDetails, selectedTrack);
+        PlayerControllerUi dialog = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
+                (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(), selectedTrack);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
 //        transaction.replace(android.R.id.content, dialog)
@@ -310,24 +256,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 .addToBackStack(null)
                 .commit();
     }
-
-    /** Defines callbacks for service binding, passed to bindService() */
-//    private ServiceConnection mConnection = new ServiceConnection() {
-//
-//        @Override
-//        public void onServiceConnected(ComponentName name, IBinder service) {
-//            Log.i(LOG_TAG, "onServiceConnected - start");
-//            mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
-//            isMusicPlayerServiceBound = true;
-//        }
-//
-//        @Override
-//        public void onServiceDisconnected(ComponentName name) {
-//            Log.i(LOG_TAG, "onServiceDisconnected - start");
-//            mMusicPlayerService = null;
-//            isMusicPlayerServiceBound = false;
-//        }
-//    };
 
     @Override
     protected void onStop() {

@@ -269,6 +269,13 @@ public class ArtistsFragment extends Fragment {
     }
 
     /**
+     * Returns artist's name.
+     */
+    public String getArtistName() {
+        return mArtistName;
+    }
+
+    /**
      * Starts asynchronous search for artists details.
      */
     private void sendArtistsDataRequestToSpotify(String artistName) {
