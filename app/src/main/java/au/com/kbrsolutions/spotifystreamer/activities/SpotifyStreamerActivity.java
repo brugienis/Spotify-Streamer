@@ -37,6 +37,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private CharSequence mActivityTitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
+    private PlayerControllerUi mDialogFragment;
 //    private String mCurrArtistName;
 //    private List<TrackDetails> mCurrArtistTacksDetails;
     private boolean mTwoPane;
@@ -46,6 +47,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
+    private final String PLAYER_TAG = "player_tag";
 
     private final static String LOG_TAG = SpotifyStreamerActivity.class.getSimpleName();
 
@@ -113,6 +115,21 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                     .add(R.id.left_dynamic_fragments_frame, mArtistsFragment, ARTIST_TAG)
                     .commit();
         }
+
+        mDialogFragment =
+                (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
+        int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+        Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
+
+//        if (bckStackEntryCount == 2) {
+//            PlayerControllerUi dialog = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
+//                    (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(), selectedTrack);
+//            getSupportFragmentManager()
+//                    .beginTransaction()
+//                    .replace(R.id.left_dynamic_fragments_frame, dialog, PLAYER_TAG)
+//                    .addToBackStack(null)
+//                    .commit();
+//        }
     }
 
     /**
@@ -246,13 +263,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         showPlayerController(selectedTrack);
     }
     private void showPlayerController(int selectedTrack) {
-        // TODO: 18/07/2015 - different logic required for tablets - display fragment dialog by calling show() method 
-        PlayerControllerUi dialog = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
+        // TODO: 18/07/2015 - different logic required for tablets - display fragment mDialogFragment by calling show() method
+        mDialogFragment = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
                 (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(), selectedTrack);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-//        transaction.replace(android.R.id.content, dialog)
-        transaction.replace(R.id.left_dynamic_fragments_frame, dialog)
+        transaction.replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
                 .addToBackStack(null)
                 .commit();
     }

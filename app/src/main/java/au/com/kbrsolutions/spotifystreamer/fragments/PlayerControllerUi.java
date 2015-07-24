@@ -25,6 +25,8 @@ import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
+import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
 import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
 import de.greenrobot.event.EventBus;
 
@@ -95,6 +97,21 @@ public class PlayerControllerUi extends DialogFragment {
         super.onAttach(activity);
     }
 
+//    Drawable background = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
+    public void onEventMainThread(PlayerControllerUiEvents event) {
+        PlayerControllerUiEvents.PlayerUiEvents request = event.event;
+        switch (request) {
+            case PLAYING_TRACK:
+                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - playPause: " + playPause);
+                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));
+                break;
+            case PAUSED_TRACK:
+                Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
+                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_play));
+                break;
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,7 +128,7 @@ public class PlayerControllerUi extends DialogFragment {
                 mSelectedTrack = getArguments().getInt(SELECTED_TRACK);
             }
         }
-//        setRetainInstance(true);
+        setRetainInstance(true);
 //        Log.v(LOG_TAG, "onCreate - tracksDetails/mSelectedTrack: " + tracksDetails + "/" + mSelectedTrack);
     }
 
@@ -180,7 +197,12 @@ public class PlayerControllerUi extends DialogFragment {
                 startStopClicked();
             }
         });
-        playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
+        if (isPlaying) {
+            playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_pause));
+        } else {
+            playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
+
+        }
 
         final View playNext = playerView.findViewById(R.id.playerNext);
         playNext.setOnClickListener(new View.OnClickListener() {
@@ -291,7 +313,8 @@ public class PlayerControllerUi extends DialogFragment {
                 mMusicPlayerService.resume();
             } else {
 //                mCallbacks.startPlaying(mSelectedTrack);
-                mMusicPlayerService.playTrack(tracksDetails.get(mSelectedTrack));
+                eventBus.post(new MusicPlayerServiceEvents(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK, tracksDetails.get(mSelectedTrack)));
+//                mMusicPlayerService.playTrack(tracksDetails.get(mSelectedTrack));
             }
         }
         isPlaying = !isPlaying;

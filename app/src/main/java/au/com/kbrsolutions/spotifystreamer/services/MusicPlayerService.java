@@ -21,6 +21,8 @@ import java.util.concurrent.CountDownLatch;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
+import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import de.greenrobot.event.EventBus;
 
@@ -117,6 +119,7 @@ public class MusicPlayerService extends Service {
         if (eventBus == null) {
             eventBus = EventBus.getDefault();
             eventBus.register(this);
+            Log.i(LOG_TAG, "onCreate - after eventBus.register");
         }
         configurePlayer();
 //        Log.i(LOG_TAG, "onCreate - end");
@@ -167,7 +170,8 @@ public class MusicPlayerService extends Service {
         }
         Log.i(LOG_TAG, "handleOnPrepared - start - duration: " + duration);
         player.start();
-        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
+        eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK));
+//        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
 //        if (mCallbacks != null) {
 //            mCallbacks.playerStarted();
 //        }
@@ -227,7 +231,8 @@ public class MusicPlayerService extends Service {
         waitForPlayer("pause");
         if (mMediaPlayer != null) {
             mMediaPlayer.pause();
-            sendResultToClient(PlayerControllerUi.TRACK_PAUSED, null);
+            eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK));
+//            sendResultToClient(PlayerControllerUi.TRACK_PAUSED, null);
 //            if (mCallbacks != null) {
 //                mCallbacks.playerPaused();
 //            }
@@ -243,7 +248,8 @@ public class MusicPlayerService extends Service {
             return;
         }
         mMediaPlayer.start();
-        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
+        eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK));
+//        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
 //        if (mCallbacks != null) {
 //            mCallbacks.playerStarted();
 //        }
@@ -313,6 +319,28 @@ public class MusicPlayerService extends Service {
         stopForeground(true);
 //		eventBus.post(new ActivitiesEvents(ActivitiesEvents.HomeEvents.GOOGLE_DRIVE_SERVICE_STOPPED));
         Log.i(LOG_TAG, "onDestroy - end");
+    }
+
+    public void onEvent(MusicPlayerServiceEvents event) {
+        MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
+        Log.i(LOG_TAG, "onEvent - start - got event: " + requestEvent + " - " + Thread.currentThread().getName());
+        switch (requestEvent) {
+
+            case PLAY_TRACK:
+                playTrack(event.trackDetails);
+                break;
+
+            case PAUSE_TRACK:
+                pause();
+                break;
+
+            case RESUME_TRACK:
+                resume();
+				break;
+
+            default:
+                throw new RuntimeException("LOC_CAT_TAG - onEvent - no code to handle requestEvent: " + requestEvent);
+        }
     }
 
 }
