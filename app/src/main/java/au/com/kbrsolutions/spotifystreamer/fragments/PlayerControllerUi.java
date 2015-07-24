@@ -103,7 +103,7 @@ public class PlayerControllerUi extends DialogFragment {
         switch (request) {
             case PLAYING_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - playPause: " + playPause);
-                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));
+                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
             case PAUSED_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");

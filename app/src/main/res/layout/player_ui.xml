@@ -55,6 +55,34 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.09"
+            android:paddingLeft="@dimen/track_duration_zero_left_padding"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="0:00"
+            android:layout_gravity="center_horizontal"/>
+
+        <TextView
+            android:id="@+id/playerTrackDuration"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.09"
+            android:paddingRight="@dimen/track_duration_total_right_padding"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="0:30"
+            android:layout_gravity="center_horizontal|right"
+            android:gravity="right"/>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
         <Space
             android:layout_width="0dp"
             android:layout_height="@dimen/player_controls_size"
