@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -81,8 +82,11 @@ public class PlayerControllerUi extends DialogFragment {
         return f;
     }
 
+    private Drawable play;
+    private Drawable pause;
     @Override
     public void onAttach(Activity activity) {
+        Log.v(LOG_TAG, "onAttach - start");
         if (eventBus == null) {
             eventBus = EventBus.getDefault();
             eventBus.register(this);
@@ -97,17 +101,29 @@ public class PlayerControllerUi extends DialogFragment {
         super.onAttach(activity);
     }
 
-//    Drawable background = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (play == null) {
+            play = getResources().getDrawable(R.drawable.ic_action_play);
+            pause = getResources().getDrawable(R.drawable.ic_action_pause);
+        }
+        Log.v(LOG_TAG, "onAttach - end");
+    }
+
+    //    Drawable background = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
     public void onEventMainThread(PlayerControllerUiEvents event) {
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case PLAYING_TRACK:
-                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - playPause: " + playPause);
-                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
+                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
+                playPause.setBackground(pause);
+//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
             case PAUSED_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
-                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_play));
+                playPause.setBackground(play);
+//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_play));
                 break;
         }
     }

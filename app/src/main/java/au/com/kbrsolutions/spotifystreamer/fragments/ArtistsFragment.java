@@ -10,7 +10,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -105,7 +104,7 @@ public class ArtistsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.v(LOG_TAG, "onCreateView");
+//        Log.v(LOG_TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
         List<ArtistDetails> artistsItemsList = new ArrayList<>();
 
@@ -165,7 +164,7 @@ public class ArtistsFragment extends Fragment {
      * Called when user pressed search button. Starts search if search text is not empty.
      */
     private boolean handleSearchButtonClicked(int actionId) {
-        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
+//        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             mArtistName = mSearchText.getText().toString();
@@ -255,7 +254,7 @@ public class ArtistsFragment extends Fragment {
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.v(LOG_TAG, "onSaveInstanceState");
+//        Log.v(LOG_TAG, "onSaveInstanceState");
         mArtistName = mSearchText.getText().toString();
         outState.putString(ARTIST_NAME, mArtistName);
         if (mArtistsDetailsList != null) {

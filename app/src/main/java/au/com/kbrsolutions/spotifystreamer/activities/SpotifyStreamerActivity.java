@@ -58,7 +58,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
+//        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
         setContentView(R.layout.activity_spotifystreamer);
 
         getSupportFragmentManager().addOnBackStackChangedListener(
@@ -121,15 +121,37 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
         Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
 
+        /* count 1 - artist and tracks fragments: 2 - artists, tracks and player - DON'T add to BackStack */
+        switch (bckStackEntryCount) {
+            case 1:
+                if (!mTwoPane) {
+                    getSupportFragmentManager()
+                            .beginTransaction()
+                            .replace(R.id.left_dynamic_fragments_frame, mTracksFragment, TRACK_TAG)
+//                            .addToBackStack(TRACK_TAG)
+                            .commit();
+                }
+                break;
+
+            case 2:
+                Log.v(LOG_TAG, "onCreate - replacing with mDialogFragment");
+                getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
+                        .commit();
+                break;
+        }
 //        if (bckStackEntryCount == 2) {
+//            Log.v(LOG_TAG, "onCreate - replacing with mDialogFragment");
 //            PlayerControllerUi dialog = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
 //                    (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(), selectedTrack);
 //            getSupportFragmentManager()
 //                    .beginTransaction()
-//                    .replace(R.id.left_dynamic_fragments_frame, dialog, PLAYER_TAG)
-//                    .addToBackStack(null)
+//                    .replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
+////                    .addToBackStack(null)
 //                    .commit();
 //        }
+        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
 
     /**
