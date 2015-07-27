@@ -22,6 +22,7 @@ import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
@@ -42,7 +43,8 @@ public class PlayerControllerUi extends DialogFragment {
 //    public interface PlayerControllerUiCallbacks {
 //    }
 
-    View playPause;
+    private View playPause;
+    private TextView playerTrackDuration;
 //    private PlayerControllerUiCallbacks mCallbacks;
     private String mArtistName;
     private ArrayList<TrackDetails> tracksDetails;
@@ -54,11 +56,14 @@ public class PlayerControllerUi extends DialogFragment {
     private boolean isMusicPlayerServiceBound;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
+    private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00"); // will format using default locale - use to format what is shown
+                                                                                    // on the screen
 
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
     public final static String SELECTED_TRACK = "selected_track";
     public final static String IS_PLAYING = "is_playing";
+
     public static final String PLAYER_RESULT_RECEIVER = "receiver";
     public static final int TRACK_IS_PLAYING = 100;
     public static final int TRACK_PAUSED = 200;
@@ -115,6 +120,12 @@ public class PlayerControllerUi extends DialogFragment {
     public void onEventMainThread(PlayerControllerUiEvents event) {
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
+            case START_PLAYING_TRACK:
+                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
+                playPause.setBackground(pause);
+                playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.timeInSecs));
+//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
+                break;
             case PLAYING_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
                 playPause.setBackground(pause);
@@ -197,6 +208,9 @@ public class PlayerControllerUi extends DialogFragment {
 
         final TextView trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
         trackName.setText(tracksDetails.get(mSelectedTrack).trackName);
+
+        playerTrackDuration = (TextView) playerView.findViewById(R.id.playerTrackDuration);
+//        playerTrackDuration.setText(tracksDetails.get(mSelectedTrack).trackName);
 
         final View playPrev = playerView.findViewById(R.id.playerPrev);
         playPrev.setOnClickListener(new View.OnClickListener() {

@@ -71,7 +71,6 @@
             android:layout_weight="0.09"
             android:paddingRight="@dimen/track_duration_total_right_padding"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="0:30"
             android:layout_gravity="center_horizontal|right"
             android:gravity="right"/>
 

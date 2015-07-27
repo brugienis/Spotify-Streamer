@@ -6,16 +6,16 @@ package au.com.kbrsolutions.spotifystreamer.events;
 public class PlayerControllerUiEvents {
 
     public final PlayerUiEvents event;
-//        public final TrackDetails trackDetails;
+    public final int timeInSecs;
 
-    public enum PlayerUiEvents {PLAYING_TRACK, PAUSED_TRACK}
+    public enum PlayerUiEvents {START_PLAYING_TRACK, PLAYING_TRACK, PAUSED_TRACK, TRACK_PROGRESS}
 
     public PlayerControllerUiEvents(PlayerUiEvents event) {
-        this.event = event;
-//            this(event, null);
+        this(event, -1);
     }
 
-//        public MusicPlayerServiceEvents(MusicServiceEvents event, TrackDetails trackDetails) {
-//            this.event = event;
-//            this.trackDetails = trackDetails;
+    public PlayerControllerUiEvents(PlayerUiEvents event, int timeInSecs) {
+        this.event = event;
+        this.timeInSecs = timeInSecs;
+    }
 }

@@ -170,7 +170,9 @@ public class MusicPlayerService extends Service {
         }
         Log.i(LOG_TAG, "handleOnPrepared - start - duration: " + duration);
         player.start();
-        eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK));
+        eventBus.post(new PlayerControllerUiEvents(
+                PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK,
+                duration / 1000));
 //        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
 //        if (mCallbacks != null) {
 //            mCallbacks.playerStarted();
