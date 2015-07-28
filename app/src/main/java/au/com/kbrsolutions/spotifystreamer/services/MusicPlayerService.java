@@ -28,14 +28,6 @@ import de.greenrobot.event.EventBus;
  */
 public class MusicPlayerService extends Service {
 
-    /**
-     * Declares callback methods that have to be implemented by parent Activity
-     */
-//    public interface MusicPlayerServiceCallbacks {
-//        void playerStarted();
-//        void playerPaused();
-//    }
-
     private MediaPlayer mMediaPlayer;
 //    private MusicPlayerServiceCallbacks mCallbacks;
     private ArrayList<TrackDetails> mTracksDetails;
@@ -57,33 +49,15 @@ public class MusicPlayerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
 //        Log.i(LOG_TAG, "onBind - start");
-//        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
-//        int hash = intent.getIntExtra("hash", -1);
-//        int activityHash = intent.getIntExtra("activityHash", -1);
-//        Log.i(LOG_TAG, "onBind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
-//        sendResultToClient(10, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         return mLocalBinder;
     }
 
-//    private void sendResultToClient(int resultCode, Bundle resultData) {
-//        if (resultReceiver != null) {
-//            resultReceiver.send(resultCode, resultData);
-//        } else {
-//            Log.i(LOG_TAG, "sendResultToClient - resultReceiver is null");
-//        }
-//    }
-
     @Override
     public void onRebind(Intent intent) {
 //        Log.i(LOG_TAG, "onRebind - start");
-//        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
-        int hash = intent.getIntExtra("hash", -1);
-        int activityHash = intent.getIntExtra("activityHash", -1);
-//        Log.i(LOG_TAG, "onRebind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
-//        sendResultToClient(20, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -96,18 +70,6 @@ public class MusicPlayerService extends Service {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
     }
-
-//    private PlayerControllerUi playerControllerUi;
-//    public void setPlayerControllerUi(PlayerControllerUi playerControllerUi) {
-//        this.mCallbacks = playerControllerUi;
-//        try {
-//            mCallbacks = (MusicPlayerServiceCallbacks) playerControllerUi;
-//        } catch (Exception e) {
-//            throw new RuntimeException(
-//                    getApplicationContext().getResources()
-//                            .getString(R.string.callbacks_not_implemented, playerControllerUi.toString()));
-//        }
-//    }
 
     @Override
     public void onCreate() {
@@ -151,9 +113,6 @@ public class MusicPlayerService extends Service {
     }
 
     private void handleOnCompletion() {
-//        Log.i(LOG_TAG, "handleOnCompletion - start");
-//        mMediaPlayer.release();
-//        mMediaPlayer = null;
     }
 
     private void handleOnPrepared(MediaPlayer player) {
@@ -170,10 +129,6 @@ public class MusicPlayerService extends Service {
         eventBus.post(new PlayerControllerUiEvents(
                 PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK,
                 duration / 1000));
-//        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
-//        if (mCallbacks != null) {
-//            mCallbacks.playerStarted();
-//        }
     }
 
     private boolean handleOnError(MediaPlayer mp, int what, int extra) {
@@ -231,10 +186,6 @@ public class MusicPlayerService extends Service {
         if (mMediaPlayer != null) {
             mMediaPlayer.pause();
             eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK));
-//            sendResultToClient(PlayerControllerUi.TRACK_PAUSED, null);
-//            if (mCallbacks != null) {
-//                mCallbacks.playerPaused();
-//            }
         }
     }
 
@@ -248,10 +199,6 @@ public class MusicPlayerService extends Service {
         }
         mMediaPlayer.start();
         eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK));
-//        sendResultToClient(PlayerControllerUi.TRACK_IS_PLAYING, null);
-//        if (mCallbacks != null) {
-//            mCallbacks.playerStarted();
-//        }
     }
 
     private Notification buildNotification() {
@@ -269,7 +216,6 @@ public class MusicPlayerService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
 //        Log.i(LOG_TAG, "onUnbind - start");
-//        mCallbacks = null;
         mostRecentUnboundTime = System.currentTimeMillis();
         scheduleStopForegroundChecker("onUnbind");
 //        resultReceiver = null;

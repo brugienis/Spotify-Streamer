@@ -35,15 +35,8 @@ import de.greenrobot.event.EventBus;
  */
 public class PlayerControllerUi extends DialogFragment {
 
-    /**
-     * Declares callback methods that have to be implemented by parent Activity
-     */
-//    public interface PlayerControllerUiCallbacks {
-//    }
-
     private View playPause;
     private TextView playerTrackDuration;
-//    private PlayerControllerUiCallbacks mCallbacks;
     private String mArtistName;
     private ArrayList<TrackDetails> tracksDetails;
     private int mSelectedTrack;
@@ -63,8 +56,6 @@ public class PlayerControllerUi extends DialogFragment {
     public final static String IS_PLAYING = "is_playing";
 
     public static final String PLAYER_RESULT_RECEIVER = "receiver";
-    public static final int TRACK_IS_PLAYING = 100;
-    public static final int TRACK_PAUSED = 200;
 
     private final static String LOG_TAG = PlayerControllerUi.class.getSimpleName();
 
@@ -80,13 +71,12 @@ public class PlayerControllerUi extends DialogFragment {
         args.putParcelableArrayList(TRACKS_DETAILS, tracksDetails);
         args.putInt(SELECTED_TRACK, selectedTrack);
         f.setArguments(args);
-//        Log.v(LOG_TAG, "newInstance - artistName/: " + artistName + "/" + tracksDetails);
 
         return f;
     }
 
-    private Drawable play;
-    private Drawable pause;
+    private Drawable playDrawable;
+    private Drawable pauseDrawable;
     @Override
     public void onAttach(Activity activity) {
 //        Log.v(LOG_TAG, "onAttach - start");
@@ -100,11 +90,10 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (play == null) {
-            play = getResources().getDrawable(R.drawable.ic_action_play);
-            pause = getResources().getDrawable(R.drawable.ic_action_pause);
+        if (playDrawable == null) {
+            playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
+            pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
         }
-        Log.v(LOG_TAG, "onAttach - end");
     }
 
     //    Drawable background = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
@@ -112,20 +101,19 @@ public class PlayerControllerUi extends DialogFragment {
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case START_PLAYING_TRACK:
-                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
-                playPause.setBackground(pause);
+//                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
+                playPause.setBackground(pauseDrawable);
                 playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.timeInSecs));
 //                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
             case PLAYING_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
-                playPause.setBackground(pause);
+                playPause.setBackground(pauseDrawable);
 //                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
             case PAUSED_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
-                playPause.setBackground(play);
-//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_play));
+                playPause.setBackground(playDrawable);
                 break;
         }
     }
@@ -133,7 +121,7 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(LOG_TAG, "onCreate - start");
+//        Log.v(LOG_TAG, "onCreate - start");
 
         if (getArguments() != null) {
             if (getArguments().containsKey(TRACKS_DETAILS)) {
@@ -232,13 +220,9 @@ public class PlayerControllerUi extends DialogFragment {
                 playNextClicked();
             }
         });
-//        Log.v(LOG_TAG, "onCreateView - mMusicPlayerService/mServiceConnection: " + mMusicPlayerService + "/" + mServiceConnection);
-//        if (mServiceConnection == null) {
         if (mMusicPlayerService == null) {
-//            Log.v(LOG_TAG, "onCreateView -     CALLING startMusicServiceIfNotAlreadyBound - mServiceConnection: " + mServiceConnection);
             startMusicServiceIfNotAlreadyBound();
         } else {
-//            Log.v(LOG_TAG, "onCreateView - NOT CALLING startMusicServiceIfNotAlreadyBound - mServiceConnection: " + mServiceConnection);
             mMusicPlayerService.reconnectedToMusicPlayerService();
         }
         return playerView;
@@ -284,12 +268,6 @@ public class PlayerControllerUi extends DialogFragment {
         if (!isMusicPlayerServiceBound) {
 //            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - has PLAYER_RESULT_RECEIVER extra: " + intent.hasExtra(PLAYER_RESULT_RECEIVER));
-//            resultReceiver = new PlayerResultReceiver(new Handler());
-//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - resultReceiver hash code: " + resultReceiver.hashCode());
-//            intent.putExtra(PLAYER_RESULT_RECEIVER, resultReceiver);
-//            intent.putExtra("hash", resultReceiver.hashCode());
-//            intent.putExtra("activityHash", resultReceiver.getActivityHashCode());
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
 //            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - activity hash: " + resultReceiver.getActivityHashCode());
@@ -320,22 +298,16 @@ public class PlayerControllerUi extends DialogFragment {
     };
 
     private void playPrevClicked() {
-//        mCallbacks.playPreviousTrack();
     }
 
     private void startStopClicked() {
-//        mMusicPlayerService.playTrack(mCurrArtistTacksDetails.get(trackNo));
         if (isPlaying) {
-//            mCallbacks.pause();
             mMusicPlayerService.pause();
         } else {
             if (mPlayClickedAtLeastOnceForCurrArtist) {
-//                mCallbacks.resume();
                 mMusicPlayerService.resume();
             } else {
-//                mCallbacks.startPlaying(mSelectedTrack);
                 eventBus.post(new MusicPlayerServiceEvents(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK, tracksDetails.get(mSelectedTrack)));
-//                mMusicPlayerService.playTrack(tracksDetails.get(mSelectedTrack));
             }
         }
         isPlaying = !isPlaying;
@@ -343,7 +315,6 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void playNextClicked() {
-//        mCallbacks.playNextTrack();
     }
 
     @Override
@@ -359,56 +330,4 @@ public class PlayerControllerUi extends DialogFragment {
 //        Log.i(LOG_TAG, "onStop - end");
     }
 
-//    public View getPlayPause() {
-//        return playPause;
-//    }
-
-//    class UpdateUi implements Runnable {
-//
-//        private int resultCode;
-//        private Bundle resultData;
-//
-//        UpdateUi(int resultCode, Bundle resultData) {
-////            Log.v(LOG_TAG, "UpdateUi - resultCode/thread: " + resultCode + "/" + Thread.currentThread().getName());
-//            this.resultCode = resultCode;
-//            this.resultData = resultData;
-//        }
-//
-//        public void run() {
-//            switch (resultCode) {
-//                case TRACK_IS_PLAYING:
-//                    playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_pause));
-//                    break;
-//                case TRACK_PAUSED:
-//                    playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
-//            }
-//        }
-//    }
-
-//    class PlayerResultReceiver extends ResultReceiver {
-//
-//        private int activityHashCode;
-//
-//        public PlayerResultReceiver(Handler handler) {
-//            super(handler);
-//            activityHashCode = getActivity().hashCode();
-//            Log.v(LOG_TAG, "constructor - thread/activity: " + Thread.currentThread().getName() + "/" + activityHashCode);
-//        }
-//
-//        @Override
-//        protected void onReceiveResult(int resultCode, Bundle resultData) {
-//            Log.v(LOG_TAG, "onReceiveResult - resultCode/thread/activityHashCode: " + resultCode + "/" + Thread.currentThread().getName() + "/" + activityHashCode);
-//
-//            Activity activity = getActivity();
-//            if (activity == null) {
-//                Log.v(LOG_TAG, "onReceiveResult - activity is null");
-//            } else {
-//                getActivity().runOnUiThread(new UpdateUi(resultCode, resultData));
-//            }
-//        }
-//
-//        public int getActivityHashCode() {
-//            return activityHashCode;
-//        }
-//    }
 }
