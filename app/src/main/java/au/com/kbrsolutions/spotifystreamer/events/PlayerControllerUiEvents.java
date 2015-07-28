@@ -5,17 +5,41 @@ package au.com.kbrsolutions.spotifystreamer.events;
  */
 public class PlayerControllerUiEvents {
 
+    public enum PlayerUiEvents {START_PLAYING_TRACK, PLAYING_TRACK, PAUSED_TRACK, TRACK_PLAY_PROGRESS}
+
     public final PlayerUiEvents event;
-    public final int timeInSecs;
+    public final int durationTimeInSecs;
+    public final int playProgressPercentage;
 
-    public enum PlayerUiEvents {START_PLAYING_TRACK, PLAYING_TRACK, PAUSED_TRACK, TRACK_PROGRESS}
-
-    public PlayerControllerUiEvents(PlayerUiEvents event) {
-        this(event, -1);
+    private PlayerControllerUiEvents(PlayerUiEvents event, int durationTimeInSecs, int playProgressPercentage) {
+        this.event = event;
+        this.durationTimeInSecs = durationTimeInSecs;
+        this.playProgressPercentage = playProgressPercentage;
     }
 
-    public PlayerControllerUiEvents(PlayerUiEvents event, int timeInSecs) {
-        this.event = event;
-        this.timeInSecs = timeInSecs;
+    public static class Builder {
+
+        public Builder(PlayerControllerUiEvents.PlayerUiEvents event) {
+            this.event = event;
+        }
+
+        private PlayerUiEvents event;
+        private int durationTimeInSecs;
+        private int playProgressPercentage;
+
+        public Builder setDurationTimeInSecs(int durationTimeInSecs) {
+            this.durationTimeInSecs = durationTimeInSecs;
+            return this;
+        }
+
+        public Builder setPlayProgressPercentage(int playProgressPercentage) {
+            this.playProgressPercentage = playProgressPercentage;
+            return this;
+        }
+
+        public PlayerControllerUiEvents build() {
+            return new PlayerControllerUiEvents(event, durationTimeInSecs, playProgressPercentage);
+        }
+
     }
 }

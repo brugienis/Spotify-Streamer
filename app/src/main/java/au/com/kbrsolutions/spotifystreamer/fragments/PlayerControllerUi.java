@@ -16,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
@@ -37,6 +38,7 @@ public class PlayerControllerUi extends DialogFragment {
 
     private View playPause;
     private TextView playerTrackDuration;
+    private SeekBar playerSeekBar;
     private String mArtistName;
     private ArrayList<TrackDetails> tracksDetails;
     private int mSelectedTrack;
@@ -93,28 +95,6 @@ public class PlayerControllerUi extends DialogFragment {
         if (playDrawable == null) {
             playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
             pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
-        }
-    }
-
-    //    Drawable background = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
-    public void onEventMainThread(PlayerControllerUiEvents event) {
-        PlayerControllerUiEvents.PlayerUiEvents request = event.event;
-        switch (request) {
-            case START_PLAYING_TRACK:
-//                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
-                playPause.setBackground(pauseDrawable);
-                playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.timeInSecs));
-//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
-                break;
-            case PLAYING_TRACK:
-                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
-                playPause.setBackground(pauseDrawable);
-//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
-                break;
-            case PAUSED_TRACK:
-                Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
-                playPause.setBackground(playDrawable);
-                break;
         }
     }
 
@@ -187,6 +167,24 @@ public class PlayerControllerUi extends DialogFragment {
 
         final TextView trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
         trackName.setText(tracksDetails.get(mSelectedTrack).trackName);
+
+        playerSeekBar =  (SeekBar) playerView.findViewById(R.id.playerSeekBar);
+        playerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.v(LOG_TAG, "onProgressChanged - progress/fromUser: " + progress + "/" + fromUser);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                Log.v(LOG_TAG, "onStartTrackingTouch");
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                Log.v(LOG_TAG, "onStopTrackingTouch");
+            }
+        });
 
         playerTrackDuration = (TextView) playerView.findViewById(R.id.playerTrackDuration);
 //        playerTrackDuration.setText(tracksDetails.get(mSelectedTrack).trackName);
@@ -315,6 +313,34 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void playNextClicked() {
+    }
+
+    public void onEventMainThread(PlayerControllerUiEvents event) {
+        PlayerControllerUiEvents.PlayerUiEvents request = event.event;
+        switch (request) {
+            case START_PLAYING_TRACK:
+//                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
+                playPause.setBackground(pauseDrawable);
+                playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.durationTimeInSecs));
+//                playerSeekBar.setMax(event.durationTimeInSecs);
+                playerSeekBar.setMax(100);      // 100%
+                playerSeekBar.setProgress(0);
+//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
+                break;
+            case PLAYING_TRACK:
+                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
+                playPause.setBackground(pauseDrawable);
+//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
+                break;
+            case PAUSED_TRACK:
+                Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
+                playPause.setBackground(playDrawable);
+                break;
+            case TRACK_PLAY_PROGRESS:
+                Log.v(LOG_TAG, "onEventMainThread - got request TRACK_PLAY_PROGRESS - playProgressPercentage: " + event.playProgressPercentage);
+                playerSeekBar.setProgress(event.playProgressPercentage);
+                break;
+        }
     }
 
     @Override
