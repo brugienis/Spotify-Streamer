@@ -6,11 +6,9 @@ import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
-import android.os.ResultReceiver;
 import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
@@ -23,7 +21,6 @@ import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
-import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -44,7 +41,7 @@ public class MusicPlayerService extends Service {
     private ArrayList<TrackDetails> mTracksDetails;
     private boolean mIsForegroundStarted;
     protected Handler handler = new Handler();
-    private ResultReceiver resultReceiver;
+//    private ResultReceiver resultReceiver;
     private StopForegroundRunnable stopForegroundRunnable;
     private long WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS = 60;
     private long mostRecentUnboundTime;
@@ -60,33 +57,33 @@ public class MusicPlayerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
 //        Log.i(LOG_TAG, "onBind - start");
-        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
-        int hash = intent.getIntExtra("hash", -1);
-        int activityHash = intent.getIntExtra("activityHash", -1);
-        Log.i(LOG_TAG, "onBind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
-        sendResultToClient(10, null);
+//        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
+//        int hash = intent.getIntExtra("hash", -1);
+//        int activityHash = intent.getIntExtra("activityHash", -1);
+//        Log.i(LOG_TAG, "onBind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
+//        sendResultToClient(10, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         return mLocalBinder;
     }
 
-    private void sendResultToClient(int resultCode, Bundle resultData) {
-        if (resultReceiver != null) {
-            resultReceiver.send(resultCode, resultData);
-        } else {
-            Log.i(LOG_TAG, "sendResultToClient - resultReceiver is null");
-        }
-    }
+//    private void sendResultToClient(int resultCode, Bundle resultData) {
+//        if (resultReceiver != null) {
+//            resultReceiver.send(resultCode, resultData);
+//        } else {
+//            Log.i(LOG_TAG, "sendResultToClient - resultReceiver is null");
+//        }
+//    }
 
     @Override
     public void onRebind(Intent intent) {
 //        Log.i(LOG_TAG, "onRebind - start");
-        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
+//        resultReceiver = intent.getParcelableExtra(PlayerControllerUi.PLAYER_RESULT_RECEIVER);
         int hash = intent.getIntExtra("hash", -1);
         int activityHash = intent.getIntExtra("activityHash", -1);
-        Log.i(LOG_TAG, "onRebind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
-        sendResultToClient(20, null);
+//        Log.i(LOG_TAG, "onRebind - activityHash/passed/hash code: " + activityHash + "/" + hash + "/" + resultReceiver.hashCode());
+//        sendResultToClient(20, null);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -168,7 +165,7 @@ public class MusicPlayerService extends Service {
         } else {
 //            Log.i(LOG_TAG, "handleOnPrepared - startForeground ALREADY active - not executed now");
         }
-        Log.i(LOG_TAG, "handleOnPrepared - start - duration: " + duration);
+//        Log.i(LOG_TAG, "handleOnPrepared - start - duration: " + duration);
         player.start();
         eventBus.post(new PlayerControllerUiEvents(
                 PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK,
@@ -275,7 +272,7 @@ public class MusicPlayerService extends Service {
 //        mCallbacks = null;
         mostRecentUnboundTime = System.currentTimeMillis();
         scheduleStopForegroundChecker("onUnbind");
-        resultReceiver = null;
+//        resultReceiver = null;
         Log.i(LOG_TAG, "onUnbind - end");
         return true;
     }

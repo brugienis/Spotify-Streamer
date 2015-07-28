@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -119,7 +118,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mDialogFragment =
                 (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
         int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
-        Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
+//        Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
 
         /* count 1 - artist and tracks fragments: 2 - artists, tracks and player - DON'T add to BackStack */
         switch (bckStackEntryCount) {
@@ -134,24 +133,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 break;
 
             case 2:
-                Log.v(LOG_TAG, "onCreate - replacing with mDialogFragment");
+//                Log.v(LOG_TAG, "onCreate - replacing with mDialogFragment");
                 getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
                         .commit();
                 break;
         }
-//        if (bckStackEntryCount == 2) {
-//            Log.v(LOG_TAG, "onCreate - replacing with mDialogFragment");
-//            PlayerControllerUi dialog = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
-//                    (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(), selectedTrack);
-//            getSupportFragmentManager()
-//                    .beginTransaction()
-//                    .replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
-////                    .addToBackStack(null)
-//                    .commit();
-//        }
-        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
+//        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
 
     /**
