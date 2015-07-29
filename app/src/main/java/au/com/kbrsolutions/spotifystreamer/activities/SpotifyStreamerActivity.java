@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -282,6 +283,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         transaction.replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
                 .addToBackStack(null)
                 .commit();
+        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount: " + getSupportFragmentManager().getBackStackEntryCount());
     }
 
     @Override

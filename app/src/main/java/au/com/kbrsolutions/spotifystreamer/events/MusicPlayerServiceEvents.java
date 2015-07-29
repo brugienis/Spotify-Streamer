@@ -1,5 +1,7 @@
 package au.com.kbrsolutions.spotifystreamer.events;
 
+import java.util.ArrayList;
+
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 
 /**
@@ -8,16 +10,40 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 public class MusicPlayerServiceEvents {
 
     public final MusicServiceEvents event;
-    public final TrackDetails trackDetails;
+    public final ArrayList<TrackDetails> tracksDetails;
+    public final int selectedTrack;
 
     public enum MusicServiceEvents {PLAY_TRACK, PAUSE_TRACK, RESUME_TRACK}
 
-    public MusicPlayerServiceEvents(MusicServiceEvents event) {
-        this(event, null);
+    public MusicPlayerServiceEvents(Builder builder) {
+        this.event = builder.event;
+        this.tracksDetails = builder.tracksDetails;
+        this.selectedTrack = builder.selectedTrack;
     }
 
-    public MusicPlayerServiceEvents(MusicServiceEvents event, TrackDetails trackDetails) {
-        this.event = event;
-        this.trackDetails = trackDetails;
+    public static class Builder {
+
+        public Builder(MusicPlayerServiceEvents.MusicServiceEvents event) {
+            this.event = event;
+        }
+
+        private MusicServiceEvents event;
+        private ArrayList<TrackDetails> tracksDetails;
+        private int selectedTrack;
+
+        public Builder setTracksDetails(ArrayList<TrackDetails> tracksDetails) {
+            this.tracksDetails = tracksDetails;
+            return this;
+        }
+
+        public Builder setSelectedTrack(int selectedTrack) {
+            this.selectedTrack = selectedTrack;
+            return this;
+        }
+
+        public MusicPlayerServiceEvents build() {
+            return new MusicPlayerServiceEvents(this);
+        }
+
     }
 }

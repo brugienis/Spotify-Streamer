@@ -32,9 +32,10 @@ public class HandleCancellableFuturesCallable implements Callable<String> {
 //        cancellableExecutingTaksCnt.addAndGet(1);
     }
 
-    protected void cancelCurrFuture() {
+    public void cancelCurrFuture() {
         if (currExecutingFuture != null) {
             if (currExecutingFuture.cancel(true)) {
+                Log.v(LOG_TAG, "cancelCurrFuture - future cancelled");
 //                cancellableExecutingTaksCnt.addAndGet(-1);
             }
         }

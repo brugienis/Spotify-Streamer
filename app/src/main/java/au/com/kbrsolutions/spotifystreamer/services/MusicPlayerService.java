@@ -20,6 +20,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
@@ -34,11 +35,10 @@ import de.greenrobot.event.EventBus;
 public class MusicPlayerService extends Service {
 
     private MediaPlayer mMediaPlayer;
-//    private MusicPlayerServiceCallbacks mCallbacks;
     private ArrayList<TrackDetails> mTracksDetails;
+    private int mSelectedTrack;
     private boolean mIsForegroundStarted;
     protected Handler handler = new Handler();
-//    private ResultReceiver resultReceiver;
     int trackPlaydurationMsec = -1;
     private HandleCancellableFuturesCallable handleCancellableFuturesCallable;
     private ExecutorService mExecutorService;
@@ -50,6 +50,7 @@ public class MusicPlayerService extends Service {
     private EventBus eventBus;
     private LocalBinder mLocalBinder = new LocalBinder();
     private static final int NOTIFICATION_ID = 2015;
+    private AtomicBoolean isPlaying = new AtomicBoolean(false);
 
     private final String LOG_TAG = MusicPlayerService.class.getSimpleName();
 
@@ -73,10 +74,13 @@ public class MusicPlayerService extends Service {
     }
 
     public void reconnectedToMusicPlayerService() {
-//        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start");
+        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start");
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
+        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
+                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+                .build());
     }
 
     @Override
@@ -139,6 +143,26 @@ public class MusicPlayerService extends Service {
     }
 
     private void handleOnCompletion() {
+        isPlaying.set(false);
+        handleCancellableFuturesCallable.cancelCurrFuture();
+        waitForPlayer("playTrack");
+        if (mSelectedTrack < mTracksDetails.size() - 1) {
+            ++mSelectedTrack;
+            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
+                    .seSselectedTrack(mSelectedTrack)
+                    .build());
+            TrackDetails trackDetails = mTracksDetails.get(mSelectedTrack);
+            currTrackDetails = mTracksDetails.get(mSelectedTrack);
+            try {
+                mMediaPlayer.reset();
+                mMediaPlayer.setDataSource(trackDetails.previewUrl);
+                mMediaPlayer.prepareAsync();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            scheduleStopForegroundChecker("handleOnCompletion");
+        }
     }
 
     private void handleOnPrepared(MediaPlayer player) {
@@ -146,11 +170,8 @@ public class MusicPlayerService extends Service {
         if (!mIsForegroundStarted) {
             startForeground(NOTIFICATION_ID, buildNotification());
             mIsForegroundStarted = true;
-//            Log.i(LOG_TAG, "handleOnPrepared - startForeground executed");
-        } else {
-//            Log.i(LOG_TAG, "handleOnPrepared - startForeground ALREADY active - not executed now");
         }
-//        Log.i(LOG_TAG, "handleOnPrepared - start - trackPlayduration: " + trackPlayduration);
+        isPlaying.set(true);
         player.start();
         eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
                 .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
@@ -171,17 +192,9 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    /**
-     * Passes tracked of the selected artist.
-     *
-     * @param trackDetails - top 10 tracks of the selected artist
-     */
-    public void setTracks(ArrayList<TrackDetails> trackDetails) {
-        mTracksDetails = trackDetails;
-    }
-
     TrackDetails currTrackDetails;
 
+    // TODO: 29/07/2015 not sure if I need below. Just do do anything that would caused Error?
     private void waitForPlayer(String source) {
 //        Log.i(LOG_TAG, "waitForPlayer - start - source: " + source);
         try {
@@ -211,14 +224,19 @@ public class MusicPlayerService extends Service {
     public void pause() {
         waitForPlayer("pause");
         if (mMediaPlayer != null) {
+            isPlaying.set(false);
+            handleCancellableFuturesCallable.cancelCurrFuture();
             mMediaPlayer.pause();
-            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK));
+            eventBus.post(
+                    new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
+                            .build());
 //            eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK));
         }
     }
 
     public void resume() {
         waitForPlayer("resume");
+        // TODO: 29/07/2015 - something wrong with the if below?
         if (mMediaPlayer == null) {
             if (currTrackDetails != null) {
                 playTrack(currTrackDetails);
@@ -226,6 +244,8 @@ public class MusicPlayerService extends Service {
             return;
         }
         mMediaPlayer.start();
+        isPlaying.set(true);
+        handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
         eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK)
                 .build());
 //        eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK));
@@ -303,7 +323,9 @@ public class MusicPlayerService extends Service {
         switch (requestEvent) {
 
             case PLAY_TRACK:
-                playTrack(event.trackDetails);
+                mTracksDetails = event.tracksDetails;
+                mSelectedTrack = event.selectedTrack;
+                playTrack(mTracksDetails.get(mSelectedTrack));
                 break;
 
             case PAUSE_TRACK:
@@ -321,28 +343,26 @@ public class MusicPlayerService extends Service {
 
     private final class TrackPlayProgressCheckerCallable implements Callable<String> {
 
-        int prevTrackPlayPositionMsec = -1;
-
         @Override
         public String call() throws Exception {
             int trackPlayPositionMsec;
-            while (true) {
-                // TODO: 28/07/2015 keep internal constant in preferences
-                Thread.sleep(1000);
-                trackPlayPositionMsec = mMediaPlayer.getCurrentPosition();
-		        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
-                        .setPlayProgressPercentage(trackPlayPositionMsec * 100 / trackPlaydurationMsec)
-                        .build());
-                Log.v(LOG_TAG, "TrackPlayProgressCheckerCallable.call - prevTrackPlayPositionMsec/trackPlayPositionMsec/trackPlaydurationMsec: " +
-                        prevTrackPlayPositionMsec + "/" + trackPlayPositionMsec + "/" + trackPlaydurationMsec);
-                if (trackPlayPositionMsec == prevTrackPlayPositionMsec) {
-                    Log.v(LOG_TAG, "TrackPlayProgressCheckerCallable.call - before break");
+            try {
+                while (true) {
+                    // TODO: 28/07/2015 keep internal constant in preferences
+                    Thread.sleep(1000);
+                    if (!isPlaying.get()) {
+                        break;
+                    }
+                    trackPlayPositionMsec = mMediaPlayer.getCurrentPosition();
                     eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
-                            .setPlayProgressPercentage(0)
+                            .setPlayProgressPercentage(trackPlayPositionMsec * 100 / trackPlaydurationMsec)
                             .build());
-                    break;
                 }
-                prevTrackPlayPositionMsec = trackPlayPositionMsec;
+            } finally {
+                Log.i(LOG_TAG, "call - finally");
+                eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
+                        .setPlayProgressPercentage(0)
+                        .build());
             }
             return null;
         }

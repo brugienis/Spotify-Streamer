@@ -5,16 +5,23 @@ package au.com.kbrsolutions.spotifystreamer.events;
  */
 public class PlayerControllerUiEvents {
 
-    public enum PlayerUiEvents {START_PLAYING_TRACK, PLAYING_TRACK, PAUSED_TRACK, TRACK_PLAY_PROGRESS}
+    public enum PlayerUiEvents {
+        START_PLAYING_TRACK,
+        PLAYING_TRACK,
+        PAUSED_TRACK,
+        TRACK_PLAY_PROGRESS,
+        PREPARING_NEXT_TRACK}
 
     public final PlayerUiEvents event;
     public final int durationTimeInSecs;
     public final int playProgressPercentage;
+    public final int selectedTrack;
 
-    private PlayerControllerUiEvents(PlayerUiEvents event, int durationTimeInSecs, int playProgressPercentage) {
-        this.event = event;
-        this.durationTimeInSecs = durationTimeInSecs;
-        this.playProgressPercentage = playProgressPercentage;
+    private PlayerControllerUiEvents(Builder builder) {
+        this.event = builder.event;
+        this.durationTimeInSecs = builder.durationTimeInSecs;
+        this.playProgressPercentage = builder.playProgressPercentage;
+        this.selectedTrack = builder.selectedTrack;
     }
 
     public static class Builder {
@@ -26,6 +33,7 @@ public class PlayerControllerUiEvents {
         private PlayerUiEvents event;
         private int durationTimeInSecs;
         private int playProgressPercentage;
+        private int selectedTrack;
 
         public Builder setDurationTimeInSecs(int durationTimeInSecs) {
             this.durationTimeInSecs = durationTimeInSecs;
@@ -37,8 +45,13 @@ public class PlayerControllerUiEvents {
             return this;
         }
 
+        public Builder seSselectedTrack(int selectedTrack) {
+            this.selectedTrack = selectedTrack;
+            return this;
+        }
+
         public PlayerControllerUiEvents build() {
-            return new PlayerControllerUiEvents(event, durationTimeInSecs, playProgressPercentage);
+            return new PlayerControllerUiEvents(this);
         }
 
     }

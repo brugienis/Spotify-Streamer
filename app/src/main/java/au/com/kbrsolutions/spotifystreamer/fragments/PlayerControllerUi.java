@@ -39,9 +39,14 @@ public class PlayerControllerUi extends DialogFragment {
     private View playPause;
     private TextView playerTrackDuration;
     private SeekBar playerSeekBar;
+    private TextView albumName;
+    private ImageView albumImage;
+    private TextView artistName;
+    private TextView trackName;
+
     private String mArtistName;
-    private ArrayList<TrackDetails> tracksDetails;
-    private int mSelectedTrack;
+    private ArrayList<TrackDetails> mTracksDetails;
+    private int mSelectedTrackIdx;
 //    private PlayerResultReceiver resultReceiver;
     private int mWidthPx = -1;
     private boolean isPlaying;
@@ -62,7 +67,7 @@ public class PlayerControllerUi extends DialogFragment {
     private final static String LOG_TAG = PlayerControllerUi.class.getSimpleName();
 
     /**
-     * Create a new instance of PlayerControllerUi, providing "tracksDetails" and "mSelectedTrack"
+     * Create a new instance of PlayerControllerUi, providing "mTracksDetails" and "mSelectedTrackIdx"
      * as arguments.
      */
     public static PlayerControllerUi newInstance(String artistName, ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
@@ -105,17 +110,17 @@ public class PlayerControllerUi extends DialogFragment {
 
         if (getArguments() != null) {
             if (getArguments().containsKey(TRACKS_DETAILS)) {
-                tracksDetails = getArguments().getParcelableArrayList(TRACKS_DETAILS);
+                mTracksDetails = getArguments().getParcelableArrayList(TRACKS_DETAILS);
             }
             if (getArguments().containsKey(ARTIST_NAME)) {
                 mArtistName = getArguments().getString(ARTIST_NAME);
             }
             if (getArguments().containsKey(SELECTED_TRACK)) {
-                mSelectedTrack = getArguments().getInt(SELECTED_TRACK);
+                mSelectedTrackIdx = getArguments().getInt(SELECTED_TRACK);
             }
         }
         setRetainInstance(true);
-//        Log.v(LOG_TAG, "onCreate - tracksDetails/mSelectedTrack: " + tracksDetails + "/" + mSelectedTrack);
+//        Log.v(LOG_TAG, "onCreate - mTracksDetails/mSelectedTrackIdx: " + mTracksDetails + "/" + mSelectedTrackIdx);
     }
 
     /**
@@ -133,10 +138,10 @@ public class PlayerControllerUi extends DialogFragment {
                 mArtistName = savedInstanceState.getString(ARTIST_NAME);
             }
             if (savedInstanceState.containsKey(TRACKS_DETAILS)) {
-                tracksDetails = savedInstanceState.getParcelableArrayList(TRACKS_DETAILS);
+                mTracksDetails = savedInstanceState.getParcelableArrayList(TRACKS_DETAILS);
             }
             if (savedInstanceState.containsKey(SELECTED_TRACK)) {
-                mSelectedTrack = savedInstanceState.getInt(SELECTED_TRACK);
+                mSelectedTrackIdx = savedInstanceState.getInt(SELECTED_TRACK);
             }
             if (savedInstanceState.containsKey(IS_PLAYING)) {
                 isPlaying = savedInstanceState.getBoolean(IS_PLAYING);
@@ -145,13 +150,13 @@ public class PlayerControllerUi extends DialogFragment {
 
         View playerView = inflater.inflate(R.layout.player_ui, container, false);
 
-        final TextView artistName = (TextView) playerView.findViewById(R.id.playerArtistName);
+        artistName = (TextView) playerView.findViewById(R.id.playerArtistName);
         artistName.setText(mArtistName);
 
-        final TextView albumName = (TextView) playerView.findViewById(R.id.playerAlbumName);
-        albumName.setText(tracksDetails.get(mSelectedTrack).albumName);
+        albumName = (TextView) playerView.findViewById(R.id.playerAlbumName);
+        albumName.setText(mTracksDetails.get(mSelectedTrackIdx).albumName);
 
-        final ImageView albumImage = (ImageView) playerView.findViewById(R.id.playerAlbumImageView);
+        albumImage = (ImageView) playerView.findViewById(R.id.playerAlbumImageView);
 
         if (mWidthPx == -1) {
             mWidthPx = (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_size) -
@@ -160,13 +165,13 @@ public class PlayerControllerUi extends DialogFragment {
 
         if (albumImage != null) {
             Picasso.with(getActivity())
-                    .load(tracksDetails.get(mSelectedTrack).albumArtLargeImageUrl)
+                    .load(mTracksDetails.get(mSelectedTrackIdx).albumArtLargeImageUrl)
                     .resize(mWidthPx, mWidthPx).centerCrop()
                     .into(albumImage);
         }
 
-        final TextView trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
-        trackName.setText(tracksDetails.get(mSelectedTrack).trackName);
+        trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
+        trackName.setText(mTracksDetails.get(mSelectedTrackIdx).trackName);
 
         playerSeekBar =  (SeekBar) playerView.findViewById(R.id.playerSeekBar);
         playerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -187,7 +192,7 @@ public class PlayerControllerUi extends DialogFragment {
         });
 
         playerTrackDuration = (TextView) playerView.findViewById(R.id.playerTrackDuration);
-//        playerTrackDuration.setText(tracksDetails.get(mSelectedTrack).trackName);
+//        playerTrackDuration.setText(mTracksDetails.get(mSelectedTrackIdx).trackName);
 
         final View playPrev = playerView.findViewById(R.id.playerPrev);
         playPrev.setOnClickListener(new View.OnClickListener() {
@@ -233,10 +238,10 @@ public class PlayerControllerUi extends DialogFragment {
     public void onSaveInstanceState(Bundle outState) {
         Log.v(LOG_TAG, "onSaveInstanceState");
         outState.putString(ARTIST_NAME, mArtistName);
-        if (tracksDetails != null) {
-            outState.putParcelableArrayList(TRACKS_DETAILS, (ArrayList) tracksDetails);
+        if (mTracksDetails != null) {
+            outState.putParcelableArrayList(TRACKS_DETAILS, (ArrayList) mTracksDetails);
         }
-        outState.putInt(SELECTED_TRACK, mSelectedTrack);
+        outState.putInt(SELECTED_TRACK, mSelectedTrackIdx);
         outState.putBoolean(IS_PLAYING, Boolean.valueOf(isPlaying));
         super.onSaveInstanceState(outState);
     }
@@ -285,6 +290,7 @@ public class PlayerControllerUi extends DialogFragment {
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
 //            mMusicPlayerService.setPlayerControllerUi(super);
             isMusicPlayerServiceBound = true;
+//            mMusicPlayerService.setTracksDetails(mTracksDetails);
         }
 
         @Override
@@ -305,7 +311,11 @@ public class PlayerControllerUi extends DialogFragment {
             if (mPlayClickedAtLeastOnceForCurrArtist) {
                 mMusicPlayerService.resume();
             } else {
-                eventBus.post(new MusicPlayerServiceEvents(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK, tracksDetails.get(mSelectedTrack)));
+                eventBus.post(
+                        new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+                                .setTracksDetails(mTracksDetails)
+                                .setSelectedTrack(mSelectedTrackIdx)
+                                .build());
             }
         }
         isPlaying = !isPlaying;
@@ -340,6 +350,19 @@ public class PlayerControllerUi extends DialogFragment {
                 Log.v(LOG_TAG, "onEventMainThread - got request TRACK_PLAY_PROGRESS - playProgressPercentage: " + event.playProgressPercentage);
                 playerSeekBar.setProgress(event.playProgressPercentage);
                 break;
+            case PREPARING_NEXT_TRACK:
+                mSelectedTrackIdx = event.selectedTrack;
+                TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
+                trackName.setText(trackDetails.trackName);
+                playerSeekBar.setProgress(0);
+                String imageUrl = trackDetails.albumArtLargeImageUrl;
+                if (imageUrl != null) {
+                    Picasso.with(getActivity())
+                            .load(mTracksDetails.get(mSelectedTrackIdx).albumArtLargeImageUrl)
+                            .resize(mWidthPx, mWidthPx).centerCrop()
+                            .into(albumImage);
+                }
+                albumName.setText(trackDetails.albumName);
         }
     }
 
