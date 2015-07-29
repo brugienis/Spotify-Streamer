@@ -38,6 +38,8 @@ public class MusicPlayerService extends Service {
     private ArrayList<TrackDetails> mTracksDetails;
     private int mSelectedTrack;
     private boolean mIsForegroundStarted;
+    private boolean mIsBounded;
+    private boolean mIsPlayerActive;
     protected Handler handler = new Handler();
     int trackPlaydurationMsec = -1;
     private HandleCancellableFuturesCallable handleCancellableFuturesCallable;
@@ -61,6 +63,7 @@ public class MusicPlayerService extends Service {
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
+        mIsBounded = true;
         return mLocalBinder;
     }
 
@@ -70,6 +73,7 @@ public class MusicPlayerService extends Service {
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
+        mIsBounded = true;
         return;
     }
 
@@ -152,20 +156,15 @@ public class MusicPlayerService extends Service {
                     .seSselectedTrack(mSelectedTrack)
                     .build());
             playTrack( mTracksDetails.get(mSelectedTrack));
-//            TrackDetails trackDetails = mTracksDetails.get(mSelectedTrack);
-//            currTrackDetails = mTracksDetails.get(mSelectedTrack);
-//            try {
-//                mMediaPlayer.reset();
-//                mMediaPlayer.setDataSource(trackDetails.previewUrl);
-//                mMediaPlayer.prepareAsync();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
         } else {
+            Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
             eventBus.post(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
-            scheduleStopForegroundChecker("handleOnCompletion");
+            if (!mIsBounded) {
+                Log.i(LOG_TAG, "handleOnCompletion - no activity is bounded");
+                scheduleStopForegroundChecker("handleOnCompletion");
+            }
         }
     }
 
@@ -215,6 +214,7 @@ public class MusicPlayerService extends Service {
     public void playTrack(TrackDetails trackDetails) {
         Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
         waitForPlayer("playTrack");
+        mIsPlayerActive = true;
         currTrackDetails = trackDetails;
         try {
             mMediaPlayer.reset();
@@ -234,12 +234,13 @@ public class MusicPlayerService extends Service {
             eventBus.post(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
-//            eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK));
+            mIsPlayerActive = false;
         }
     }
 
     public void resume() {
         waitForPlayer("resume");
+        mIsPlayerActive = true;
         // TODO: 29/07/2015 - something wrong with the if below?
         if (mMediaPlayer == null) {
             if (currTrackDetails != null) {
@@ -252,7 +253,6 @@ public class MusicPlayerService extends Service {
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
         eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK)
                 .build());
-//        eventBus.post(new PlayerControllerUiEvents(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK));
     }
 
     private Notification buildNotification() {
@@ -271,7 +271,11 @@ public class MusicPlayerService extends Service {
     public boolean onUnbind(Intent intent) {
 //        Log.i(LOG_TAG, "onUnbind - start");
         mostRecentUnboundTime = System.currentTimeMillis();
-        scheduleStopForegroundChecker("onUnbind");
+        mIsBounded = false;
+        if (!mIsPlayerActive) {
+            Log.i(LOG_TAG, "onUnbind - player is not active");
+            scheduleStopForegroundChecker("onUnbind");
+        }
 //        resultReceiver = null;
         Log.i(LOG_TAG, "onUnbind - end");
         return true;
@@ -303,7 +307,7 @@ public class MusicPlayerService extends Service {
     }
 
     private void scheduleStopForegroundChecker(String source) {
-//        Log.i(LOG_TAG, "scheduleStopForegroundChecker - source: " + source);
+        Log.i(LOG_TAG, "scheduleStopForegroundChecker - source: " + source);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -315,9 +319,8 @@ public class MusicPlayerService extends Service {
     public void onDestroy() {
         Log.i(LOG_TAG, "onDestroy - start");
         super.onDestroy();
-//        mExecutorService.shutdown();
+        mExecutorService.shutdown();
         stopForeground(true);
-//		eventBus.post(new ActivitiesEvents(ActivitiesEvents.HomeEvents.GOOGLE_DRIVE_SERVICE_STOPPED));
         Log.i(LOG_TAG, "onDestroy - end");
     }
 
@@ -369,7 +372,7 @@ public class MusicPlayerService extends Service {
                             .build());
                 }
             } finally {
-                Log.i(LOG_TAG, "call - finally");
+                Log.i(LOG_TAG, "called - finally");
                 eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
                         .setPlayProgressPercentage(0)
                         .build());
