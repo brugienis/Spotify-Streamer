@@ -25,6 +25,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.activities.SpotifyStreamerActivity;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
@@ -35,6 +36,13 @@ import de.greenrobot.event.EventBus;
  * Created by business on 14/07/2015.
  */
 public class PlayerControllerUi extends DialogFragment {
+
+    /**
+     * Declares callback methods that have to be implemented by parent Activity
+     */
+    public interface PlayerControllerUiCallbacks {
+        void showProgress();
+    }
 
     private View playPause;
     private TextView playerTrackDuration;
@@ -54,8 +62,8 @@ public class PlayerControllerUi extends DialogFragment {
     private boolean isMusicPlayerServiceBound;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
-    private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00"); // will format using default locale - use to format what is shown
-                                                                                    // on the screen
+    private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00");     // will format using default locale - use to format what is shown
+                                                                                     // on the screen
 
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
@@ -177,7 +185,9 @@ public class PlayerControllerUi extends DialogFragment {
         playerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                Log.v(LOG_TAG, "onProgressChanged - progress/fromUser: " + progress + "/" + fromUser);
+                if (fromUser) {
+                    Log.v(LOG_TAG, "onProgressChanged - progress/fromUser: " + progress + "/" + fromUser);
+                }
             }
 
             @Override
@@ -302,6 +312,9 @@ public class PlayerControllerUi extends DialogFragment {
     };
 
     private void playPrevClicked() {
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_PREV_TRACK)
+                        .build());
     }
 
     private void startStopClicked() {
@@ -311,6 +324,8 @@ public class PlayerControllerUi extends DialogFragment {
             if (mPlayClickedAtLeastOnceForCurrArtist) {
                 mMusicPlayerService.resume();
             } else {
+                // TODO: 30/07/2015 - use callable to call method defined in the activity
+                ((SpotifyStreamerActivity)(getActivity())).showProgress();
                 eventBus.post(
                         new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
                                 .setTracksDetails(mTracksDetails)
@@ -323,6 +338,9 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void playNextClicked() {
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_NEXT_TRACK)
+                        .build());
     }
 
     public void onEventMainThread(PlayerControllerUiEvents event) {
@@ -330,6 +348,8 @@ public class PlayerControllerUi extends DialogFragment {
         switch (request) {
             case START_PLAYING_TRACK:
 //                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
+                // TODO: 30/07/2015 - use callable to call method defined in the activity
+                ((SpotifyStreamerActivity)(getActivity())).hideProgress();
                 playPause.setBackground(pauseDrawable);
                 playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.durationTimeInSecs));
 //                playerSeekBar.setMax(event.durationTimeInSecs);
@@ -337,19 +357,23 @@ public class PlayerControllerUi extends DialogFragment {
                 playerSeekBar.setProgress(0);
 //                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
+
             case PLAYING_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
                 playPause.setBackground(pauseDrawable);
 //                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
+
             case PAUSED_TRACK:
                 Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
                 playPause.setBackground(playDrawable);
                 break;
+
             case TRACK_PLAY_PROGRESS:
-                Log.v(LOG_TAG, "onEventMainThread - got request TRACK_PLAY_PROGRESS - playProgressPercentage: " + event.playProgressPercentage);
+//                Log.v(LOG_TAG, "onEventMainThread - got request TRACK_PLAY_PROGRESS - playProgressPercentage: " + event.playProgressPercentage);
                 playerSeekBar.setProgress(event.playProgressPercentage);
                 break;
+
             case PREPARING_NEXT_TRACK:
                 mSelectedTrackIdx = event.selectedTrack;
                 TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
@@ -362,6 +386,8 @@ public class PlayerControllerUi extends DialogFragment {
                             .resize(mWidthPx, mWidthPx).centerCrop()
                             .into(albumImage);
                 }
+                // TODO: 30/07/2015 - use callable to call method defined in the activity
+                ((SpotifyStreamerActivity)(getActivity())).showProgress();
                 albumName.setText(trackDetails.albumName);
         }
     }

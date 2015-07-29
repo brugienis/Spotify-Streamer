@@ -151,16 +151,20 @@ public class MusicPlayerService extends Service {
             eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
                     .seSselectedTrack(mSelectedTrack)
                     .build());
-            TrackDetails trackDetails = mTracksDetails.get(mSelectedTrack);
-            currTrackDetails = mTracksDetails.get(mSelectedTrack);
-            try {
-                mMediaPlayer.reset();
-                mMediaPlayer.setDataSource(trackDetails.previewUrl);
-                mMediaPlayer.prepareAsync();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            playTrack( mTracksDetails.get(mSelectedTrack));
+//            TrackDetails trackDetails = mTracksDetails.get(mSelectedTrack);
+//            currTrackDetails = mTracksDetails.get(mSelectedTrack);
+//            try {
+//                mMediaPlayer.reset();
+//                mMediaPlayer.setDataSource(trackDetails.previewUrl);
+//                mMediaPlayer.prepareAsync();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
         } else {
+            eventBus.post(
+                    new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
+                            .build());
             scheduleStopForegroundChecker("handleOnCompletion");
         }
     }
@@ -335,6 +339,12 @@ public class MusicPlayerService extends Service {
             case RESUME_TRACK:
                 resume();
 				break;
+
+            case PLAY_PREV_TRACK:
+                break;
+
+            case PLAY_NEXT_TRACK:
+                break;
 
             default:
                 throw new RuntimeException("LOC_CAT_TAG - onEvent - no code to handle requestEvent: " + requestEvent);

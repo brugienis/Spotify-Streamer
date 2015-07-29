@@ -23,6 +23,7 @@ import au.com.kbrsolutions.spotifystreamer.fragments.ArtistsFragment;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import au.com.kbrsolutions.spotifystreamer.fragments.TracksFragment;
 import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
+import au.com.kbrsolutions.spotifystreamer.utils.ProgressBarHandler;
 
 /**
  * Shows artists details or top 10 tracks of selected artist.
@@ -30,6 +31,7 @@ import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
 
 public class SpotifyStreamerActivity extends ActionBarActivity implements
         ArtistsFragment.ArtistsFragmentCallbacks,
+        PlayerControllerUi.PlayerControllerUiCallbacks,
 //        PlayerControllerUi.PlayerControllerUiCallbacks,
         TracksFragment.TracksFragmentCallbacks {
 //        ServiceConnection {
@@ -38,6 +40,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
     private PlayerControllerUi mDialogFragment;
+    private ProgressBarHandler mProgressBarHandler;
 //    private String mCurrArtistName;
 //    private List<TrackDetails> mCurrArtistTacksDetails;
     private boolean mTwoPane;
@@ -141,8 +144,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                         .commit();
                 break;
         }
+        mProgressBarHandler = new ProgressBarHandler(this);
 //        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
+
+
 
     /**
      * Show recent artists data after user pressed Back or Up button.
@@ -151,6 +157,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mActivityTitle = getResources().getString(R.string.title_activity_artists);
         getSupportActionBar().setTitle(mActivityTitle);
         mArtistsFragment.showArtistsDetails();
+    }
+
+    public void showProgress() {
+        mProgressBarHandler.show();
+    }
+
+    public void hideProgress() {
+        mProgressBarHandler.hide();
     }
 
     /**
