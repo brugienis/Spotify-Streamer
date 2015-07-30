@@ -151,11 +151,12 @@ public class MusicPlayerService extends Service {
         handleCancellableFuturesCallable.cancelCurrFuture();
         waitForPlayer("playTrack");
         if (mSelectedTrack < mTracksDetails.size() - 1) {
-            ++mSelectedTrack;
-            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
-                    .seSselectedTrack(mSelectedTrack)
-                    .build());
-            playTrack( mTracksDetails.get(mSelectedTrack));
+            playNextTrack();
+//            ++mSelectedTrack;
+//            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_PREV_NEXT_TRACK)
+//                    .setSselectedTrack(mSelectedTrack)
+//                    .build());
+//            playTrack( mTracksDetails.get(mSelectedTrack));
         } else {
             Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
             eventBus.post(
@@ -168,9 +169,29 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    private void playPrevTrack() {
+        if (mSelectedTrack > 1) {
+            --mSelectedTrack;
+            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_PREV_NEXT_TRACK)
+                    .setSselectedTrack(mSelectedTrack)
+                    .setPlayingFirstTrack(mSelectedTrack == 1)
+                    .build());
+            playTrack(mTracksDetails.get(mSelectedTrack));
+        }
+    }
+
+    private void playNextTrack() {
+        ++mSelectedTrack;
+        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_PREV_NEXT_TRACK)
+                .setSselectedTrack(mSelectedTrack)
+                .setPlayingLastTrack(mSelectedTrack == mTracksDetails.size() - 1)
+                .build());
+        playTrack( mTracksDetails.get(mSelectedTrack));
+    }
+
     private void handleOnPrepared(MediaPlayer player) {
         trackPlaydurationMsec = player.getDuration();
-        // TODO: 30/07/2015 - not sure if that is the best place to startForeground 
+        // TODO: 30/07/2015 - not sure if that is the best place to startForeground
         if (!mIsForegroundStarted) {
             startForeground(NOTIFICATION_ID, buildNotification());
             mIsForegroundStarted = true;
@@ -345,9 +366,11 @@ public class MusicPlayerService extends Service {
 				break;
 
             case PLAY_PREV_TRACK:
+                playPrevTrack();
                 break;
 
             case PLAY_NEXT_TRACK:
+                playNextTrack();
                 break;
 
             default:

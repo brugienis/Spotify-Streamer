@@ -356,17 +356,10 @@ public class PlayerControllerUi extends DialogFragment {
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case START_PLAYING_TRACK:
-//                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
-                if (getActivity() == null) {
-                    Log.v(LOG_TAG, "onEventMainThread - activity is NULL");
-                } else {
-
-                    mCallbacks.hideProgress();
-                    isProgressBarShowing = false;
-                }
+                mCallbacks.hideProgress();
+                isProgressBarShowing = false;
                 playPause.setBackground(pauseDrawable);
                 playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.durationTimeInSecs));
-//                playerSeekBar.setMax(event.durationTimeInSecs);
                 playerSeekBar.setMax(100);      // 100%
                 playerSeekBar.setProgress(0);
 //                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
@@ -388,7 +381,7 @@ public class PlayerControllerUi extends DialogFragment {
                 playerSeekBar.setProgress(event.playProgressPercentage);
                 break;
 
-            case PREPARING_NEXT_TRACK:
+            case PREPARING_PREV_NEXT_TRACK:
                 mSelectedTrackIdx = event.selectedTrack;
                 TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
                 trackName.setText(trackDetails.trackName);

@@ -13,7 +13,12 @@ public class MusicPlayerServiceEvents {
     public final ArrayList<TrackDetails> tracksDetails;
     public final int selectedTrack;
 
-    public enum MusicServiceEvents {PLAY_TRACK, PAUSE_TRACK, RESUME_TRACK, PLAY_PREV_TRACK, PLAY_NEXT_TRACK}
+    public enum MusicServiceEvents {
+        PLAY_TRACK, PAUSE_TRACK,
+        RESUME_TRACK,
+        PLAY_PREV_TRACK,
+        PLAY_NEXT_TRACK
+    }
 
     public MusicPlayerServiceEvents(Builder builder) {
         this.event = builder.event;
