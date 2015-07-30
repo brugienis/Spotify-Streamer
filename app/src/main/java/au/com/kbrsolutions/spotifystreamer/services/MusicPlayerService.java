@@ -170,6 +170,7 @@ public class MusicPlayerService extends Service {
 
     private void handleOnPrepared(MediaPlayer player) {
         trackPlaydurationMsec = player.getDuration();
+        // TODO: 30/07/2015 - not sure if that is the best place to startForeground 
         if (!mIsForegroundStarted) {
             startForeground(NOTIFICATION_ID, buildNotification());
             mIsForegroundStarted = true;

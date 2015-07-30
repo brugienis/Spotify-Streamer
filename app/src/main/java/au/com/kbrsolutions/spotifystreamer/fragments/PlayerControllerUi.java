@@ -25,7 +25,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 import au.com.kbrsolutions.spotifystreamer.R;
-import au.com.kbrsolutions.spotifystreamer.activities.SpotifyStreamerActivity;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
@@ -42,6 +41,7 @@ public class PlayerControllerUi extends DialogFragment {
      */
     public interface PlayerControllerUiCallbacks {
         void showProgress();
+        void hideProgress();
     }
 
     private View playPause;
@@ -60,6 +60,7 @@ public class PlayerControllerUi extends DialogFragment {
     private boolean isPlaying;
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
     private boolean isMusicPlayerServiceBounded;
+    private PlayerControllerUiCallbacks mCallbacks;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
     private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00");     // will format using default locale - use to format what is shown
@@ -95,6 +96,13 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onAttach(Activity activity) {
 //        Log.v(LOG_TAG, "onAttach - start");
+        try {
+            mCallbacks = (PlayerControllerUiCallbacks) activity;
+        } catch (Exception e) {
+            throw new RuntimeException(
+                    activity.getResources()
+                            .getString(R.string.callbacks_not_implemented, activity.toString()));
+        }
         if (eventBus == null) {
             eventBus = EventBus.getDefault();
             eventBus.register(this);
@@ -324,8 +332,7 @@ public class PlayerControllerUi extends DialogFragment {
             if (mPlayClickedAtLeastOnceForCurrArtist) {
                 mMusicPlayerService.resume();
             } else {
-                // TODO: 30/07/2015 - use callable to call method defined in the activity
-                ((SpotifyStreamerActivity)(getActivity())).showProgress();
+                mCallbacks.showProgress();
                 isProgressBarShowing = true;
                 Log.i(LOG_TAG, "startStopClicked - showProgress called");
                 eventBus.post(
@@ -353,8 +360,8 @@ public class PlayerControllerUi extends DialogFragment {
                 if (getActivity() == null) {
                     Log.v(LOG_TAG, "onEventMainThread - activity is NULL");
                 } else {
-                    // TODO: 30/07/2015 - use callable to call method defined in the activity
-                    ((SpotifyStreamerActivity)(getActivity())).hideProgress();
+
+                    mCallbacks.hideProgress();
                     isProgressBarShowing = false;
                 }
                 playPause.setBackground(pauseDrawable);
@@ -394,8 +401,7 @@ public class PlayerControllerUi extends DialogFragment {
                             .into(albumImage);
                 }
                 if (getActivity() != null) {
-                    // TODO: 30/07/2015 - use callable to call method defined in the activity
-                    ((SpotifyStreamerActivity) (getActivity())).showProgress();
+                    mCallbacks.showProgress();
                     isProgressBarShowing = true;
                     Log.i(LOG_TAG, "onEvent - showProgress called");
                 }
@@ -415,8 +421,7 @@ public class PlayerControllerUi extends DialogFragment {
             isMusicPlayerServiceBounded = false;
         }
         if (isProgressBarShowing) {
-            // TODO: 30/07/2015 - use callable to call method defined in the activity
-            ((SpotifyStreamerActivity)(getActivity())).hideProgress();
+            mCallbacks.hideProgress();
             Log.i(LOG_TAG, "onStop - hideProgress called");
             isProgressBarShowing = false;
         }
