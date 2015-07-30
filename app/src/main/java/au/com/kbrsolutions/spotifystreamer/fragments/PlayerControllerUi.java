@@ -59,7 +59,7 @@ public class PlayerControllerUi extends DialogFragment {
     private int mWidthPx = -1;
     private boolean isPlaying;
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
-    private boolean isMusicPlayerServiceBound;
+    private boolean isMusicPlayerServiceBounded;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
     private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00");     // will format using default locale - use to format what is shown
@@ -277,8 +277,8 @@ public class PlayerControllerUi extends DialogFragment {
      * the track, most likely they will want to hear some tracks.
      */
     private void startMusicServiceIfNotAlreadyBound() {
-//        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBound: " + mServiceConnection + "/" + isMusicPlayerServiceBound);
-        if (!isMusicPlayerServiceBound) {
+//        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBounded: " + mServiceConnection + "/" + isMusicPlayerServiceBounded);
+        if (!isMusicPlayerServiceBounded) {
 //            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
@@ -299,7 +299,7 @@ public class PlayerControllerUi extends DialogFragment {
             Log.i(LOG_TAG, "onServiceConnected - start");
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
 //            mMusicPlayerService.setPlayerControllerUi(super);
-            isMusicPlayerServiceBound = true;
+            isMusicPlayerServiceBounded = true;
 //            mMusicPlayerService.setTracksDetails(mTracksDetails);
         }
 
@@ -307,7 +307,7 @@ public class PlayerControllerUi extends DialogFragment {
         public void onServiceDisconnected(ComponentName name) {
             Log.i(LOG_TAG, "onServiceDisconnected - start");
             mMusicPlayerService = null;
-            isMusicPlayerServiceBound = false;
+            isMusicPlayerServiceBounded = false;
         }
     };
 
@@ -326,6 +326,8 @@ public class PlayerControllerUi extends DialogFragment {
             } else {
                 // TODO: 30/07/2015 - use callable to call method defined in the activity
                 ((SpotifyStreamerActivity)(getActivity())).showProgress();
+                isProgressBarShowing = true;
+                Log.i(LOG_TAG, "startStopClicked - showProgress called");
                 eventBus.post(
                         new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
                                 .setTracksDetails(mTracksDetails)
@@ -348,8 +350,13 @@ public class PlayerControllerUi extends DialogFragment {
         switch (request) {
             case START_PLAYING_TRACK:
 //                Log.v(LOG_TAG, "onEventMainThread - got request START_PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause + "/" + event.timeInSecs);
-                // TODO: 30/07/2015 - use callable to call method defined in the activity
-                ((SpotifyStreamerActivity)(getActivity())).hideProgress();
+                if (getActivity() == null) {
+                    Log.v(LOG_TAG, "onEventMainThread - activity is NULL");
+                } else {
+                    // TODO: 30/07/2015 - use callable to call method defined in the activity
+                    ((SpotifyStreamerActivity)(getActivity())).hideProgress();
+                    isProgressBarShowing = false;
+                }
                 playPause.setBackground(pauseDrawable);
                 playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.durationTimeInSecs));
 //                playerSeekBar.setMax(event.durationTimeInSecs);
@@ -386,21 +393,32 @@ public class PlayerControllerUi extends DialogFragment {
                             .resize(mWidthPx, mWidthPx).centerCrop()
                             .into(albumImage);
                 }
-                // TODO: 30/07/2015 - use callable to call method defined in the activity
-                ((SpotifyStreamerActivity)(getActivity())).showProgress();
+                if (getActivity() != null) {
+                    // TODO: 30/07/2015 - use callable to call method defined in the activity
+                    ((SpotifyStreamerActivity) (getActivity())).showProgress();
+                    isProgressBarShowing = true;
+                    Log.i(LOG_TAG, "onEvent - showProgress called");
+                }
                 albumName.setText(trackDetails.albumName);
         }
     }
+
+    private boolean isProgressBarShowing;
 
     @Override
     public void onStop() {
         super.onStop();
 //        Log.i(LOG_TAG, "onStop - start");
         // Unbind from the service
-        if (isMusicPlayerServiceBound) {
+        if (isMusicPlayerServiceBounded) {
             getActivity().unbindService(mServiceConnection);
-//            Log.i(LOG_TAG, "onStop - unbindService called");
-            isMusicPlayerServiceBound = false;
+            isMusicPlayerServiceBounded = false;
+        }
+        if (isProgressBarShowing) {
+            // TODO: 30/07/2015 - use callable to call method defined in the activity
+            ((SpotifyStreamerActivity)(getActivity())).hideProgress();
+            Log.i(LOG_TAG, "onStop - hideProgress called");
+            isProgressBarShowing = false;
         }
 //        Log.i(LOG_TAG, "onStop - end");
     }
