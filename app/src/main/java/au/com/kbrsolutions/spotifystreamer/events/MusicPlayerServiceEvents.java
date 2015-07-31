@@ -14,7 +14,9 @@ public class MusicPlayerServiceEvents {
     public final int selectedTrack;
 
     public enum MusicServiceEvents {
-        PLAY_TRACK, PAUSE_TRACK,
+//        SET_TRACKS_DETAILS,
+        PLAY_TRACK,
+        PAUSE_TRACK,
         RESUME_TRACK,
         PLAY_PREV_TRACK,
         PLAY_NEXT_TRACK

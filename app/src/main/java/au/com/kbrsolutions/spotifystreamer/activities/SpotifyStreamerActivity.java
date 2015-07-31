@@ -290,8 +290,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
     private void showPlayerController(int selectedTrack) {
         // TODO: 18/07/2015 - different logic required for tablets - display fragment mDialogFragment by calling show() method
-        mDialogFragment = PlayerControllerUi.newInstance(mArtistsFragment.getArtistName(),
-                (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(), selectedTrack);
+        mDialogFragment = PlayerControllerUi.newInstance(
+                mArtistsFragment.getArtistName(),
+                (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(),
+                selectedTrack);
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
         transaction.replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)

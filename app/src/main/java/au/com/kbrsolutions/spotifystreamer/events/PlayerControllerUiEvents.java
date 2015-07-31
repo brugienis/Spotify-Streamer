@@ -10,7 +10,8 @@ public class PlayerControllerUiEvents {
         PLAYING_TRACK,
         PAUSED_TRACK,
         TRACK_PLAY_PROGRESS,
-        PREPARING_PREV_NEXT_TRACK
+//        PREPARING_PREV_TRACK,
+        PREPARING_NEXT_TRACK
     }
 
     public final PlayerUiEvents event;

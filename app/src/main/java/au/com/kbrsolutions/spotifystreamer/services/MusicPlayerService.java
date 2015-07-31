@@ -27,6 +27,7 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.events.HandleCancellableFuturesCallable;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
+import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -59,7 +60,10 @@ public class MusicPlayerService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-//        Log.i(LOG_TAG, "onBind - start");
+        Log.i(LOG_TAG, "onBind - start");
+        mTracksDetails = intent.getParcelableArrayListExtra(PlayerControllerUi.TRACKS_DETAILS);
+        mSelectedTrack = intent.getIntExtra(PlayerControllerUi.SELECTED_TRACK, -1);
+        Log.i(LOG_TAG, "onBind - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -69,7 +73,10 @@ public class MusicPlayerService extends Service {
 
     @Override
     public void onRebind(Intent intent) {
-//        Log.i(LOG_TAG, "onRebind - start");
+        Log.i(LOG_TAG, "onRebind - start");
+        mTracksDetails = intent.getParcelableArrayListExtra(PlayerControllerUi.TRACKS_DETAILS);
+        mSelectedTrack = intent.getIntExtra(PlayerControllerUi.SELECTED_TRACK, -1);
+        Log.i(LOG_TAG, "onRebind - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -77,8 +84,10 @@ public class MusicPlayerService extends Service {
         return;
     }
 
-    public void reconnectedToMusicPlayerService() {
-        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start");
+    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        mTracksDetails = tracksDetails;
+        mSelectedTrack = selectedTrack;
+        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -153,7 +162,7 @@ public class MusicPlayerService extends Service {
         if (mSelectedTrack < mTracksDetails.size() - 1) {
             playNextTrack();
 //            ++mSelectedTrack;
-//            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_PREV_NEXT_TRACK)
+//            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
 //                    .setSselectedTrack(mSelectedTrack)
 //                    .build());
 //            playTrack( mTracksDetails.get(mSelectedTrack));
@@ -171,8 +180,9 @@ public class MusicPlayerService extends Service {
 
     private void playPrevTrack() {
         if (mSelectedTrack > 1) {
+            handleCancellableFuturesCallable.cancelCurrFuture();
             --mSelectedTrack;
-            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_PREV_NEXT_TRACK)
+            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
                     .setSselectedTrack(mSelectedTrack)
                     .setPlayingFirstTrack(mSelectedTrack == 1)
                     .build());
@@ -181,8 +191,9 @@ public class MusicPlayerService extends Service {
     }
 
     private void playNextTrack() {
+        handleCancellableFuturesCallable.cancelCurrFuture();
         ++mSelectedTrack;
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_PREV_NEXT_TRACK)
+        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
                 .setSselectedTrack(mSelectedTrack)
                 .setPlayingLastTrack(mSelectedTrack == mTracksDetails.size() - 1)
                 .build());
@@ -251,7 +262,7 @@ public class MusicPlayerService extends Service {
         waitForPlayer("pause");
         if (mMediaPlayer != null) {
             isPlaying.set(false);
-            handleCancellableFuturesCallable.cancelCurrFuture();
+//            handleCancellableFuturesCallable.cancelCurrFuture();
             mMediaPlayer.pause();
             eventBus.post(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
@@ -300,7 +311,7 @@ public class MusicPlayerService extends Service {
         }
 //        resultReceiver = null;
         Log.i(LOG_TAG, "onUnbind - end");
-        return true;
+        return false;
     }
 
     private class StopForegroundRunnable implements Runnable {
@@ -346,14 +357,23 @@ public class MusicPlayerService extends Service {
         Log.i(LOG_TAG, "onDestroy - end");
     }
 
+    public void setTracksDetails(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        mTracksDetails = tracksDetails;
+        mSelectedTrack = selectedTrack;
+        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
+    }
+
     public void onEvent(MusicPlayerServiceEvents event) {
         MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
-        Log.i(LOG_TAG, "onEvent - start - got event: " + requestEvent + " - " + Thread.currentThread().getName());
+        Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent + "/" + mSelectedTrack + " - " + Thread.currentThread().getName());
         switch (requestEvent) {
 
+//            case SET_TRACKS_DETAILS:
+//                mTracksDetails = event.tracksDetails;
+//                mSelectedTrack = event.selectedTrack;
+//                break;
+
             case PLAY_TRACK:
-                mTracksDetails = event.tracksDetails;
-                mSelectedTrack = event.selectedTrack;
                 playTrack(mTracksDetails.get(mSelectedTrack));
                 break;
 
@@ -381,12 +401,19 @@ public class MusicPlayerService extends Service {
     private final class TrackPlayProgressCheckerCallable implements Callable<String> {
 
         @Override
-        public String call() throws Exception {
+        public String call() {//throws Exception {
             int trackPlayPositionMsec;
+            boolean wasInterrupted = false;
             try {
                 while (true) {
                     // TODO: 28/07/2015 keep internal constant in preferences
-                    Thread.sleep(1000);
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        Log.i(LOG_TAG, "call - INTERRUPTED");
+                        wasInterrupted = true;
+                        break;
+                    }
                     if (!isPlaying.get()) {
                         break;
                     }
@@ -397,9 +424,11 @@ public class MusicPlayerService extends Service {
                 }
             } finally {
                 Log.i(LOG_TAG, "called - finally");
-                eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
-                        .setPlayProgressPercentage(0)
-                        .build());
+                if (wasInterrupted) {
+                    eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
+                            .setPlayProgressPercentage(0)
+                            .build());
+                }
             }
             return null;
         }

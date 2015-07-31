@@ -92,8 +92,7 @@
             android:layout_width="@dimen/player_controls_size"
             android:layout_height="@dimen/player_controls_size"
             android:layout_gravity="center_horizontal"
-            android:layout_margin="10dp"
-            android:src="@drawable/ic_action_previous"/>
+            android:layout_margin="10dp"/>
 
         <Space
             android:layout_width="0dp"
@@ -117,8 +116,7 @@
             android:layout_width="@dimen/player_controls_size"
             android:layout_height="@dimen/player_controls_size"
             android:layout_gravity="center_horizontal"
-            android:layout_margin="10dp"
-            android:src="@drawable/ic_action_next"/>
+            android:layout_margin="10dp"/>
 
         <Space
             android:layout_width="0dp"
@@ -130,7 +128,9 @@
 </ScrollView>
 
 <!--
+            android:src="@drawable/ic_action_previous"
 
             android:src="@drawable/ic_action_play"
+            android:src="@drawable/ic_action_next"
 
 -->

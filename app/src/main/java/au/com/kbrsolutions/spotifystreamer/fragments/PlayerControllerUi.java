@@ -6,6 +6,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -47,10 +49,17 @@ public class PlayerControllerUi extends DialogFragment {
     private View playPause;
     private TextView playerTrackDuration;
     private SeekBar playerSeekBar;
+    private View playPrev;
+    private View playNext;
     private TextView albumName;
     private ImageView albumImage;
     private TextView artistName;
     private TextView trackName;
+    private Drawable transparentDrawable = new ColorDrawable(Color.TRANSPARENT);
+    private Drawable playPrevDrawable;
+    private Drawable playCurrentDrawable;
+    private Drawable pauseCurrentDrawable;
+    private Drawable playNextDrawable;
 
     private String mArtistName;
     private ArrayList<TrackDetails> mTracksDetails;
@@ -107,16 +116,20 @@ public class PlayerControllerUi extends DialogFragment {
             eventBus = EventBus.getDefault();
             eventBus.register(this);
         }
+        if (playDrawable == null) {
+            playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
+            pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
+            playPrevDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_previous);
+            playCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_play);
+            pauseCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
+            playNextDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_next);
+        }
         super.onAttach(activity);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        if (playDrawable == null) {
-            playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
-            pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
-        }
     }
 
     @Override
@@ -136,7 +149,31 @@ public class PlayerControllerUi extends DialogFragment {
             }
         }
         setRetainInstance(true);
+
+//        final int selectedTrackIdx = mSelectedTrackIdx;
+//        mServiceConnection = new ServiceConnection() {
+//
+//            @Override
+//            public void onServiceConnected(ComponentName name, IBinder service) {
+//                Log.i(LOG_TAG, "onServiceConnected - start");
+//                mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
+//                isMusicPlayerServiceBounded = true;
+//                eventBus.post(
+//                        new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
+//                                .setTracksDetails(mTracksDetails)
+//                                .setSelectedTrack(selectedTrackIdx)
+//                                .build());
+//            }
+//
+//            @Override
+//            public void onServiceDisconnected(ComponentName name) {
+//                Log.i(LOG_TAG, "onServiceDisconnected - start");
+//                mMusicPlayerService = null;
+//                isMusicPlayerServiceBounded = false;
+//            }
+//        };
 //        Log.v(LOG_TAG, "onCreate - mTracksDetails/mSelectedTrackIdx: " + mTracksDetails + "/" + mSelectedTrackIdx);
+        Log.v(LOG_TAG, "onCreate - mSelectedTrackIdx: " + mSelectedTrackIdx);
     }
 
     /**
@@ -210,9 +247,14 @@ public class PlayerControllerUi extends DialogFragment {
         });
 
         playerTrackDuration = (TextView) playerView.findViewById(R.id.playerTrackDuration);
-//        playerTrackDuration.setText(mTracksDetails.get(mSelectedTrackIdx).trackName);
 
-        final View playPrev = playerView.findViewById(R.id.playerPrev);
+        playPrev = playerView.findViewById(R.id.playerPrev);
+
+        if (mSelectedTrackIdx == 0) {
+            playPrev.setBackground(transparentDrawable);
+        } else {
+            playPrev.setBackground(playPrevDrawable);
+        }
         playPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -224,27 +266,34 @@ public class PlayerControllerUi extends DialogFragment {
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                startStopClicked();
+                playPauseClicked();
             }
         });
         if (isPlaying) {
-            playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_pause));
+            Log.v(LOG_TAG, "onCreateView - isPlaying");
+            playPause.setBackground(pauseCurrentDrawable);
         } else {
-            playPause.setBackground(getActivity().getResources().getDrawable(R.drawable.ic_action_play));
-
+            Log.v(LOG_TAG, "onCreateView - isPlaying NOT");
+            playPause.setBackground(playCurrentDrawable);
         }
 
-        final View playNext = playerView.findViewById(R.id.playerNext);
+        playNext = playerView.findViewById(R.id.playerNext);
+        if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+            playNext.setBackground(transparentDrawable);
+        } else {
+            playNext.setBackground(playNextDrawable);
+        }
         playNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 playNextClicked();
             }
         });
+
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         } else {
-            mMusicPlayerService.reconnectedToMusicPlayerService();
+            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
         }
         return playerView;
     }
@@ -289,12 +338,30 @@ public class PlayerControllerUi extends DialogFragment {
         if (!isMusicPlayerServiceBounded) {
 //            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
+            intent.putExtra(TRACKS_DETAILS, mTracksDetails);
+            intent.putExtra(SELECTED_TRACK, mSelectedTrackIdx);
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
-//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - activity hash: " + resultReceiver.getActivityHashCode());
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - mSelectedTrackIdx: " + mSelectedTrackIdx);
         } else {
-//            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
+            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
         }
+    }
+
+    private void passTracksdetailsToService() {
+        Log.i(LOG_TAG, "passTracksdetailsToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+        mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
+        isPlaying = true;
+        mCallbacks.showProgress();
+        isProgressBarShowing = true;
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+                        .build());
+//        eventBus.post(
+//                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
+//                        .setTracksDetails(mTracksDetails)
+//                        .setSelectedTrack(mSelectedTrackIdx)
+//                        .build());
     }
 
     /**
@@ -306,9 +373,13 @@ public class PlayerControllerUi extends DialogFragment {
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.i(LOG_TAG, "onServiceConnected - start");
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
-//            mMusicPlayerService.setPlayerControllerUi(super);
             isMusicPlayerServiceBounded = true;
-//            mMusicPlayerService.setTracksDetails(mTracksDetails);
+            passTracksdetailsToService();
+//            eventBus.post(
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
+//                            .setTracksDetails(mTracksDetails)
+//                            .setSelectedTrack(mSelectedTrackIdx)
+//                            .build());
         }
 
         @Override
@@ -320,12 +391,18 @@ public class PlayerControllerUi extends DialogFragment {
     };
 
     private void playPrevClicked() {
+        Log.i(LOG_TAG, "playPrevClicked - start");
+        if (mSelectedTrackIdx == 1) {
+            mSelectedTrackIdx--;
+            playPrev.setEnabled(false);
+            playPrev.setBackground(transparentDrawable);
+        }
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_PREV_TRACK)
                         .build());
     }
 
-    private void startStopClicked() {
+    private void playPauseClicked() {
         if (isPlaying) {
             mMusicPlayerService.pause();
         } else {
@@ -334,11 +411,20 @@ public class PlayerControllerUi extends DialogFragment {
             } else {
                 mCallbacks.showProgress();
                 isProgressBarShowing = true;
-                Log.i(LOG_TAG, "startStopClicked - showProgress called");
+                playPrev.setEnabled(true);
+                playNext.setEnabled(true);
+                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
+                if (mSelectedTrackIdx == 0) {
+                    playPrev.setEnabled(false);
+                    playPrev.setBackground(transparentDrawable);
+                } else if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+                    playNext.setEnabled(false);
+                    playNext.setBackground(transparentDrawable);
+                }
                 eventBus.post(
                         new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-                                .setTracksDetails(mTracksDetails)
-                                .setSelectedTrack(mSelectedTrackIdx)
+//                                .setTracksDetails(mTracksDetails)
+//                                .setSelectedTrack(mSelectedTrackIdx)
                                 .build());
             }
         }
@@ -347,6 +433,12 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void playNextClicked() {
+        Log.i(LOG_TAG, "playNextClicked - start");
+        if (mSelectedTrackIdx == mTracksDetails.size() - 2) {
+            mSelectedTrackIdx++;
+            playNext.setEnabled(false);
+            playNext.setBackground(transparentDrawable);
+        }
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_NEXT_TRACK)
                         .build());
@@ -381,7 +473,7 @@ public class PlayerControllerUi extends DialogFragment {
                 playerSeekBar.setProgress(event.playProgressPercentage);
                 break;
 
-            case PREPARING_PREV_NEXT_TRACK:
+            case PREPARING_NEXT_TRACK:
                 mSelectedTrackIdx = event.selectedTrack;
                 TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
                 trackName.setText(trackDetails.trackName);
@@ -398,7 +490,26 @@ public class PlayerControllerUi extends DialogFragment {
                     isProgressBarShowing = true;
                     Log.i(LOG_TAG, "onEvent - showProgress called");
                 }
+                Log.i(LOG_TAG, "onEvent - PREPARING_NEXT_TRACK first/last: " + event.playingFirstTrack + "/" + event.playingLastTrack);
+                if (event.playingFirstTrack) {
+                    playPrev.setEnabled(false);
+                    playPrev.setBackground(transparentDrawable);
+                    Log.i(LOG_TAG, "onEvent - playPrev disabled");
+                } else {
+                    playPrev.setEnabled(true);
+                    playPrev.setBackground(playPrevDrawable);
+                }
+
+                if (event.playingLastTrack) {
+                    playNext.setEnabled(false);
+                    playNext.setBackground(transparentDrawable);
+                    Log.i(LOG_TAG, "onEvent - playNext disabled");
+                } else {
+                    playNext.setEnabled(true);
+                    playNext.setBackground(playNextDrawable);
+                }
                 albumName.setText(trackDetails.albumName);
+                break;
         }
     }
 
