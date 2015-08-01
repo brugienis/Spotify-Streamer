@@ -340,7 +340,7 @@ public class MusicPlayerService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-//        Log.i(LOG_TAG, "onUnbind - start");
+        Log.i(LOG_TAG, "onUnbind - start");
         mostRecentUnboundTime = System.currentTimeMillis();
         mIsBounded = false;
         if (!mIsPlayerActive) {

@@ -64,7 +64,7 @@ public class PlayerControllerUi extends DialogFragment {
     private String mArtistName;
     private ArrayList<TrackDetails> mTracksDetails;
     private int mSelectedTrackIdx;
-//    private PlayerResultReceiver resultReceiver;
+    //    private PlayerResultReceiver resultReceiver;
     private int mWidthPx = -1;
     private boolean isPlaying;
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
@@ -73,7 +73,7 @@ public class PlayerControllerUi extends DialogFragment {
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
     private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00");     // will format using default locale - use to format what is shown
-                                                                                     // on the screen
+    // on the screen
 
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
@@ -354,6 +354,8 @@ public class PlayerControllerUi extends DialogFragment {
         isPlaying = true;
         mCallbacks.showProgress();
         isProgressBarShowing = true;
+        playPause.setEnabled(false);
+        playPause.setBackground(transparentDrawable);
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
                         .build());
@@ -421,6 +423,7 @@ public class PlayerControllerUi extends DialogFragment {
                     playNext.setEnabled(false);
                     playNext.setBackground(transparentDrawable);
                 }
+                playPause.setBackground(transparentDrawable);
                 eventBus.post(
                         new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
 //                                .setTracksDetails(mTracksDetails)
@@ -448,6 +451,7 @@ public class PlayerControllerUi extends DialogFragment {
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case START_PLAYING_TRACK:
+                playPause.setEnabled(true);
                 mCallbacks.hideProgress();
                 isProgressBarShowing = false;
                 playPause.setBackground(pauseDrawable);
@@ -485,6 +489,8 @@ public class PlayerControllerUi extends DialogFragment {
                             .resize(mWidthPx, mWidthPx).centerCrop()
                             .into(albumImage);
                 }
+                playPause.setBackground(transparentDrawable);
+                playPause.setEnabled(false);
                 if (getActivity() != null) {
                     mCallbacks.showProgress();
                     isProgressBarShowing = true;

@@ -4,8 +4,12 @@
 
 package au.com.kbrsolutions.spotifystreamer.activities;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
@@ -41,6 +45,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private TracksFragment mTracksFragment;
     private PlayerControllerUi mDialogFragment;
     private ProgressBarHandler mProgressBarHandler;
+    private boolean isMusicPlayerServiceBounded;
 //    private String mCurrArtistName;
 //    private List<TrackDetails> mCurrArtistTacksDetails;
     private boolean mTwoPane;
@@ -145,6 +150,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 break;
         }
         mProgressBarHandler = new ProgressBarHandler(this);
+
+        Log.v(LOG_TAG, "showArtistsData - starting player service");
+        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        isMusicPlayerServiceBound = true;
 //        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
 
@@ -166,6 +177,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     public void hideProgress() {
         mProgressBarHandler.hide();
     }
+
+//    @Override
+//    public MusicPlayerService getMusicPlayerService() {
+//        return mMusicPlayerService;
+//    }
 
     /**
      * Up button was pressed - remove to top entry Back Stack
@@ -307,8 +323,36 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         super.onStop();
         // Unbind from the service
         if (isMusicPlayerServiceBound) {
-//            unbindService(mConnection);
+            unbindService(mServiceConnection);
             isMusicPlayerServiceBound = false;
         }
     }
+
+
+
+    /**
+     * Defines callbacks for service binding, passed to bindService()
+     */
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            Log.i(LOG_TAG, "onServiceConnected - start");
+            mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
+            isMusicPlayerServiceBounded = true;
+//            passTracksdetailsToService();
+//            eventBus.post(
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
+//                            .setTracksDetails(mTracksDetails)
+//                            .setSelectedTrack(mSelectedTrackIdx)
+//                            .build());
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.i(LOG_TAG, "onServiceDisconnected - start");
+            mMusicPlayerService = null;
+            isMusicPlayerServiceBounded = false;
+        }
+    };
 }
