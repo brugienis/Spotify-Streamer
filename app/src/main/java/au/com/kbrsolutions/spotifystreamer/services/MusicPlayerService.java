@@ -1,6 +1,7 @@
 package au.com.kbrsolutions.spotifystreamer.services;
 
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.media.AudioManager;
@@ -10,6 +11,8 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import au.com.kbrsolutions.spotifystreamer.R;
+import au.com.kbrsolutions.spotifystreamer.activities.SpotifyStreamerActivity;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.events.HandleCancellableFuturesCallable;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
@@ -161,16 +165,12 @@ public class MusicPlayerService extends Service {
         waitForPlayer("playTrack");
         if (mSelectedTrack < mTracksDetails.size() - 1) {
             playNextTrack();
-//            ++mSelectedTrack;
-//            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
-//                    .setSselectedTrack(mSelectedTrack)
-//                    .build());
-//            playTrack( mTracksDetails.get(mSelectedTrack));
         } else {
             Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
             eventBus.post(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
+            mIsPlayerActive = false;
             if (!mIsBounded) {
                 Log.i(LOG_TAG, "handleOnCompletion - no activity is bounded");
                 scheduleStopForegroundChecker("handleOnCompletion");
@@ -246,6 +246,9 @@ public class MusicPlayerService extends Service {
 
     public void playTrack(TrackDetails trackDetails) {
         Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
+        if (mMediaPlayer == null) {
+            configurePlayer();
+        }
         waitForPlayer("playTrack");
         mIsPlayerActive = true;
         currTrackDetails = trackDetails;
@@ -289,15 +292,50 @@ public class MusicPlayerService extends Service {
     }
 
     private Notification buildNotification() {
-        Notification notification;
-        Notification.Builder builder = new Notification.Builder(getApplicationContext());
-        builder.setSmallIcon(R.drawable.ic_action_next);
-        builder.setContentTitle(getString(R.string.service_notification_title));
-        builder.setContentText(getString(R.string.service_notification_text));
-        notification = builder.build();
-//		notification.flags = notification.flags | notification.FLAG_FOREGROUND_SERVICE; not needed
-        //		Log.i(LOC_CAT_TAG, "buildNotification - end - notification: " + notification);
-        return notification;
+//        Notification notification;
+//        Notification.Builder builder = new Notification.Builder(getApplicationContext());
+//        builder.setSmallIcon(R.drawable.ic_action_next);
+//        builder.setContentTitle(getString(R.string.service_notification_title));
+//        builder.setContentText(getString(R.string.service_notification_text));
+//        notification = builder.build();
+////		notification.flags = notification.flags | notification.FLAG_FOREGROUND_SERVICE; not needed
+//        //		Log.i(LOC_CAT_TAG, "buildNotification - end - notification: " + notification);
+//        return notification;
+
+
+        // NotificationCompatBuilder is a very convenient way to build backward-compatible
+        // notifications.  Just throw in some data.
+        String text = getString(R.string.service_notification_text);
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(getApplicationContext())
+//                        .setColor(resources.getColor(R.color.sunshine_light_blue))
+                        .setSmallIcon(R.drawable.ic_action_next)
+//                        .setLargeIcon(R.drawable.ic_action_next)
+                        .setContentTitle(getString(R.string.service_notification_title))
+                                .setContentText(text);
+        // Make something interesting happen when the user clicks on the notification.
+        // In this case, opening the app is sufficient.
+        Intent resultIntent = new Intent(getApplicationContext(), SpotifyStreamerActivity.class);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        return mBuilder.build();
+
+//        NotificationManager mNotificationManager =
+//                (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+//        // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
+//        mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
     }
 
     @Override
