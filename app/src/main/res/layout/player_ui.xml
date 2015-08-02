@@ -91,20 +91,32 @@
             android:id="@+id/playerPrev"
             android:layout_width="@dimen/player_controls_size"
             android:layout_height="@dimen/player_controls_size"
-            android:layout_gravity="center_horizontal"
-            android:layout_margin="10dp"/>
+            android:layout_gravity="center"/>
 
         <Space
             android:layout_width="0dp"
             android:layout_height="@dimen/player_controls_size"
             android:layout_weight="0.09"/>
 
-        <ImageView
-            android:id="@+id/playerStartStopPlaying"
+        <FrameLayout
             android:layout_width="@dimen/player_controls_size"
             android:layout_height="@dimen/player_controls_size"
-            android:layout_gravity="center_horizontal"
-            android:layout_margin="10dp"/>
+            android:layout_gravity="center">
+
+            <ImageView
+                android:id="@+id/playerStartStopPlaying"
+                android:layout_width="@dimen/player_controls_size"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_gravity="center_horizontal"/>
+
+            <ProgressBar
+                android:id="@+id/playerProgressBar"
+                style="?android:attr/progressBarStyleSmall"
+                android:layout_width="@dimen/player_controls_size"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_gravity="center_horizontal"/>
+
+        </FrameLayout>
 
         <Space
             android:layout_width="0dp"
@@ -115,8 +127,7 @@
             android:id="@+id/playerNext"
             android:layout_width="@dimen/player_controls_size"
             android:layout_height="@dimen/player_controls_size"
-            android:layout_gravity="center_horizontal"
-            android:layout_margin="10dp"/>
+            android:layout_gravity="center"/>
 
         <Space
             android:layout_width="0dp"
@@ -128,6 +139,8 @@
 </ScrollView>
 
 <!--
+
+            android:layout_margin="0dp"
             android:src="@drawable/ic_action_previous"
 
             android:src="@drawable/ic_action_play"

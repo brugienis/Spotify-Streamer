@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -42,11 +43,12 @@ public class PlayerControllerUi extends DialogFragment {
      * Declares callback methods that have to be implemented by parent Activity
      */
     public interface PlayerControllerUiCallbacks {
-        void showProgress();
-        void hideProgress();
+//        void showProgress();
+//        void hideProgress();
     }
 
     private View playPause;
+    private ProgressBar playPauseProgressBar;
     private TextView playerTrackDuration;
     private SeekBar playerSeekBar;
     private View playPrev;
@@ -61,6 +63,8 @@ public class PlayerControllerUi extends DialogFragment {
     private Drawable pauseCurrentDrawable;
     private Drawable playNextDrawable;
 
+    private Drawable playDrawable;
+    private Drawable pauseDrawable;
     private String mArtistName;
     private ArrayList<TrackDetails> mTracksDetails;
     private int mSelectedTrackIdx;
@@ -100,8 +104,6 @@ public class PlayerControllerUi extends DialogFragment {
         return f;
     }
 
-    private Drawable playDrawable;
-    private Drawable pauseDrawable;
     @Override
     public void onAttach(Activity activity) {
 //        Log.v(LOG_TAG, "onAttach - start");
@@ -262,6 +264,9 @@ public class PlayerControllerUi extends DialogFragment {
             }
         });
 
+        playPauseProgressBar = (ProgressBar) playerView.findViewById(R.id.playerProgressBar);
+        playPauseProgressBar.setVisibility(View.GONE);
+
         playPause = playerView.findViewById(R.id.playerStartStopPlaying);
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -353,10 +358,12 @@ public class PlayerControllerUi extends DialogFragment {
         mMusicPlayerService.processAfterConnectedToService();
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
         isPlaying = true;
-        mCallbacks.showProgress();
+//        mCallbacks.showProgress();
         isProgressBarShowing = true;
         playPause.setEnabled(false);
-        playPause.setBackground(transparentDrawable);
+//        playPause.setBackground(transparentDrawable);
+        playPause.setVisibility(View.GONE);
+        playPauseProgressBar.setVisibility(View.VISIBLE);
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
                         .build());
@@ -402,8 +409,9 @@ public class PlayerControllerUi extends DialogFragment {
             if (mPlayClickedAtLeastOnceForCurrArtist) {
                 mMusicPlayerService.resume();
             } else {
-                mCallbacks.showProgress();
-                isProgressBarShowing = true;
+                // TODO: 3/08/2015 - how can we go into that part of code - investigate
+//                mCallbacks.showProgress();
+//                isProgressBarShowing = true;
                 playPrev.setEnabled(true);
                 playNext.setEnabled(true);
                 Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
@@ -443,9 +451,11 @@ public class PlayerControllerUi extends DialogFragment {
         switch (request) {
             case START_PLAYING_TRACK:
                 playPause.setEnabled(true);
-                mCallbacks.hideProgress();
+//                mCallbacks.hideProgress();
                 isProgressBarShowing = false;
                 playPause.setBackground(pauseDrawable);
+                playPause.setVisibility(View.VISIBLE);
+                playPauseProgressBar.setVisibility(View.GONE);
                 playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.durationTimeInSecs));
                 playerSeekBar.setMax(100);      // 100%
                 playerSeekBar.setProgress(0);
@@ -482,11 +492,13 @@ public class PlayerControllerUi extends DialogFragment {
                 }
                 playPause.setBackground(transparentDrawable);
                 playPause.setEnabled(false);
-                if (getActivity() != null) {
-                    mCallbacks.showProgress();
-                    isProgressBarShowing = true;
+                playPause.setVisibility(View.GONE);
+                playPauseProgressBar.setVisibility(View.VISIBLE);
+//                if (getActivity() != null) {
+//                    mCallbacks.showProgress();
+//                    isProgressBarShowing = true;
 //                    Log.i(LOG_TAG, "onEvent - showProgress called");
-                }
+//                }
 //                Log.i(LOG_TAG, "onEvent - PREPARING_NEXT_TRACK first/last: " + event.playingFirstTrack + "/" + event.playingLastTrack);
                 if (event.playingFirstTrack) {
                     playPrev.setEnabled(false);
@@ -523,9 +535,9 @@ public class PlayerControllerUi extends DialogFragment {
             isMusicPlayerServiceBounded = false;
         }
         if (isProgressBarShowing) {
-            mCallbacks.hideProgress();
+//            mCallbacks.hideProgress();
             Log.i(LOG_TAG, "onStop - hideProgress called");
-            isProgressBarShowing = false;
+//            isProgressBarShowing = false;
         }
 //        Log.i(LOG_TAG, "onStop - end");
     }
