@@ -24,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.activities.SpotifyStreamerActivity;
@@ -31,7 +32,6 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 import au.com.kbrsolutions.spotifystreamer.events.HandleCancellableFuturesCallable;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
-import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -58,6 +58,7 @@ public class MusicPlayerService extends Service {
     private LocalBinder mLocalBinder = new LocalBinder();
     private static final int NOTIFICATION_ID = 2015;
     private AtomicBoolean isPlaying = new AtomicBoolean(false);
+    private AtomicInteger connectedClientsCnt = new AtomicInteger(0);
 
     private final String LOG_TAG = MusicPlayerService.class.getSimpleName();
 
@@ -65,9 +66,7 @@ public class MusicPlayerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.i(LOG_TAG, "onBind - start");
-        mTracksDetails = intent.getParcelableArrayListExtra(PlayerControllerUi.TRACKS_DETAILS);
-        mSelectedTrack = intent.getIntExtra(PlayerControllerUi.SELECTED_TRACK, -1);
-        Log.i(LOG_TAG, "onBind - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
+
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -78,14 +77,27 @@ public class MusicPlayerService extends Service {
     @Override
     public void onRebind(Intent intent) {
         Log.i(LOG_TAG, "onRebind - start");
-        mTracksDetails = intent.getParcelableArrayListExtra(PlayerControllerUi.TRACKS_DETAILS);
-        mSelectedTrack = intent.getIntExtra(PlayerControllerUi.SELECTED_TRACK, -1);
-        Log.i(LOG_TAG, "onRebind - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         mIsBounded = true;
         return;
+    }
+
+    /**
+     * client should call this method after they got connected to this service - after they got call to the onServiceConnected(...).
+     * OnBind will not be called every time the activity connects to the service - see:
+     *      https://groups.google.com/forum/#!msg/android-developers/2IegSgtGxyE/iXP3lBCH5SsJ
+     *
+     * Always set mIsBounded to true.
+     */
+    public void processAfterConnectedToService() {
+        connectedClientsCnt.getAndIncrement();
+        Log.i(LOG_TAG, "processAfterConnectedToService - start - connectedClientsCnt: " + connectedClientsCnt.get());
+        if (stopForegroundRunnable != null) {
+            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+        }
+        mIsBounded = true;
     }
 
     public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
@@ -171,8 +183,10 @@ public class MusicPlayerService extends Service {
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
             mIsPlayerActive = false;
-            if (!mIsBounded) {
-                Log.i(LOG_TAG, "handleOnCompletion - no activity is bounded");
+            if (connectedClientsCnt.get() == 0) {
+//            if (!mIsBounde/d) {
+//                Log.i(LOG_TAG, "handleOnCompletion - no activity is bounded");
+                Log.i(LOG_TAG, "handleOnCompletion - all clients disconnected");
                 scheduleStopForegroundChecker("handleOnCompletion");
             }
         }
@@ -245,7 +259,7 @@ public class MusicPlayerService extends Service {
     }
 
     public void playTrack(TrackDetails trackDetails) {
-        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
+//        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
         if (mMediaPlayer == null) {
             configurePlayer();
         }
@@ -338,6 +352,25 @@ public class MusicPlayerService extends Service {
 //        mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
     }
 
+    /**
+     * client should call this method after they got connected to this service - after they got call to the onServiceConnected(...).
+     * OnBind will not be called every time the activity connects to the service - see:
+     *      https://groups.google.com/forum/#!msg/android-developers/2IegSgtGxyE/iXP3lBCH5SsJ
+     *
+     * Always set mIsBounded to true.
+     */
+    public void processBeforeUnbindService() {
+        connectedClientsCnt.getAndDecrement();
+        Log.i(LOG_TAG, "processBeforeUnbindService - start - connectedClientsCnt: " + connectedClientsCnt.get());
+        if (stopForegroundRunnable != null) {
+            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+        }
+        if (connectedClientsCnt.get() == 0) {
+            Log.i(LOG_TAG, "processBeforeUnbindService - no connected clients and player is not active");
+            scheduleStopForegroundChecker("processBeforeUnbindService");
+        }
+    }
+
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i(LOG_TAG, "onUnbind - start");
@@ -361,7 +394,9 @@ public class MusicPlayerService extends Service {
         @Override
         public void run() {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
-            if (System.currentTimeMillis() - mostRecentUnboundTime > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS * 1000)) {
+            if (connectedClientsCnt.get() == 0 &&
+                    !mIsPlayerActive &&
+                    System.currentTimeMillis() - mostRecentUnboundTime > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS * 1000)) {
                 Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground()");
                 mMediaPlayer.release();
                 mMediaPlayer = null;
@@ -374,7 +409,6 @@ public class MusicPlayerService extends Service {
             }
             Log.i(LOG_TAG, "StopForegroundRunnable.run - end");
         }
-
     }
 
     private void scheduleStopForegroundChecker(String source) {
@@ -398,7 +432,7 @@ public class MusicPlayerService extends Service {
     public void setTracksDetails(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
         mTracksDetails = tracksDetails;
         mSelectedTrack = selectedTrack;
-        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
+//        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
     public void onEvent(MusicPlayerServiceEvents event) {
@@ -448,7 +482,7 @@ public class MusicPlayerService extends Service {
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-                        Log.i(LOG_TAG, "call - INTERRUPTED");
+//                        Log.i(LOG_TAG, "call - INTERRUPTED");
                         wasInterrupted = true;
                         break;
                     }
@@ -461,7 +495,7 @@ public class MusicPlayerService extends Service {
                             .build());
                 }
             } finally {
-                Log.i(LOG_TAG, "called - finally");
+//                Log.i(LOG_TAG, "called - finally");
                 if (wasInterrupted) {
                     eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
                             .setPlayProgressPercentage(0)

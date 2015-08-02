@@ -293,7 +293,7 @@ public class PlayerControllerUi extends DialogFragment {
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         } else {
-            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
+//            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
         }
         return playerView;
     }
@@ -334,12 +334,12 @@ public class PlayerControllerUi extends DialogFragment {
      * the track, most likely they will want to hear some tracks.
      */
     private void startMusicServiceIfNotAlreadyBound() {
-//        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBounded: " + mServiceConnection + "/" + isMusicPlayerServiceBounded);
+        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBounded: " + mServiceConnection + "/" + isMusicPlayerServiceBounded);
         if (!isMusicPlayerServiceBounded) {
 //            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-            intent.putExtra(TRACKS_DETAILS, mTracksDetails);
-            intent.putExtra(SELECTED_TRACK, mSelectedTrackIdx);
+//            intent.putExtra(TRACKS_DETAILS, mTracksDetails);
+//            intent.putExtra(SELECTED_TRACK, mSelectedTrackIdx);
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
             Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - mSelectedTrackIdx: " + mSelectedTrackIdx);
@@ -349,7 +349,8 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void passTracksdetailsToService() {
-        Log.i(LOG_TAG, "passTracksdetailsToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+//        Log.i(LOG_TAG, "passTracksdetailsToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+        mMusicPlayerService.processAfterConnectedToService();
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
         isPlaying = true;
         mCallbacks.showProgress();
@@ -359,11 +360,6 @@ public class PlayerControllerUi extends DialogFragment {
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
                         .build());
-//        eventBus.post(
-//                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
-//                        .setTracksDetails(mTracksDetails)
-//                        .setSelectedTrack(mSelectedTrackIdx)
-//                        .build());
     }
 
     /**
@@ -377,11 +373,6 @@ public class PlayerControllerUi extends DialogFragment {
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
             isMusicPlayerServiceBounded = true;
             passTracksdetailsToService();
-//            eventBus.post(
-//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
-//                            .setTracksDetails(mTracksDetails)
-//                            .setSelectedTrack(mSelectedTrackIdx)
-//                            .build());
         }
 
         @Override
@@ -462,13 +453,13 @@ public class PlayerControllerUi extends DialogFragment {
                 break;
 
             case PLAYING_TRACK:
-                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
+//                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
                 playPause.setBackground(pauseDrawable);
 //                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
 
             case PAUSED_TRACK:
-                Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
+//                Log.v(LOG_TAG, "onEventMainThread - got request PAUSED_TRACK");
                 playPause.setBackground(playDrawable);
                 break;
 
@@ -494,9 +485,9 @@ public class PlayerControllerUi extends DialogFragment {
                 if (getActivity() != null) {
                     mCallbacks.showProgress();
                     isProgressBarShowing = true;
-                    Log.i(LOG_TAG, "onEvent - showProgress called");
+//                    Log.i(LOG_TAG, "onEvent - showProgress called");
                 }
-                Log.i(LOG_TAG, "onEvent - PREPARING_NEXT_TRACK first/last: " + event.playingFirstTrack + "/" + event.playingLastTrack);
+//                Log.i(LOG_TAG, "onEvent - PREPARING_NEXT_TRACK first/last: " + event.playingFirstTrack + "/" + event.playingLastTrack);
                 if (event.playingFirstTrack) {
                     playPrev.setEnabled(false);
                     playPrev.setBackground(transparentDrawable);
@@ -527,6 +518,7 @@ public class PlayerControllerUi extends DialogFragment {
 //        Log.i(LOG_TAG, "onStop - start");
         // Unbind from the service
         if (isMusicPlayerServiceBounded) {
+            mMusicPlayerService.processBeforeUnbindService();
             getActivity().unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
         }
