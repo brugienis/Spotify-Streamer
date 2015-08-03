@@ -184,8 +184,6 @@ public class MusicPlayerService extends Service {
                             .build());
             mIsPlayerActive = false;
             if (connectedClientsCnt.get() == 0) {
-//            if (!mIsBounde/d) {
-//                Log.i(LOG_TAG, "handleOnCompletion - no activity is bounded");
                 Log.i(LOG_TAG, "handleOnCompletion - all clients disconnected");
                 scheduleStopForegroundChecker("handleOnCompletion");
             }
@@ -279,7 +277,6 @@ public class MusicPlayerService extends Service {
         waitForPlayer("pause");
         if (mMediaPlayer != null) {
             isPlaying.set(false);
-//            handleCancellableFuturesCallable.cancelCurrFuture();
             mMediaPlayer.pause();
             eventBus.post(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
@@ -380,7 +377,6 @@ public class MusicPlayerService extends Service {
             Log.i(LOG_TAG, "onUnbind - player is not active");
             scheduleStopForegroundChecker("onUnbind");
         }
-//        resultReceiver = null;
         Log.i(LOG_TAG, "onUnbind - end");
         return false;
     }

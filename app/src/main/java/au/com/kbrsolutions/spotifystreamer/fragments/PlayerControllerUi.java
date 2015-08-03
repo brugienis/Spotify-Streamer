@@ -68,7 +68,6 @@ public class PlayerControllerUi extends DialogFragment {
     private String mArtistName;
     private ArrayList<TrackDetails> mTracksDetails;
     private int mSelectedTrackIdx;
-    //    private PlayerResultReceiver resultReceiver;
     private int mWidthPx = -1;
     private boolean isPlaying;
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
@@ -76,9 +75,7 @@ public class PlayerControllerUi extends DialogFragment {
     private PlayerControllerUiCallbacks mCallbacks;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
-    private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00");     // will format using default locale - use to format what is shown
-    // on the screen
-
+    private static DecimalFormat dfTwoDecimalPlaces = new DecimalFormat("0.00");     // will format using default locale - use to format what is shown on the screen
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
     public final static String SELECTED_TRACK = "selected_track";
@@ -152,29 +149,6 @@ public class PlayerControllerUi extends DialogFragment {
         }
         setRetainInstance(true);
 
-//        final int selectedTrackIdx = mSelectedTrackIdx;
-//        mServiceConnection = new ServiceConnection() {
-//
-//            @Override
-//            public void onServiceConnected(ComponentName name, IBinder service) {
-//                Log.i(LOG_TAG, "onServiceConnected - start");
-//                mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
-//                isMusicPlayerServiceBounded = true;
-//                eventBus.post(
-//                        new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.SET_TRACKS_DETAILS)
-//                                .setTracksDetails(mTracksDetails)
-//                                .setSelectedTrack(selectedTrackIdx)
-//                                .build());
-//            }
-//
-//            @Override
-//            public void onServiceDisconnected(ComponentName name) {
-//                Log.i(LOG_TAG, "onServiceDisconnected - start");
-//                mMusicPlayerService = null;
-//                isMusicPlayerServiceBounded = false;
-//            }
-//        };
-//        Log.v(LOG_TAG, "onCreate - mTracksDetails/mSelectedTrackIdx: " + mTracksDetails + "/" + mSelectedTrackIdx);
         Log.v(LOG_TAG, "onCreate - mSelectedTrackIdx: " + mSelectedTrackIdx);
     }
 
@@ -297,9 +271,8 @@ public class PlayerControllerUi extends DialogFragment {
 
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
-        } else {
-//            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
         }
+
         return playerView;
     }
 
@@ -341,10 +314,7 @@ public class PlayerControllerUi extends DialogFragment {
     private void startMusicServiceIfNotAlreadyBound() {
         Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBounded: " + mServiceConnection + "/" + isMusicPlayerServiceBounded);
         if (!isMusicPlayerServiceBounded) {
-//            Log.v(LOG_TAG, "newTrackClicked - sending intent to service");
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
-//            intent.putExtra(TRACKS_DETAILS, mTracksDetails);
-//            intent.putExtra(SELECTED_TRACK, mSelectedTrackIdx);
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
             Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - mSelectedTrackIdx: " + mSelectedTrackIdx);
@@ -358,10 +328,8 @@ public class PlayerControllerUi extends DialogFragment {
         mMusicPlayerService.processAfterConnectedToService();
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
         isPlaying = true;
-//        mCallbacks.showProgress();
         isProgressBarShowing = true;
         playPause.setEnabled(false);
-//        playPause.setBackground(transparentDrawable);
         playPause.setVisibility(View.GONE);
         playPauseProgressBar.setVisibility(View.VISIBLE);
         eventBus.post(
@@ -425,8 +393,6 @@ public class PlayerControllerUi extends DialogFragment {
                 playPause.setBackground(transparentDrawable);
                 eventBus.post(
                         new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-//                                .setTracksDetails(mTracksDetails)
-//                                .setSelectedTrack(mSelectedTrackIdx)
                                 .build());
             }
         }
@@ -451,7 +417,6 @@ public class PlayerControllerUi extends DialogFragment {
         switch (request) {
             case START_PLAYING_TRACK:
                 playPause.setEnabled(true);
-//                mCallbacks.hideProgress();
                 isProgressBarShowing = false;
                 playPause.setBackground(pauseDrawable);
                 playPause.setVisibility(View.VISIBLE);
@@ -459,13 +424,11 @@ public class PlayerControllerUi extends DialogFragment {
                 playerTrackDuration.setText(dfTwoDecimalPlaces.format(event.durationTimeInSecs));
                 playerSeekBar.setMax(100);      // 100%
                 playerSeekBar.setProgress(0);
-//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
 
             case PLAYING_TRACK:
 //                Log.v(LOG_TAG, "onEventMainThread - got request PLAYING_TRACK - activity/playPause: " + getActivity() + "/" + playPause);
                 playPause.setBackground(pauseDrawable);
-//                playPause.setBackground(getResources().getDrawable(R.drawable.ic_action_pause));        // java.lang.IllegalStateException: Fragment PlayerControllerUi{14dac624} not attached to Activity
                 break;
 
             case PAUSED_TRACK:
@@ -494,12 +457,6 @@ public class PlayerControllerUi extends DialogFragment {
                 playPause.setEnabled(false);
                 playPause.setVisibility(View.GONE);
                 playPauseProgressBar.setVisibility(View.VISIBLE);
-//                if (getActivity() != null) {
-//                    mCallbacks.showProgress();
-//                    isProgressBarShowing = true;
-//                    Log.i(LOG_TAG, "onEvent - showProgress called");
-//                }
-//                Log.i(LOG_TAG, "onEvent - PREPARING_NEXT_TRACK first/last: " + event.playingFirstTrack + "/" + event.playingLastTrack);
                 if (event.playingFirstTrack) {
                     playPrev.setEnabled(false);
                     playPrev.setBackground(transparentDrawable);
@@ -535,9 +492,7 @@ public class PlayerControllerUi extends DialogFragment {
             isMusicPlayerServiceBounded = false;
         }
         if (isProgressBarShowing) {
-//            mCallbacks.hideProgress();
             Log.i(LOG_TAG, "onStop - hideProgress called");
-//            isProgressBarShowing = false;
         }
 //        Log.i(LOG_TAG, "onStop - end");
     }

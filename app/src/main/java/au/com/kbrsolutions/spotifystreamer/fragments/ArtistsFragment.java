@@ -303,13 +303,13 @@ public class ArtistsFragment extends Fragment {
         private CountDownLatch callBackResultsCountDownLatch;
 
         /**
-         * When background processing id done and artists data found, calls onPostExecute
+         * When background processing is done and artists data found, calls onPostExecute
          * method onn the class that implemented the ArtistsFragmentCallbacks.
          */
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
             mCallbacks.hideProgress();
-            Context context = mActivity.getApplicationContext();
+//            Context context = mActivity.getApplicationContext();
             if (networkProblems) {
                 mEmptyView.setText(mActivity.getResources()
                         .getString(R.string.search_unsuccessful_network_problems));
