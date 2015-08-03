@@ -260,12 +260,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     /**
-     * On tablet - TracksFragment is visible - show empty list text.
+     * On tablet - TracksFragment is visible - show text to select artist.
      */
     @Override
     public void artistSearchEnded() {
 //        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
-        hideProgress();
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setEmptyText("Select an artist to see top 10 tracks");
         }
@@ -276,9 +275,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
-//        startMusicServiceIfNotAlreadyBound();
-//        mCurrArtistName = artistName;
-//        mCurrArtistTacksDetails = tracksDetails;
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
 //        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);

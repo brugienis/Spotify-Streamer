@@ -50,7 +50,7 @@ public class MusicPlayerService extends Service {
     private HandleCancellableFuturesCallable handleCancellableFuturesCallable;
     private ExecutorService mExecutorService;
     private StopForegroundRunnable stopForegroundRunnable;
-    private long WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS = 60;
+    private long WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS = 60L * 1000;
     private long mostRecentUnboundTime;
     //    private int selectedTrack;
     private CountDownLatch callBackResultsCountDownLatch;
@@ -391,12 +391,13 @@ public class MusicPlayerService extends Service {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
         }
 
+        // TODO: 3/08/2015 - do not use mostRecentUnboundTime. Instead of it use time when the client called processBeforeUnbindSrvice
         @Override
         public void run() {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
             if (connectedClientsCnt.get() == 0 &&
                     !mIsPlayerActive &&
-                    System.currentTimeMillis() - mostRecentUnboundTime > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS * 1000)) {
+                    System.currentTimeMillis() - mostRecentUnboundTime > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS)) {
                 Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground()");
                 mMediaPlayer.release();
                 mMediaPlayer = null;
@@ -417,7 +418,7 @@ public class MusicPlayerService extends Service {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         stopForegroundRunnable = new StopForegroundRunnable(source + ".scheduleStopForegroundChecker");
-        handler.postDelayed(stopForegroundRunnable, WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_SECS * 1000);
+        handler.postDelayed(stopForegroundRunnable, WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS);
     }
 
     @Override
@@ -439,11 +440,6 @@ public class MusicPlayerService extends Service {
         MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
         Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent + "/" + mSelectedTrack + " - " + Thread.currentThread().getName());
         switch (requestEvent) {
-
-//            case SET_TRACKS_DETAILS:
-//                mTracksDetails = event.tracksDetails;
-//                mSelectedTrack = event.selectedTrack;
-//                break;
 
             case PLAY_TRACK:
                 playTrack(mTracksDetails.get(mSelectedTrack));

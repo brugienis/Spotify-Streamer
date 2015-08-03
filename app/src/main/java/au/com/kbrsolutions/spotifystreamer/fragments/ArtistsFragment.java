@@ -308,6 +308,7 @@ public class ArtistsFragment extends Fragment {
          */
         @Override
         protected void onPostExecute(List<ArtistDetails> artistsDetailsList) {
+            mCallbacks.hideProgress();
             Context context = mActivity.getApplicationContext();
             if (networkProblems) {
                 mEmptyView.setText(mActivity.getResources()
