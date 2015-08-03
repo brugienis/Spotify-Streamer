@@ -55,6 +55,8 @@ public class ArtistsFragment extends Fragment {
     public interface ArtistsFragmentCallbacks {
         void artistSearchStarted();
         void artistSearchEnded();
+        void showProgress();
+        void hideProgress();
 //        void setTracksFragmentEmptyText(String emptyText);
         void showTracksData(String artistName, List<TrackDetails> trackDetails);
     }
@@ -198,6 +200,7 @@ public class ArtistsFragment extends Fragment {
      * top 10 tracks.
      */
     private void handleArtistRowClicked(int position) {
+        mCallbacks.showProgress();
         ArtistDetails artistDetails = mArtistArrayAdapter.getItem(position);
         TracksDataFetcherWithCallbacks tracksFetcher = new TracksDataFetcherWithCallbacks();
         tracksFetcher.execute(
@@ -422,6 +425,7 @@ public class ArtistsFragment extends Fragment {
          */
         @Override
         protected void onPostExecute(List<TrackDetails> trackDetails) {
+            mCallbacks.hideProgress();
             Context context = mActivity.getApplicationContext();
             if (!networkProblems) {
                 Toast.makeText(context,

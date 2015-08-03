@@ -252,8 +252,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     public void artistSearchStarted() {
 //        Log.v(LOG_TAG, "artistSearchStarted - mTracksFragment: " + mTracksFragment);
-//        mCurrArtistName = null;
-//        mCurrArtistTacksDetails = null;
+        showProgress();
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
             mTracksFragment.setEmptyText("No tracks available");
@@ -266,6 +265,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     public void artistSearchEnded() {
 //        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
+        hideProgress();
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setEmptyText("Select an artist to see top 10 tracks");
         }
