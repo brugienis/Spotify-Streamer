@@ -51,7 +51,7 @@ public class MusicPlayerService extends Service {
     private ExecutorService mExecutorService;
     private StopForegroundRunnable stopForegroundRunnable;
     private long WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS = 60L * 1000;
-    private long mostRecentUnboundTime;
+    private long mostRecentClientDisconnectFromServiceTimeMillis;
     //    private int selectedTrack;
     private CountDownLatch callBackResultsCountDownLatch;
     private EventBus eventBus;
@@ -100,17 +100,17 @@ public class MusicPlayerService extends Service {
         mIsBounded = true;
     }
 
-    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
-        mTracksDetails = tracksDetails;
-        mSelectedTrack = selectedTrack;
-        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
-        if (stopForegroundRunnable != null) {
-            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
-        }
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
-                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-                .build());
-    }
+//    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+//        mTracksDetails = tracksDetails;
+//        mSelectedTrack = selectedTrack;
+//        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
+//        if (stopForegroundRunnable != null) {
+//            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+//        }
+//        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
+//                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+//                .build());
+//    }
 
     @Override
     public void onCreate() {
@@ -191,12 +191,12 @@ public class MusicPlayerService extends Service {
     }
 
     private void playPrevTrack() {
-        if (mSelectedTrack > 1) {
+        if (mSelectedTrack > 0) {
             handleCancellableFuturesCallable.cancelCurrFuture();
             --mSelectedTrack;
             eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
                     .setSselectedTrack(mSelectedTrack)
-                    .setPlayingFirstTrack(mSelectedTrack == 1)
+                    .setPlayingFirstTrack(mSelectedTrack == 0)
                     .build());
             playTrack(mTracksDetails.get(mSelectedTrack));
         }
@@ -357,6 +357,7 @@ public class MusicPlayerService extends Service {
      * Always set mIsBounded to true.
      */
     public void processBeforeUnbindService() {
+        mostRecentClientDisconnectFromServiceTimeMillis = System.currentTimeMillis();
         connectedClientsCnt.getAndDecrement();
         Log.i(LOG_TAG, "processBeforeUnbindService - start - connectedClientsCnt: " + connectedClientsCnt.get());
         if (stopForegroundRunnable != null) {
@@ -371,12 +372,11 @@ public class MusicPlayerService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.i(LOG_TAG, "onUnbind - start");
-        mostRecentUnboundTime = System.currentTimeMillis();
-        mIsBounded = false;
-        if (!mIsPlayerActive) {
-            Log.i(LOG_TAG, "onUnbind - player is not active");
-            scheduleStopForegroundChecker("onUnbind");
-        }
+//        mIsBounded = false;
+//        if (!mIsPlayerActive) {
+//            Log.i(LOG_TAG, "onUnbind - player is not active");
+//            scheduleStopForegroundChecker("onUnbind");
+//        }
         Log.i(LOG_TAG, "onUnbind - end");
         return false;
     }
@@ -387,13 +387,13 @@ public class MusicPlayerService extends Service {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
         }
 
-        // TODO: 3/08/2015 - do not use mostRecentUnboundTime. Instead of it use time when the client called processBeforeUnbindSrvice
+        // TODO: 3/08/2015 - do not use mostRecentClientDisconnectFromServiceTimeMillis. Instead of it use time when the client called processBeforeUnbindSrvice
         @Override
         public void run() {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
             if (connectedClientsCnt.get() == 0 &&
                     !mIsPlayerActive &&
-                    System.currentTimeMillis() - mostRecentUnboundTime > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS)) {
+                    System.currentTimeMillis() - mostRecentClientDisconnectFromServiceTimeMillis > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS)) {
                 Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground()");
                 mMediaPlayer.release();
                 mMediaPlayer = null;
