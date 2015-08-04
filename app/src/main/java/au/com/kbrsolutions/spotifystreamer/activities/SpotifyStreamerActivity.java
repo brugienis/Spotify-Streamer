@@ -47,9 +47,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private ProgressBarHandler mProgressBarHandler;
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
+    private boolean showDialogFragmentAsDialog = true;
+    private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
     private final String ACTIVITY_TITLE = "activity_title";
     private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
+    private final String PLAYER_CONTROLLER_UI_VISIBLE = "player_controller_ui_visible";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
     private final String PLAYER_TAG = "player_tag";
@@ -124,7 +127,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mDialogFragment =
                 (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
         int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
-//        Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
+        Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
 
         /* count 1 - artist and tracks fragments: 2 - artists, tracks and player - DON'T add to BackStack */
         switch (bckStackEntryCount) {
@@ -146,6 +149,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                         .commit();
                 break;
         }
+
         mProgressBarHandler = new ProgressBarHandler(this);
 
         Log.v(LOG_TAG, "onCreate - starting player service - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
@@ -198,6 +202,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
+        outState.putBoolean(PLAYER_CONTROLLER_UI_VISIBLE, mWasPlayerControllerUiVisible);
+        Log.v(LOG_TAG, "onSaveInstanceState - outState: " + outState);
     }
 
     /**
@@ -208,15 +214,29 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 //        Log.v(LOG_TAG, "onRestoreInstanceState");
+        Log.v(LOG_TAG, "onRestoreInstanceState - savedInstanceState: " + savedInstanceState);
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
         CharSequence activitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
         getSupportActionBar().setSubtitle(activitySubtitle);
+        mWasPlayerControllerUiVisible = savedInstanceState.getBoolean(PLAYER_CONTROLLER_UI_VISIBLE);
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
+
+//        Log.v(LOG_TAG, "onRestoreInstanceState - mWasPlayerControllerUiVisible/mDialogFragment: " + mWasPlayerControllerUiVisible + "/" + mDialogFragment);
+//        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
+//            mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
+//            Log.v(LOG_TAG, "onRestoreInstanceState - after mDialogFragment.show");
+//        }
+    }
+
+    public boolean wasPlayerControllerUiVisibleOnRestart() {
+//        boolean wasPlayerControllerUiVisible = mWasPlayerControllerUiVisible;
+//        mWasPlayerControllerUiVisible = false;
+        return mWasPlayerControllerUiVisible;
     }
 
     @Override
@@ -298,18 +318,26 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(selectedTrack);
     }
+
     private void showPlayerController(int selectedTrack) {
         // TODO: 18/07/2015 - different logic required for tablets - display fragment mDialogFragment by calling show() method
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
                 (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(),
                 selectedTrack);
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
-        transaction.replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
-                .addToBackStack(null)
-                .commit();
-        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount: " + getSupportFragmentManager().getBackStackEntryCount());
+//        mDialogFragment.setCancelable(false);
+//        if (mTwoPane) {
+        if (showDialogFragmentAsDialog) {
+            mWasPlayerControllerUiVisible = true;
+            mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
+        } else {
+            FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+            transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+            transaction.replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
+                    .addToBackStack(null)
+                    .commit();
+        }
+        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount/mWasPlayerControllerUiVisible: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mWasPlayerControllerUiVisible);
     }
 
     @Override

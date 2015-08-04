@@ -1,4 +1,4 @@
-package au.com.kbrsolutions.spotifystreamer.events;
+package au.com.kbrsolutions.spotifystreamer.utils;
 
 import android.util.Log;
 
@@ -46,7 +46,7 @@ public class HandleCancellableFuturesCallable implements Callable<String> {
         try {
             while (!stopProcessing) {
                 cancellableFuture = completionService.take();
-                // TOP: should add finally to cancel? see book
+                // todo: should add finally to cancel? see book
                 try {
                     cancellableFuture.get();
                 } catch (ExecutionException e) {

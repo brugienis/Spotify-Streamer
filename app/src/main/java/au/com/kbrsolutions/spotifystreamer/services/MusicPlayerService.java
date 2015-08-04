@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.activities.SpotifyStreamerActivity;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
-import au.com.kbrsolutions.spotifystreamer.events.HandleCancellableFuturesCallable;
+import au.com.kbrsolutions.spotifystreamer.utils.HandleCancellableFuturesCallable;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
 import de.greenrobot.event.EventBus;
