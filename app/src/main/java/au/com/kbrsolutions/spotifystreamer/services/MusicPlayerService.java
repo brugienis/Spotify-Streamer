@@ -194,7 +194,7 @@ public class MusicPlayerService extends Service {
         if (mSelectedTrack > 0) {
             handleCancellableFuturesCallable.cancelCurrFuture();
             --mSelectedTrack;
-            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
+            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
                     .setSselectedTrack(mSelectedTrack)
                     .setPlayingFirstTrack(mSelectedTrack == 0)
                     .build());
@@ -205,7 +205,7 @@ public class MusicPlayerService extends Service {
     private void playNextTrack() {
         handleCancellableFuturesCallable.cancelCurrFuture();
         ++mSelectedTrack;
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_NEXT_TRACK)
+        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
                 .setSselectedTrack(mSelectedTrack)
                 .setPlayingLastTrack(mSelectedTrack == mTracksDetails.size() - 1)
                 .build());
@@ -432,6 +432,15 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
+    private void sendCurrTracksDetails() {
+        eventBus.post(
+                new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.SHOW_CURR_TRACK_DETAILS)
+                        .setTracksDetails(mTracksDetails)
+                        .setSselectedTrack(mSelectedTrack)
+                        .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+                        .build());
+    }
+
     public void onEvent(MusicPlayerServiceEvents event) {
         MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
         Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent + "/" + mSelectedTrack + " - " + Thread.currentThread().getName());
@@ -455,6 +464,10 @@ public class MusicPlayerService extends Service {
 
             case PLAY_NEXT_TRACK:
                 playNextTrack();
+                break;
+
+            case GET_CURR_TRACKS_DETAILS:
+                sendCurrTracksDetails();
                 break;
 
             default:

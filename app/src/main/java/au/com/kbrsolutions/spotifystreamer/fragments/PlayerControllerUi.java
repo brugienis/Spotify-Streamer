@@ -62,16 +62,18 @@ public class PlayerControllerUi extends DialogFragment {
     private Drawable playCurrentDrawable;
     private Drawable pauseCurrentDrawable;
     private Drawable playNextDrawable;
-
     private Drawable playDrawable;
     private Drawable pauseDrawable;
+
     private String mArtistName;
     private ArrayList<TrackDetails> mTracksDetails;
     private int mSelectedTrackIdx;
     private int mWidthPx = -1;
     private boolean isPlaying;
+    private boolean mReconnectToPlayerService;
     private boolean mPlayClickedAtLeastOnceForCurrArtist;
     private boolean isMusicPlayerServiceBounded;
+    private boolean isProgressBarShowing;
     private PlayerControllerUiCallbacks mCallbacks;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
@@ -79,6 +81,7 @@ public class PlayerControllerUi extends DialogFragment {
     public final static String ARTIST_NAME = "artist_name";
     public final static String TRACKS_DETAILS = "tracks_details";
     public final static String SELECTED_TRACK = "selected_track";
+    public final static String RECONNECT_TO_PLAYER_SERVICE = "reconnect_to_player_service";
     public final static String IS_PLAYING = "is_playing";
 
     public static final String PLAYER_RESULT_RECEIVER = "receiver";
@@ -89,13 +92,17 @@ public class PlayerControllerUi extends DialogFragment {
      * Create a new instance of PlayerControllerUi, providing "mTracksDetails" and "mSelectedTrackIdx"
      * as arguments.
      */
-    public static PlayerControllerUi newInstance(String artistName, ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+    public static PlayerControllerUi newInstance(String artistName,
+                                                 ArrayList<TrackDetails> tracksDetails,
+                                                 int selectedTrack,
+                                                 boolean reconnectToPlayerService) {
         PlayerControllerUi f = new PlayerControllerUi();
 
         Bundle args = new Bundle();
         args.putString(ARTIST_NAME, artistName);
         args.putParcelableArrayList(TRACKS_DETAILS, tracksDetails);
         args.putInt(SELECTED_TRACK, selectedTrack);
+        args.putBoolean(RECONNECT_TO_PLAYER_SERVICE, reconnectToPlayerService);
         f.setArguments(args);
 
         return f;
@@ -146,6 +153,9 @@ public class PlayerControllerUi extends DialogFragment {
             if (getArguments().containsKey(SELECTED_TRACK)) {
                 mSelectedTrackIdx = getArguments().getInt(SELECTED_TRACK);
             }
+            if (getArguments().containsKey(RECONNECT_TO_PLAYER_SERVICE)) {
+                mReconnectToPlayerService = getArguments().getBoolean(RECONNECT_TO_PLAYER_SERVICE);
+            }
         }
         setRetainInstance(true);
 
@@ -180,10 +190,10 @@ public class PlayerControllerUi extends DialogFragment {
         View playerView = inflater.inflate(R.layout.player_ui, container, false);
 
         artistName = (TextView) playerView.findViewById(R.id.playerArtistName);
-        artistName.setText(mArtistName);
+//        artistName.setText(mArtistName);
 
         albumName = (TextView) playerView.findViewById(R.id.playerAlbumName);
-        albumName.setText(mTracksDetails.get(mSelectedTrackIdx).albumName);
+//        albumName.setText(mTracksDetails.get(mSelectedTrackIdx).albumName);
 
         albumImage = (ImageView) playerView.findViewById(R.id.playerAlbumImageView);
 
@@ -192,15 +202,15 @@ public class PlayerControllerUi extends DialogFragment {
                     (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
         }
 
-        if (albumImage != null) {
-            Picasso.with(getActivity())
-                    .load(mTracksDetails.get(mSelectedTrackIdx).albumArtLargeImageUrl)
-                    .resize(mWidthPx, mWidthPx).centerCrop()
-                    .into(albumImage);
-        }
+//        if (albumImage != null) {
+//            Picasso.with(getActivity())
+//                    .load(mTracksDetails.get(mSelectedTrackIdx).albumArtLargeImageUrl)
+//                    .resize(mWidthPx, mWidthPx).centerCrop()
+//                    .into(albumImage);
+//        }
 
         trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
-        trackName.setText(mTracksDetails.get(mSelectedTrackIdx).trackName);
+//        trackName.setText(mTracksDetails.get(mSelectedTrackIdx).trackName);
 
         playerSeekBar =  (SeekBar) playerView.findViewById(R.id.playerSeekBar);
         playerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -226,11 +236,11 @@ public class PlayerControllerUi extends DialogFragment {
 
         playPrev = playerView.findViewById(R.id.playerPrev);
 
-        if (mSelectedTrackIdx == 0) {
-            playPrev.setBackground(transparentDrawable);
-        } else {
-            playPrev.setBackground(playPrevDrawable);
-        }
+//        if (mSelectedTrackIdx == 0) {
+//            playPrev.setBackground(transparentDrawable);
+//        } else {
+//            playPrev.setBackground(playPrevDrawable);
+//        }
         playPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -239,7 +249,7 @@ public class PlayerControllerUi extends DialogFragment {
         });
 
         playPauseProgressBar = (ProgressBar) playerView.findViewById(R.id.playerProgressBar);
-        playPauseProgressBar.setVisibility(View.GONE);
+//        playPauseProgressBar.setVisibility(View.GONE);
 
         playPause = playerView.findViewById(R.id.playerStartStopPlaying);
         playPause.setOnClickListener(new View.OnClickListener() {
@@ -248,20 +258,20 @@ public class PlayerControllerUi extends DialogFragment {
                 playPauseClicked();
             }
         });
-        if (isPlaying) {
-            Log.v(LOG_TAG, "onCreateView - isPlaying");
-            playPause.setBackground(pauseCurrentDrawable);
-        } else {
-            Log.v(LOG_TAG, "onCreateView - isPlaying NOT");
-            playPause.setBackground(playCurrentDrawable);
-        }
+//        if (isPlaying) {
+//            Log.v(LOG_TAG, "onCreateView - isPlaying");
+//            playPause.setBackground(pauseCurrentDrawable);
+//        } else {
+//            Log.v(LOG_TAG, "onCreateView - isPlaying NOT");
+//            playPause.setBackground(playCurrentDrawable);
+//        }
 
         playNext = playerView.findViewById(R.id.playerNext);
-        if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
-            playNext.setBackground(transparentDrawable);
-        } else {
-            playNext.setBackground(playNextDrawable);
-        }
+//        if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+//            playNext.setBackground(transparentDrawable);
+//        } else {
+//            playNext.setBackground(playNextDrawable);
+//        }
         playNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -269,11 +279,63 @@ public class PlayerControllerUi extends DialogFragment {
             }
         });
 
+//        if (mReconnectToPlayerService) {
+//            Log.v(LOG_TAG, "onCreateView - before mMusicPlayerService: " + mMusicPlayerService);
+//            eventBus.post(
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_CURR_TRACKS_DETAILS)
+//                            .build());
+//            Log.v(LOG_TAG, "onCreateView - after  mMusicPlayerService: " + mMusicPlayerService);
+//        }
+
+        if (!mReconnectToPlayerService) {
+            showCurrentTrackDetails(mTracksDetails.get(mSelectedTrackIdx), -1);
+        }
+
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         }
 
+
         return playerView;
+    }
+
+    private void showCurrentTrackDetails(TrackDetails trackDetails, int durationTimeInSecs) {
+        artistName.setText(mArtistName);
+
+        albumName.setText(trackDetails.albumName);
+
+        if (albumImage != null) {
+            Picasso.with(getActivity())
+                    .load(trackDetails.albumArtLargeImageUrl)
+                    .resize(mWidthPx, mWidthPx).centerCrop()
+                    .into(albumImage);
+        }
+
+        trackName.setText(trackDetails.trackName);
+
+        if (mSelectedTrackIdx == 0) {
+            playPrev.setBackground(transparentDrawable);
+        } else {
+            playPrev.setBackground(playPrevDrawable);
+        }
+
+        playPauseProgressBar.setVisibility(View.GONE);
+        if (durationTimeInSecs > 0) {
+            playerTrackDuration.setText(dfTwoDecimalPlaces.format(durationTimeInSecs));
+        }
+
+        if (isPlaying) {
+            playPause.setBackground(pauseCurrentDrawable);
+        } else {
+            playPause.setBackground(playCurrentDrawable);
+        }
+
+        if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+            playNext.setBackground(transparentDrawable);
+        } else {
+            playNext.setBackground(playNextDrawable);
+        }
+
     }
 
     /**
@@ -281,7 +343,7 @@ public class PlayerControllerUi extends DialogFragment {
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        Log.v(LOG_TAG, "onSaveInstanceState");
+//        Log.v(LOG_TAG, "onSaveInstanceState");
         outState.putString(ARTIST_NAME, mArtistName);
         if (mTracksDetails != null) {
             outState.putParcelableArrayList(TRACKS_DETAILS, (ArrayList) mTracksDetails);
@@ -309,22 +371,35 @@ public class PlayerControllerUi extends DialogFragment {
 
     /**
      * Starts MusicService as soon as possible - if it wasn't already started - when users clicks on
-     * the track, most likely they will want to hear some tracks.
+     * the track, most likely they will want to play them.
      */
     private void startMusicServiceIfNotAlreadyBound() {
-        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mServiceConnection/isMusicPlayerServiceBounded: " + mServiceConnection + "/" + isMusicPlayerServiceBounded);
-        if (!isMusicPlayerServiceBounded) {
+        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mMusicPlayerService/isMusicPlayerServiceBounded: " + mMusicPlayerService + "/" + isMusicPlayerServiceBounded);
+//        if (!isMusicPlayerServiceBounded) {
+        if (mMusicPlayerService == null) {
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
             Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - mSelectedTrackIdx: " + mSelectedTrackIdx);
         } else {
+            passTracksdetailsToService();
             Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
         }
     }
 
     private void passTracksdetailsToService() {
 //        Log.i(LOG_TAG, "passTracksdetailsToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+        if (mReconnectToPlayerService) {
+            Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService before mMusicPlayerService: " + mMusicPlayerService);
+            eventBus.post(
+                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_CURR_TRACKS_DETAILS)
+                            .build());
+            Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
+            return;
+        }
+//        if (mReconnectToPlayerService) {
+//            return;
+//        }
         mMusicPlayerService.processAfterConnectedToService();
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
         isPlaying = true;
@@ -382,7 +457,7 @@ public class PlayerControllerUi extends DialogFragment {
 //                isProgressBarShowing = true;
                 playPrev.setEnabled(true);
                 playNext.setEnabled(true);
-                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
+//                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
                 if (mSelectedTrackIdx == 0) {
                     playPrev.setEnabled(false);
                     playPrev.setBackground(transparentDrawable);
@@ -441,7 +516,7 @@ public class PlayerControllerUi extends DialogFragment {
                 playerSeekBar.setProgress(event.playProgressPercentage);
                 break;
 
-            case PREPARING_NEXT_TRACK:
+            case PREPARING_TRACK:
                 mSelectedTrackIdx = event.selectedTrack;
                 TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
                 trackName.setText(trackDetails.trackName);
@@ -460,7 +535,7 @@ public class PlayerControllerUi extends DialogFragment {
                 if (event.playingFirstTrack) {
                     playPrev.setEnabled(false);
                     playPrev.setBackground(transparentDrawable);
-                    Log.i(LOG_TAG, "onEvent - playPrev disabled");
+//                    Log.i(LOG_TAG, "onEvent - playPrev disabled");
                 } else {
                     playPrev.setEnabled(true);
                     playPrev.setBackground(playPrevDrawable);
@@ -469,32 +544,41 @@ public class PlayerControllerUi extends DialogFragment {
                 if (event.playingLastTrack) {
                     playNext.setEnabled(false);
                     playNext.setBackground(transparentDrawable);
-                    Log.i(LOG_TAG, "onEvent - playNext disabled");
+//                    Log.i(LOG_TAG, "onEvent - playNext disabled");
                 } else {
                     playNext.setEnabled(true);
                     playNext.setBackground(playNextDrawable);
                 }
                 albumName.setText(trackDetails.albumName);
                 break;
+
+            case SHOW_CURR_TRACK_DETAILS:
+                int selectedTrackIdx = event.selectedTrack;
+//                TrackDetails trackDetails = event.tracksDetails.get(selectedTrackIdx);
+                showCurrentTrackDetails(event.tracksDetails.get(selectedTrackIdx), event.durationTimeInSecs);
+                break;
         }
     }
 
-    private boolean isProgressBarShowing;
-
+    /**
+     * if this class was created because of configuration change, don't call processBeforeUnbindService()
+     */
     @Override
     public void onStop() {
         super.onStop();
-//        Log.i(LOG_TAG, "onStop - start");
+        Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         // Unbind from the service
         if (isMusicPlayerServiceBounded) {
-            mMusicPlayerService.processBeforeUnbindService();
+            if (!mReconnectToPlayerService) {
+                mMusicPlayerService.processBeforeUnbindService();
+            }
             getActivity().unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
         }
         if (isProgressBarShowing) {
             Log.i(LOG_TAG, "onStop - hideProgress called");
         }
-//        Log.i(LOG_TAG, "onStop - end");
+        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
 }

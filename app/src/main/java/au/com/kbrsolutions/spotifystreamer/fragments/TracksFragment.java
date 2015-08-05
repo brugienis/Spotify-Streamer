@@ -28,6 +28,7 @@ public class TracksFragment extends ListFragment {
     public interface TracksFragmentCallbacks {
         void newTrackClicked(int selectedTrack);
         boolean wasPlayerControllerUiVisibleOnRestart();
+        void showPlayerUiAndReconnectTuPlayerService();
     }
 
     private TracksFragmentCallbacks mCallbacks;
@@ -71,7 +72,7 @@ public class TracksFragment extends ListFragment {
             setEmptyText(getActivity().getResources().getString(R.string.tracks_data_not_found));
         }
         if (mCallbacks.wasPlayerControllerUiVisibleOnRestart()) {
-            mCallbacks.newTrackClicked(0);
+            mCallbacks.showPlayerUiAndReconnectTuPlayerService();
         }
     }
 

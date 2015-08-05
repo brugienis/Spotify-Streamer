@@ -259,7 +259,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             return true;
         } else if (id == R.id.action_show_player) {
             // TODO: 15/07/2015 remove this menu after testing 
-            showPlayerController(-1);
+            showPlayerController(-1, false);
             return true;
         }
 
@@ -316,15 +316,20 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     public void newTrackClicked(int selectedTrack) {
 //        Log.v(LOG_TAG, "newTrackClicked - start");
-        showPlayerController(selectedTrack);
+        showPlayerController(selectedTrack, false);
+    }
+    @Override
+    public void showPlayerUiAndReconnectTuPlayerService() {
+        showPlayerController(-1, true);
     }
 
-    private void showPlayerController(int selectedTrack) {
+    private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
         // TODO: 18/07/2015 - different logic required for tablets - display fragment mDialogFragment by calling show() method
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
                 (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(),
-                selectedTrack);
+                selectedTrack,
+                reconnectToPlayerService);
 //        mDialogFragment.setCancelable(false);
 //        if (mTwoPane) {
         if (showDialogFragmentAsDialog) {

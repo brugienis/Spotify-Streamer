@@ -1,5 +1,9 @@
 package au.com.kbrsolutions.spotifystreamer.events;
 
+import java.util.ArrayList;
+
+import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+
 /**
  * Created by business on 24/07/2015.
  */
@@ -10,13 +14,14 @@ public class PlayerControllerUiEvents {
         PLAYING_TRACK,
         PAUSED_TRACK,
         TRACK_PLAY_PROGRESS,
-//        PREPARING_PREV_TRACK,
-        PREPARING_NEXT_TRACK
+        PREPARING_TRACK,
+        SHOW_CURR_TRACK_DETAILS
     }
 
     public final PlayerUiEvents event;
     public final int durationTimeInSecs;
     public final int playProgressPercentage;
+    public final ArrayList<TrackDetails> tracksDetails;
     public final int selectedTrack;
     public final boolean playingFirstTrack;
     public final boolean playingLastTrack;
@@ -25,6 +30,7 @@ public class PlayerControllerUiEvents {
         this.event = builder.event;
         this.durationTimeInSecs = builder.durationTimeInSecs;
         this.playProgressPercentage = builder.playProgressPercentage;
+        this.tracksDetails = builder.tracksDetails;
         this.selectedTrack = builder.selectedTrack;
         this.playingFirstTrack = builder.playingFirstTrack;
         this.playingLastTrack = builder.playingLastTrack;
@@ -39,6 +45,7 @@ public class PlayerControllerUiEvents {
         private PlayerUiEvents event;
         private int durationTimeInSecs;
         private int playProgressPercentage;
+        private ArrayList<TrackDetails> tracksDetails;
         private int selectedTrack;
         private boolean playingFirstTrack;
         private boolean playingLastTrack;
@@ -50,6 +57,11 @@ public class PlayerControllerUiEvents {
 
         public Builder setPlayProgressPercentage(int playProgressPercentage) {
             this.playProgressPercentage = playProgressPercentage;
+            return this;
+        }
+
+        public Builder setTracksDetails(ArrayList<TrackDetails> tracksDetails) {
+            this.tracksDetails = tracksDetails;
             return this;
         }
 
