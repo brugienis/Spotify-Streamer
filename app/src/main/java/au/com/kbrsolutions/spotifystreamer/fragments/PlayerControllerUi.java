@@ -112,7 +112,7 @@ public class PlayerControllerUi extends DialogFragment {
 
     @Override
     public void onAttach(Activity activity) {
-//        Log.v(LOG_TAG, "onAttach - start");
+        Log.v(LOG_TAG, "onAttach - start");
         try {
             mCallbacks = (PlayerControllerUiCallbacks) activity;
         } catch (Exception e) {

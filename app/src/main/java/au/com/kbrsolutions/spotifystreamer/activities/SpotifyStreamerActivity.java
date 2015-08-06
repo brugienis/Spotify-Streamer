@@ -47,7 +47,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private ProgressBarHandler mProgressBarHandler;
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
-    private boolean showDialogFragmentAsDialog = true;
+    private boolean showDialogFragmentAsDialogTEST_ONLY = false;
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
     private final String ACTIVITY_TITLE = "activity_title";
@@ -332,7 +332,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 reconnectToPlayerService);
 //        mDialogFragment.setCancelable(false);
 //        if (mTwoPane) {
-        if (showDialogFragmentAsDialog) {
+        if (showDialogFragmentAsDialogTEST_ONLY) {
             mWasPlayerControllerUiVisible = true;
             mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
         } else {
