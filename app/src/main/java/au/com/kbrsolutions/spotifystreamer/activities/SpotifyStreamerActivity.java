@@ -346,6 +346,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     @Override
+    public void playerControllerUiIdNotVisible() {
+        mWasPlayerControllerUiVisible = false;
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);

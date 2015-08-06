@@ -45,6 +45,7 @@ public class PlayerControllerUi extends DialogFragment {
     public interface PlayerControllerUiCallbacks {
 //        void showProgress();
 //        void hideProgress();
+        void playerControllerUiIdNotVisible();
     }
 
     private View playPause;
@@ -628,6 +629,9 @@ public class PlayerControllerUi extends DialogFragment {
     public void onDestroyView() {
         super.onDestroyView();
         Log.i(LOG_TAG, "onDestroyView");
+        mCallbacks.playerControllerUiIdNotVisible();
         eventBus.unregister(this);
     }
+
+
 }
