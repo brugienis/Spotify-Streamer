@@ -15,7 +15,7 @@ public class PlayerControllerUiEvents {
         PAUSED_TRACK,
         TRACK_PLAY_PROGRESS,
         PREPARING_TRACK,
-        SHOW_CURR_TRACK_DETAILS
+        PROCESS_PLAYER_STATE
     }
 
     public final PlayerUiEvents event;
@@ -23,8 +23,10 @@ public class PlayerControllerUiEvents {
     public final int playProgressPercentage;
     public final ArrayList<TrackDetails> tracksDetails;
     public final int selectedTrack;
-    public final boolean playingFirstTrack;
-    public final boolean playingLastTrack;
+    public final boolean isFirstTrackSelected;
+    public final boolean isLastTrackSelected;
+    public final boolean isTrackPlaying;
+    public final boolean isTrackPausing;
 
     private PlayerControllerUiEvents(Builder builder) {
         this.event = builder.event;
@@ -32,8 +34,10 @@ public class PlayerControllerUiEvents {
         this.playProgressPercentage = builder.playProgressPercentage;
         this.tracksDetails = builder.tracksDetails;
         this.selectedTrack = builder.selectedTrack;
-        this.playingFirstTrack = builder.playingFirstTrack;
-        this.playingLastTrack = builder.playingLastTrack;
+        this.isFirstTrackSelected = builder.isFirstTrackSelected;
+        this.isLastTrackSelected = builder.isLastTrackSelected;
+        this.isTrackPlaying = builder.isTrackPlaying;
+        this.isTrackPausing = builder.isTrackPausing;
     }
 
     public static class Builder {
@@ -47,8 +51,10 @@ public class PlayerControllerUiEvents {
         private int playProgressPercentage;
         private ArrayList<TrackDetails> tracksDetails;
         private int selectedTrack;
-        private boolean playingFirstTrack;
-        private boolean playingLastTrack;
+        private boolean isFirstTrackSelected;
+        private boolean isLastTrackSelected;
+        private boolean isTrackPlaying;
+        private boolean isTrackPausing;
 
         public Builder setDurationTimeInSecs(int durationTimeInSecs) {
             this.durationTimeInSecs = durationTimeInSecs;
@@ -70,13 +76,23 @@ public class PlayerControllerUiEvents {
             return this;
         }
 
-        public Builder setPlayingFirstTrack(boolean playingFirstTrack) {
-            this.playingFirstTrack = playingFirstTrack;
+        public Builder setIsFirstTrackSelected(boolean playingFirstTrack) {
+            this.isFirstTrackSelected = playingFirstTrack;
             return this;
         }
 
-        public Builder setPlayingLastTrack(boolean playingLastTrack) {
-            this.playingLastTrack = playingLastTrack;
+        public Builder setIsLastTrackSelected(boolean playingLastTrack) {
+            this.isLastTrackSelected = playingLastTrack;
+            return this;
+        }
+
+        public Builder setIsTrackPlaying(boolean isTrackPlaying) {
+            this.isTrackPlaying = isTrackPlaying;
+            return this;
+        }
+
+        public Builder setIsTrackPausing(boolean isTrackPausing) {
+            this.isTrackPausing = isTrackPausing;
             return this;
         }
 

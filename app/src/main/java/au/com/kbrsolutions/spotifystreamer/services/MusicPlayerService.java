@@ -58,6 +58,7 @@ public class MusicPlayerService extends Service {
     private LocalBinder mLocalBinder = new LocalBinder();
     private static final int NOTIFICATION_ID = 2015;
     private AtomicBoolean isPlaying = new AtomicBoolean(false);
+    private AtomicBoolean isPausing = new AtomicBoolean(false);
     private AtomicInteger connectedClientsCnt = new AtomicInteger(0);
 
     private final String LOG_TAG = MusicPlayerService.class.getSimpleName();
@@ -196,7 +197,7 @@ public class MusicPlayerService extends Service {
             --mSelectedTrack;
             eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
                     .setSselectedTrack(mSelectedTrack)
-                    .setPlayingFirstTrack(mSelectedTrack == 0)
+                    .setIsFirstTrackSelected(mSelectedTrack == 0)
                     .build());
             playTrack(mTracksDetails.get(mSelectedTrack));
         }
@@ -207,9 +208,9 @@ public class MusicPlayerService extends Service {
         ++mSelectedTrack;
         eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
                 .setSselectedTrack(mSelectedTrack)
-                .setPlayingLastTrack(mSelectedTrack == mTracksDetails.size() - 1)
+                .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
                 .build());
-        playTrack( mTracksDetails.get(mSelectedTrack));
+        playTrack(mTracksDetails.get(mSelectedTrack));
     }
 
     private void handleOnPrepared(MediaPlayer player) {
@@ -258,6 +259,8 @@ public class MusicPlayerService extends Service {
 
     public void playTrack(TrackDetails trackDetails) {
 //        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
+        isPlaying.set(false);
+        isPausing.set(false);
         if (mMediaPlayer == null) {
             configurePlayer();
         }
@@ -277,7 +280,9 @@ public class MusicPlayerService extends Service {
         waitForPlayer("pause");
         if (mMediaPlayer != null) {
             isPlaying.set(false);
+            isPausing.set(true);
             mMediaPlayer.pause();
+            handleCancellableFuturesCallable.cancelCurrFuture();
             eventBus.post(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
@@ -297,6 +302,7 @@ public class MusicPlayerService extends Service {
         }
         mMediaPlayer.start();
         isPlaying.set(true);
+        isPausing.set(false);
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
         eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK)
                 .build());
@@ -432,11 +438,17 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
-    private void sendCurrTracksDetails() {
+    // TODO: 6/08/2015 - also send other info - show/hide prev/next and playing/pausing state
+    private void sendPlayerStateDetails() {
         eventBus.post(
-                new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.SHOW_CURR_TRACK_DETAILS)
+                new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
                         .setTracksDetails(mTracksDetails)
                         .setSselectedTrack(mSelectedTrack)
+                        .setIsTrackPlaying(isPlaying.get())
+                        .setIsTrackPausing(isPausing.get())
+                        .setIsFirstTrackSelected(mSelectedTrack == 0)
+                        .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
+                        .setPlayProgressPercentage(mPlayProgressPercentage)
                         .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
                         .build());
     }
@@ -466,8 +478,8 @@ public class MusicPlayerService extends Service {
                 playNextTrack();
                 break;
 
-            case GET_CURR_TRACKS_DETAILS:
-                sendCurrTracksDetails();
+            case GET_PLAYER_STATE_DETAILS:
+                sendPlayerStateDetails();
                 break;
 
             default:
@@ -475,7 +487,11 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    private int mPlayProgressPercentage;
+
     private final class TrackPlayProgressCheckerCallable implements Callable<String> {
+
+//        private int prevTrackPlayPositionMsec;
 
         @Override
         public String call() {//throws Exception {
@@ -495,13 +511,22 @@ public class MusicPlayerService extends Service {
                         break;
                     }
                     trackPlayPositionMsec = mMediaPlayer.getCurrentPosition();
-                    eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
-                            .setPlayProgressPercentage(trackPlayPositionMsec * 100 / trackPlaydurationMsec)
-                            .build());
+//                    if (prevTrackPlayPositionMsec == trackPlayPositionMsec) {
+//                        continue;
+//                    } else
+                    {
+//                        prevTrackPlayPositionMsec = trackPlayPositionMsec;
+                        mPlayProgressPercentage = trackPlayPositionMsec * 100 / trackPlaydurationMsec;
+                        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
+//                            .setPlayProgressPercentage(trackPlayPositionMsec * 100 / trackPlaydurationMsec)
+                                .setPlayProgressPercentage(mPlayProgressPercentage)
+                                .build());
+                    }
                 }
             } finally {
 //                Log.i(LOG_TAG, "called - finally");
-                if (wasInterrupted) {
+//                if (wasInterrupted) {
+                if (!isPausing.get()) {
                     eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
                             .setPlayProgressPercentage(0)
                             .build());

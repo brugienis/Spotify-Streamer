@@ -20,7 +20,7 @@ public class MusicPlayerServiceEvents {
         RESUME_TRACK,
         PLAY_PREV_TRACK,
         PLAY_NEXT_TRACK,
-        GET_CURR_TRACKS_DETAILS
+        GET_PLAYER_STATE_DETAILS
     }
 
     public MusicPlayerServiceEvents(Builder builder) {

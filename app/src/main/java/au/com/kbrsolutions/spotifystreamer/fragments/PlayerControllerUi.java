@@ -70,8 +70,9 @@ public class PlayerControllerUi extends DialogFragment {
     private int mSelectedTrackIdx;
     private int mWidthPx = -1;
     private boolean isPlaying;
+    private boolean isPausing;
     private boolean mReconnectToPlayerService;
-    private boolean mPlayClickedAtLeastOnceForCurrArtist;
+//    private boolean mPlayClickedAtLeastOnceForCurrArtist;
     private boolean isMusicPlayerServiceBounded;
     private boolean isProgressBarShowing;
     private PlayerControllerUiCallbacks mCallbacks;
@@ -282,13 +283,20 @@ public class PlayerControllerUi extends DialogFragment {
 //        if (mReconnectToPlayerService) {
 //            Log.v(LOG_TAG, "onCreateView - before mMusicPlayerService: " + mMusicPlayerService);
 //            eventBus.post(
-//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_CURR_TRACKS_DETAILS)
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
 //                            .build());
 //            Log.v(LOG_TAG, "onCreateView - after  mMusicPlayerService: " + mMusicPlayerService);
 //        }
 
         if (!mReconnectToPlayerService) {
-            showCurrentTrackDetails(mTracksDetails.get(mSelectedTrackIdx), -1);
+            showCurrentTrackDetails(
+                    mTracksDetails.get(mSelectedTrackIdx),
+                    false,
+                    false,
+                    mSelectedTrackIdx == 0,
+                    mSelectedTrackIdx == mTracksDetails.size() - 1,
+                    -1,
+                    -1);
         }
 
         if (mMusicPlayerService == null) {
@@ -299,7 +307,14 @@ public class PlayerControllerUi extends DialogFragment {
         return playerView;
     }
 
-    private void showCurrentTrackDetails(TrackDetails trackDetails, int durationTimeInSecs) {
+    private void showCurrentTrackDetails(
+            TrackDetails trackDetails,
+            boolean isTrackPlaying,
+            boolean isTrackPausing,
+            boolean isFirstTrackSelected,
+            boolean isLastTrackSelected,
+            int progressPercentage,
+            int durationTimeInSecs) {
         artistName.setText(mArtistName);
 
         albumName.setText(trackDetails.albumName);
@@ -313,24 +328,32 @@ public class PlayerControllerUi extends DialogFragment {
 
         trackName.setText(trackDetails.trackName);
 
-        if (mSelectedTrackIdx == 0) {
+        if (isFirstTrackSelected) {
             playPrev.setBackground(transparentDrawable);
         } else {
             playPrev.setBackground(playPrevDrawable);
         }
 
-        playPauseProgressBar.setVisibility(View.GONE);
+        if (progressPercentage > -1) {
+            playerSeekBar.setProgress(progressPercentage);
+        }
+        playerSeekBar.setProgress(progressPercentage);
         if (durationTimeInSecs > 0) {
             playerTrackDuration.setText(dfTwoDecimalPlaces.format(durationTimeInSecs));
         }
 
-        if (isPlaying) {
+        playPauseProgressBar.setVisibility(View.GONE);
+
+        if (isTrackPlaying) {
             playPause.setBackground(pauseCurrentDrawable);
-        } else {
+        } else if (isTrackPausing) {
             playPause.setBackground(playCurrentDrawable);
+        } else {
+            playPause.setVisibility(View.GONE);
+            playPauseProgressBar.setVisibility(View.VISIBLE);
         }
 
-        if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+        if (isLastTrackSelected) {
             playNext.setBackground(transparentDrawable);
         } else {
             playNext.setBackground(playNextDrawable);
@@ -392,7 +415,7 @@ public class PlayerControllerUi extends DialogFragment {
         if (mReconnectToPlayerService) {
             Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService before mMusicPlayerService: " + mMusicPlayerService);
             eventBus.post(
-                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_CURR_TRACKS_DETAILS)
+                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
                             .build());
             Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
             return;
@@ -445,34 +468,40 @@ public class PlayerControllerUi extends DialogFragment {
                         .build());
     }
 
+    /**
+     * Normally isPlaying is the oposite isPausing. But, when Player UI gets its state from the MusicPlayerService, they both could be false.
+     * It can happen is the OnPrepare is active. If that is happening the playPause should be invisible and the progress bar visible.
+     */
+    // TODO: 5/08/2015 something is wrong here. You click pause. Music stops. Change orientation and click play. It should resume, but it plays and progress goes to zero. 
     private void playPauseClicked() {
         if (isPlaying) {
             mMusicPlayerService.pause();
+        } else if (isPausing) {
+//            if (mPlayClickedAtLeastOnceForCurrArtist) {
+            mMusicPlayerService.resume();
         } else {
-            if (mPlayClickedAtLeastOnceForCurrArtist) {
-                mMusicPlayerService.resume();
-            } else {
-                // TODO: 3/08/2015 - how can we go into that part of code - investigate
+            // TODO: 3/08/2015 - how can we go into that part of code - investigate
+            if (true) throw new RuntimeException("PlayerControllerUi.playPauseClicked - we should never be here");
 //                mCallbacks.showProgress();
 //                isProgressBarShowing = true;
-                playPrev.setEnabled(true);
-                playNext.setEnabled(true);
+            playPrev.setEnabled(true);
+            playNext.setEnabled(true);
 //                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
-                if (mSelectedTrackIdx == 0) {
-                    playPrev.setEnabled(false);
-                    playPrev.setBackground(transparentDrawable);
-                } else if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
-                    playNext.setEnabled(false);
-                    playNext.setBackground(transparentDrawable);
-                }
-                playPause.setBackground(transparentDrawable);
-                eventBus.post(
-                        new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-                                .build());
+            if (mSelectedTrackIdx == 0) {
+                playPrev.setEnabled(false);
+                playPrev.setBackground(transparentDrawable);
+            } else if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+                playNext.setEnabled(false);
+                playNext.setBackground(transparentDrawable);
             }
+            playPause.setBackground(transparentDrawable);
+            eventBus.post(
+                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+                            .build());
         }
+//        mPlayClickedAtLeastOnceForCurrArtist = true;
         isPlaying = !isPlaying;
-        mPlayClickedAtLeastOnceForCurrArtist = true;
+        isPausing = !isPausing;
     }
 
     private void playNextClicked() {
@@ -488,6 +517,10 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     public void onEventMainThread(PlayerControllerUiEvents event) {
+        if (event.event == PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS & event.playProgressPercentage == 0 ||
+                event.event != PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS) {
+            Log.i(LOG_TAG, "onEventMainThread - event/playProgressPercentage" + event.event + "/" + event.playProgressPercentage);
+        }
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case START_PLAYING_TRACK:
@@ -532,7 +565,7 @@ public class PlayerControllerUi extends DialogFragment {
                 playPause.setEnabled(false);
                 playPause.setVisibility(View.GONE);
                 playPauseProgressBar.setVisibility(View.VISIBLE);
-                if (event.playingFirstTrack) {
+                if (event.isFirstTrackSelected) {
                     playPrev.setEnabled(false);
                     playPrev.setBackground(transparentDrawable);
 //                    Log.i(LOG_TAG, "onEvent - playPrev disabled");
@@ -541,7 +574,7 @@ public class PlayerControllerUi extends DialogFragment {
                     playPrev.setBackground(playPrevDrawable);
                 }
 
-                if (event.playingLastTrack) {
+                if (event.isLastTrackSelected) {
                     playNext.setEnabled(false);
                     playNext.setBackground(transparentDrawable);
 //                    Log.i(LOG_TAG, "onEvent - playNext disabled");
@@ -552,10 +585,20 @@ public class PlayerControllerUi extends DialogFragment {
                 albumName.setText(trackDetails.albumName);
                 break;
 
-            case SHOW_CURR_TRACK_DETAILS:
+            case PROCESS_PLAYER_STATE:
                 int selectedTrackIdx = event.selectedTrack;
 //                TrackDetails trackDetails = event.tracksDetails.get(selectedTrackIdx);
-                showCurrentTrackDetails(event.tracksDetails.get(selectedTrackIdx), event.durationTimeInSecs);
+                isPlaying = event.isTrackPlaying;
+                isPausing = event.isTrackPausing;
+                showCurrentTrackDetails(
+                        event.tracksDetails.get(selectedTrackIdx),
+                        event.isTrackPlaying,
+                        event.isTrackPausing,
+                        event.isFirstTrackSelected,
+                        event.isLastTrackSelected,
+                        event.playProgressPercentage,
+                        event.durationTimeInSecs
+                );
                 break;
         }
     }
@@ -581,4 +624,10 @@ public class PlayerControllerUi extends DialogFragment {
         Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.i(LOG_TAG, "onDestroyView");
+        eventBus.unregister(this);
+    }
 }
