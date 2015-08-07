@@ -5,7 +5,6 @@
 package au.com.kbrsolutions.spotifystreamer.activities;
 
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -47,7 +46,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private ProgressBarHandler mProgressBarHandler;
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
-    private boolean showDialogFragmentAsDialogTEST_ONLY = false;
+    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
     private final String ACTIVITY_TITLE = "activity_title";
@@ -152,11 +151,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
         mProgressBarHandler = new ProgressBarHandler(this);
 
-        Log.v(LOG_TAG, "onCreate - starting player service - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
-        startService(intent);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        Log.v(LOG_TAG, "onCreate - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//        Log.v(LOG_TAG, "onCreate - starting player service - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+        // FIXME: 7/08/2015
+//        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
+//        startService(intent);
+//        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+//        Log.v(LOG_TAG, "onCreate - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
 //        isMusicPlayerServiceBounded = true;
 //        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
@@ -332,7 +332,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 reconnectToPlayerService);
 //        mDialogFragment.setCancelable(false);
 //        if (mTwoPane) {
-        if (showDialogFragmentAsDialogTEST_ONLY) {
+        if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
             mWasPlayerControllerUiVisible = true;
             mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
         } else {
@@ -353,15 +353,15 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-        Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//        Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         // Unbind from the service
         if (isMusicPlayerServiceBounded) {
             mMusicPlayerService.processBeforeUnbindService();
             unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
-            Log.i(LOG_TAG, "onStop - end - unbindService called");
+//            Log.i(LOG_TAG, "onStop - end - unbindService called");
         }
-        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
     private void processAfterConnectedToService() {
@@ -377,11 +377,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(LOG_TAG, "onServiceConnected - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//            Log.i(LOG_TAG, "onServiceConnected - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
             isMusicPlayerServiceBounded = true;
             processAfterConnectedToService();
-            Log.i(LOG_TAG, "onServiceConnected - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//            Log.i(LOG_TAG, "onServiceConnected - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         }
 
         @Override
@@ -390,7 +390,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             // Unbind from the service
             if (isMusicPlayerServiceBounded) {
                 Log.i(LOG_TAG, "onServiceDisconnected - calling unBind");
-                unbindService(mServiceConnection);
+                // FIXME: 7/08/2015
+//                unbindService(mServiceConnection);
                 isMusicPlayerServiceBounded = false;
             }
             mMusicPlayerService = null;

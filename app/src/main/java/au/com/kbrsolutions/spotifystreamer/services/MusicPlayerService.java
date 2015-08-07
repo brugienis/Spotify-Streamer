@@ -85,6 +85,18 @@ public class MusicPlayerService extends Service {
         return;
     }
 
+    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        mTracksDetails = tracksDetails;
+        mSelectedTrack = selectedTrack;
+        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
+        if (stopForegroundRunnable != null) {
+            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+        }
+        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
+                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+                .build());
+    }
+
     /**
      * client should call this method after they got connected to this service - after they got call to the onServiceConnected(...).
      * OnBind will not be called every time the activity connects to the service - see:
