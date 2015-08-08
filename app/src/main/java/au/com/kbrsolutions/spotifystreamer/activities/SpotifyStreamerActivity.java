@@ -203,7 +203,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
         outState.putBoolean(PLAYER_CONTROLLER_UI_VISIBLE, mWasPlayerControllerUiVisible);
-        Log.v(LOG_TAG, "onSaveInstanceState - outState: " + outState);
+//        Log.v(LOG_TAG, "onSaveInstanceState - outState: " + outState);
     }
 
     /**
@@ -214,7 +214,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 //        Log.v(LOG_TAG, "onRestoreInstanceState");
-        Log.v(LOG_TAG, "onRestoreInstanceState - savedInstanceState: " + savedInstanceState);
+//        Log.v(LOG_TAG, "onRestoreInstanceState - savedInstanceState: " + savedInstanceState);
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);

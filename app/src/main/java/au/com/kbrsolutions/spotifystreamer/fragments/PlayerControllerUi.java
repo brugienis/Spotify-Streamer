@@ -124,15 +124,20 @@ public class PlayerControllerUi extends DialogFragment {
             eventBus = EventBus.getDefault();
             eventBus.register(this);
         }
-        if (playDrawable == null) {
+        if (!eventBus.isRegistered(this)) {
+            eventBus.register(this);
+//            Log.v(LOG_TAG, "onAttach - HAD TO register");
+        }
+//        if (playDrawable == null) {
             playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
             pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
             playPrevDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_previous);
             playCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_play);
             pauseCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
             playNextDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_next);
-        }
+//        }
         super.onAttach(activity);
+        Log.v(LOG_TAG, "onAttach - end");
     }
 
     @Override
@@ -301,11 +306,13 @@ public class PlayerControllerUi extends DialogFragment {
                     -1);
         }
 
-        if (!eventBus.isRegistered(this)) {
-            eventBus.register(this);
-        }
-        Log.v(LOG_TAG, "onCreateView - almost end - mMusicPlayerService/eventBus registered/event: " + eventBus.hasSubscriberForEvent(PlayerControllerUiEvents.class) +
-                eventBus.isRegistered(this) + "/" + mMusicPlayerService);
+//        if (!eventBus.isRegistered(this)) {
+//            eventBus.register(this);
+//            Log.v(LOG_TAG, "onCreateView - HAD TO register");
+//        }
+//        Log.v(LOG_TAG, "onCreateView - almost end - mMusicPlayerService/eventBus registered/event: " +
+//                eventBus.hasSubscriberForEvent(PlayerControllerUiEvents.class) + "/" +
+//                eventBus.isRegistered(this) + "/" + mMusicPlayerService);
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         } else {
@@ -356,13 +363,19 @@ public class PlayerControllerUi extends DialogFragment {
             playerTrackDuration.setText(dfTwoDecimalPlaces.format(durationTimeInSecs));
         }
 
-        playPauseProgressBar.setVisibility(View.GONE);
 
+        Log.v(LOG_TAG, "showCurrentTrackDetails - isTrackPlaying/isTrackPausing: " + isTrackPlaying + "/" + isTrackPausing);
+
+        playPause.setVisibility(View.VISIBLE);
+        playPauseProgressBar.setVisibility(View.GONE);
         if (isTrackPlaying) {
             playPause.setBackground(pauseCurrentDrawable);
+//            Log.v(LOG_TAG, "showCurrentTrackDetails - showing pauseCurrentDrawable");
         } else if (isTrackPausing) {
             playPause.setBackground(playCurrentDrawable);
+//            Log.v(LOG_TAG, "showCurrentTrackDetails - showing playCurrentDrawable");
         } else {
+//            Log.v(LOG_TAG, "showCurrentTrackDetails - showing playPauseProgressBar");
             playPause.setVisibility(View.GONE);
             playPauseProgressBar.setVisibility(View.VISIBLE);
         }
@@ -439,9 +452,10 @@ public class PlayerControllerUi extends DialogFragment {
 //        }
         mMusicPlayerService.processAfterConnectedToService();
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
-        isPlaying = true;
+//        isPlaying = true;
         isProgressBarShowing = true;
         playPause.setEnabled(false);
+        Log.v(LOG_TAG, "passTracksdetailsToService - playPause.setVisibility(View.GONE");
         playPause.setVisibility(View.GONE);
         playPauseProgressBar.setVisibility(View.VISIBLE);
         eventBus.post(
@@ -495,23 +509,27 @@ public class PlayerControllerUi extends DialogFragment {
             mMusicPlayerService.resume();
         } else {
             // TODO: 3/08/2015 - how can we go into that part of code - investigate
+            // if track is in the prepare process, both  isPlaying and isPausing are false. Then, there will come event START_PLAYING_TRACK and playPause become enabled.
+            // If user clicks on it the controll will move to this part of code.
+            // Make sure isPlaying is set to true before thet view is enabled.
+
             if (true) throw new RuntimeException("PlayerControllerUi.playPauseClicked - we should never be here");
 //                mCallbacks.showProgress();
 //                isProgressBarShowing = true;
-            playPrev.setEnabled(true);
-            playNext.setEnabled(true);
-//                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
-            if (mSelectedTrackIdx == 0) {
-                playPrev.setEnabled(false);
-                playPrev.setBackground(transparentDrawable);
-            } else if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
-                playNext.setEnabled(false);
-                playNext.setBackground(transparentDrawable);
-            }
-            playPause.setBackground(transparentDrawable);
-            eventBus.post(
-                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-                            .build());
+//            playPrev.setEnabled(true);
+//            playNext.setEnabled(true);
+////                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
+//            if (mSelectedTrackIdx == 0) {
+//                playPrev.setEnabled(false);
+//                playPrev.setBackground(transparentDrawable);
+//            } else if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
+//                playNext.setEnabled(false);
+//                playNext.setBackground(transparentDrawable);
+//            }
+//            playPause.setBackground(transparentDrawable);
+//            eventBus.post(
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+//                            .build());
         }
 //        mPlayClickedAtLeastOnceForCurrArtist = true;
         isPlaying = !isPlaying;
@@ -531,13 +549,14 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     public void onEventMainThread(PlayerControllerUiEvents event) {
-        if (event.event == PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS & event.playProgressPercentage == 0 ||
-                event.event != PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS) {
+//        if (event.event == PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS & event.playProgressPercentage == 0 ||
+        if (event.event != PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS) {
             Log.i(LOG_TAG, "onEventMainThread - event/playProgressPercentage" + event.event + "/" + event.playProgressPercentage);
         }
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case START_PLAYING_TRACK:
+                isPlaying = true;
                 playPause.setEnabled(true);
                 isProgressBarShowing = false;
                 playPause.setBackground(pauseDrawable);

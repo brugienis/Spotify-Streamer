@@ -3,138 +3,140 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:weightSum="1">
+              android:weightSum="1"
+            android:layout_margin="10dp">
     <LinearLayout
         android:orientation="vertical"
-        android:layout_width="match_parent"
+        android:layout_width="300dp"
         android:layout_height="match_parent"
+        android:layout_gravity="center_horizontal"
         android:weightSum="1">
 
-    <TextView
-        android:id="@+id/playerArtistName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Medium Text"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"/>
-
-    <TextView
-        android:id="@+id/playerAlbumName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
-        android:layout_gravity="center_horizontal"/>
-
-    <ImageView
-        android:id="@+id/playerAlbumImageView"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.09"
-        android:layout_margin="10dp"/>
-
-    <TextView
-        android:id="@+id/playerTrackName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Small Text"
-        android:layout_gravity="center_horizontal"/>
-
-    <SeekBar
-        android:id="@+id/playerSeekBar"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        <TextView
+            android:id="@+id/playerArtistName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Medium Text"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"/>
 
         <TextView
-            android:layout_width="0dp"
+            android:id="@+id/playerAlbumName"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="0.09"
-            android:paddingLeft="@dimen/track_duration_zero_left_padding"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="0:00"
+            android:text="Small Text"
             android:layout_gravity="center_horizontal"/>
 
-        <TextView
-            android:id="@+id/playerTrackDuration"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="0.09"
-            android:paddingRight="@dimen/track_duration_total_right_padding"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:layout_gravity="center_horizontal|right"
-            android:gravity="right"/>
-
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_weight="0.09"/>
-
         <ImageView
-            android:id="@+id/playerPrev"
-            android:layout_width="@dimen/player_controls_size"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_gravity="center"/>
+            android:id="@+id/playerAlbumImageView"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.09"
+            android:layout_margin="10dp"/>
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_weight="0.09"/>
+        <TextView
+            android:id="@+id/playerTrackName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:text="Small Text"
+            android:layout_gravity="center_horizontal"/>
 
-        <FrameLayout
-            android:layout_width="@dimen/player_controls_size"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_gravity="center">
+        <SeekBar
+            android:id="@+id/playerSeekBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.09"
+                android:paddingLeft="@dimen/track_duration_zero_left_padding"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="0:00"
+                android:layout_gravity="center_horizontal"/>
+
+            <TextView
+                android:id="@+id/playerTrackDuration"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="0.09"
+                android:paddingRight="@dimen/track_duration_total_right_padding"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:layout_gravity="center_horizontal|right"
+                android:gravity="right"/>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_weight="0.09"/>
 
             <ImageView
-                android:id="@+id/playerStartStopPlaying"
+                android:id="@+id/playerPrev"
                 android:layout_width="@dimen/player_controls_size"
                 android:layout_height="@dimen/player_controls_size"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center"/>
 
-            <ProgressBar
-                android:id="@+id/playerProgressBar"
-                style="?android:attr/progressBarStyleSmall"
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_weight="0.09"/>
+
+            <FrameLayout
                 android:layout_width="@dimen/player_controls_size"
                 android:layout_height="@dimen/player_controls_size"
-                android:layout_gravity="center_horizontal"/>
+                android:layout_gravity="center">
 
-        </FrameLayout>
+                <ImageView
+                    android:id="@+id/playerStartStopPlaying"
+                    android:layout_width="@dimen/player_controls_size"
+                    android:layout_height="@dimen/player_controls_size"
+                    android:layout_gravity="center_horizontal"/>
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_weight="0.09"/>
+                <ProgressBar
+                    android:id="@+id/playerProgressBar"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="@dimen/player_controls_size"
+                    android:layout_height="@dimen/player_controls_size"
+                    android:layout_gravity="center_horizontal"/>
 
-        <ImageView
-            android:id="@+id/playerNext"
-            android:layout_width="@dimen/player_controls_size"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_gravity="center"/>
+            </FrameLayout>
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="@dimen/player_controls_size"
-            android:layout_weight="0.09"/>
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_weight="0.09"/>
 
-    </LinearLayout>
+            <ImageView
+                android:id="@+id/playerNext"
+                android:layout_width="@dimen/player_controls_size"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_gravity="center"/>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="@dimen/player_controls_size"
+                android:layout_weight="0.09"/>
+
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>
 
