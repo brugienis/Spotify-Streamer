@@ -5,6 +5,7 @@
 package au.com.kbrsolutions.spotifystreamer.activities;
 
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
@@ -152,13 +153,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mProgressBarHandler = new ProgressBarHandler(this);
 
 //        Log.v(LOG_TAG, "onCreate - starting player service - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-        // FIXME: 7/08/2015
-//        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
-//        startService(intent);
-//        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-//        Log.v(LOG_TAG, "onCreate - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-//        isMusicPlayerServiceBounded = true;
-//        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
+        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Log.v(LOG_TAG, "onCreate - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+        isMusicPlayerServiceBounded = true;
+        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
 
 
@@ -324,7 +324,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
-        // TODO: 18/07/2015 - different logic required for tablets - display fragment mDialogFragment by calling show() method
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
                 (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(),
@@ -368,8 +367,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mMusicPlayerService.processAfterConnectedToService();
     }
 
-
-
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -390,8 +387,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             // Unbind from the service
             if (isMusicPlayerServiceBounded) {
                 Log.i(LOG_TAG, "onServiceDisconnected - calling unBind");
-                // FIXME: 7/08/2015
-//                unbindService(mServiceConnection);
+                unbindService(mServiceConnection);
                 isMusicPlayerServiceBounded = false;
             }
             mMusicPlayerService = null;
