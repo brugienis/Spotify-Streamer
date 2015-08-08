@@ -112,7 +112,7 @@ public class PlayerControllerUi extends DialogFragment {
 
     @Override
     public void onAttach(Activity activity) {
-        Log.v(LOG_TAG, "onAttach - start");
+//        Log.v(LOG_TAG, "onAttach - start");
         try {
             mCallbacks = (PlayerControllerUiCallbacks) activity;
         } catch (Exception e) {
@@ -126,18 +126,15 @@ public class PlayerControllerUi extends DialogFragment {
         }
         if (!eventBus.isRegistered(this)) {
             eventBus.register(this);
-//            Log.v(LOG_TAG, "onAttach - HAD TO register");
         }
-//        if (playDrawable == null) {
-            playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
-            pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
-            playPrevDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_previous);
-            playCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_play);
-            pauseCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
-            playNextDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_next);
-//        }
+        playDrawable = getResources().getDrawable(R.drawable.ic_action_play);
+        pauseDrawable = getResources().getDrawable(R.drawable.ic_action_pause);
+        playPrevDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_previous);
+        playCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_play);
+        pauseCurrentDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_pause);
+        playNextDrawable = getActivity().getResources().getDrawable(R.drawable.ic_action_next);
         super.onAttach(activity);
-        Log.v(LOG_TAG, "onAttach - end");
+//        Log.v(LOG_TAG, "onAttach - end");
     }
 
     @Override
@@ -178,7 +175,7 @@ public class PlayerControllerUi extends DialogFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
 //        Log.v(LOG_TAG, "onCreateView - start - savedInstanceState: " + savedInstanceState);
-        Log.v(LOG_TAG, "onCreateView - start");
+//        Log.v(LOG_TAG, "onCreateView - start");
 
         if (savedInstanceState != null) {
             if (savedInstanceState.containsKey(ARTIST_NAME)) {
@@ -316,6 +313,7 @@ public class PlayerControllerUi extends DialogFragment {
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         } else {
+            mMusicPlayerService.processAfterConnectedToService(true);
             eventBus.post(
                     new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
                             .build());
@@ -364,7 +362,7 @@ public class PlayerControllerUi extends DialogFragment {
         }
 
 
-        Log.v(LOG_TAG, "showCurrentTrackDetails - isTrackPlaying/isTrackPausing: " + isTrackPlaying + "/" + isTrackPausing);
+//        Log.v(LOG_TAG, "showCurrentTrackDetails - isTrackPlaying/isTrackPausing: " + isTrackPlaying + "/" + isTrackPausing);
 
         playPause.setVisibility(View.VISIBLE);
         playPauseProgressBar.setVisibility(View.GONE);
@@ -450,7 +448,7 @@ public class PlayerControllerUi extends DialogFragment {
 //        if (mReconnectToPlayerService) {
 //            return;
 //        }
-        mMusicPlayerService.processAfterConnectedToService();
+        mMusicPlayerService.processAfterConnectedToService(true);
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
 //        isPlaying = true;
         isProgressBarShowing = true;
@@ -632,21 +630,24 @@ public class PlayerControllerUi extends DialogFragment {
                         event.playProgressPercentage,
                         event.durationTimeInSecs
                 );
+                Log.i(LOG_TAG, "onEvent - calling processAfterConnectedToService(true)");
                 break;
         }
     }
 
     /**
-     * if this class was created because of configuration change, don't call processBeforeUnbindService()
+     * if this class was created because of configuration change, don't call processBeforeDisconnectingFromService()
      */
     @Override
     public void onStop() {
         super.onStop();
         Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         // Unbind from the service
+        mMusicPlayerService.processBeforeDisconnectingFromService(true);
         if (isMusicPlayerServiceBounded) {
+            // TODO: 9/08/2015 - do we need that is below?
             if (!mReconnectToPlayerService) {
-                mMusicPlayerService.processBeforeUnbindService();
+//                mMusicPlayerService.processBeforeDisconnectingFromService(true);
             }
             getActivity().unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;

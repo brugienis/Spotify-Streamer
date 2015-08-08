@@ -45,6 +45,7 @@ public class MusicPlayerService extends Service {
     private boolean mIsForegroundStarted;
     private boolean mIsBounded;
     private boolean mIsPlayerActive;
+    private boolean isPlayerControllerUiActive;
     protected Handler handler = new Handler();
     int trackPlaydurationMsec = -1;
     private HandleCancellableFuturesCallable handleCancellableFuturesCallable;
@@ -92,7 +93,7 @@ public class MusicPlayerService extends Service {
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
+        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
                 .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
                 .build());
     }
@@ -104,13 +105,17 @@ public class MusicPlayerService extends Service {
      *
      * Always set mIsBounded to true.
      */
-    public void processAfterConnectedToService() {
+    public void processAfterConnectedToService(boolean playerControllerUi) {
         connectedClientsCnt.getAndIncrement();
-        Log.i(LOG_TAG, "processAfterConnectedToService - start - connectedClientsCnt: " + connectedClientsCnt.get());
+        if (playerControllerUi) {
+            isPlayerControllerUiActive = true;
+        }
+        Log.i(LOG_TAG, "processAfterConnectedToService - start - connectedClientsCnt/isPlayerControllerUiActive: " + connectedClientsCnt.get() + "/" + isPlayerControllerUiActive);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         mIsBounded = true;
+        isClientActive = true;
     }
 
 //    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
@@ -192,7 +197,7 @@ public class MusicPlayerService extends Service {
             playNextTrack();
         } else {
             Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
-            eventBus.post(
+            sendMessageToPlayerUi(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
             mIsPlayerActive = false;
@@ -207,7 +212,7 @@ public class MusicPlayerService extends Service {
         if (mSelectedTrack > 0) {
             handleCancellableFuturesCallable.cancelCurrFuture();
             --mSelectedTrack;
-            eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
+            sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
                     .setSselectedTrack(mSelectedTrack)
                     .setIsFirstTrackSelected(mSelectedTrack == 0)
                     .build());
@@ -218,7 +223,7 @@ public class MusicPlayerService extends Service {
     private void playNextTrack() {
         handleCancellableFuturesCallable.cancelCurrFuture();
         ++mSelectedTrack;
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
+        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PREPARING_TRACK)
                 .setSselectedTrack(mSelectedTrack)
                 .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
                 .build());
@@ -234,7 +239,7 @@ public class MusicPlayerService extends Service {
         }
         isPlaying.set(true);
         player.start();
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
+        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
                 .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
                 .build());
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
@@ -295,7 +300,7 @@ public class MusicPlayerService extends Service {
             isPausing.set(true);
             mMediaPlayer.pause();
             handleCancellableFuturesCallable.cancelCurrFuture();
-            eventBus.post(
+            sendMessageToPlayerUi(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
             mIsPlayerActive = false;
@@ -316,7 +321,7 @@ public class MusicPlayerService extends Service {
         isPlaying.set(true);
         isPausing.set(false);
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
-        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK)
+        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK)
                 .build());
     }
 
@@ -374,16 +379,20 @@ public class MusicPlayerService extends Service {
      *
      * Always set mIsBounded to true.
      */
-    public void processBeforeUnbindService() {
+    public void processBeforeDisconnectingFromService(boolean playerControllerUi) {
         mostRecentClientDisconnectFromServiceTimeMillis = System.currentTimeMillis();
         connectedClientsCnt.getAndDecrement();
-        Log.i(LOG_TAG, "processBeforeUnbindService - start - connectedClientsCnt: " + connectedClientsCnt.get());
+        if (playerControllerUi) {
+            isPlayerControllerUiActive = false;
+        }
+        Log.i(LOG_TAG, "processBeforeDisconnectingFromService - start - connectedClientsCnt/isPlayerControllerUiActive: " + connectedClientsCnt.get() + "/" + isPlayerControllerUiActive);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         if (connectedClientsCnt.get() == 0) {
-            Log.i(LOG_TAG, "processBeforeUnbindService - no connected clients and player is not active");
-            scheduleStopForegroundChecker("processBeforeUnbindService");
+            Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active");
+            isClientActive = false;
+            scheduleStopForegroundChecker("processBeforeDisconnectingFromService");
         }
     }
 
@@ -416,6 +425,10 @@ public class MusicPlayerService extends Service {
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 stopForeground(true);
+
+                // TODO: 8/08/2015 - check if below will stop the service 
+                stopSelf();
+                
                 stopFuturesHandlers();
 //                Log.i(LOG_TAG, "StopForegroundRunnable.run - called  stopForeground()");
             } else {
@@ -452,8 +465,8 @@ public class MusicPlayerService extends Service {
 
     // TODO: 6/08/2015 - also send other info - show/hide prev/next and playing/pausing state
     private void sendPlayerStateDetails() {
-        eventBus.post(
-                new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
+//        eventBus.post(
+          sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
                         .setTracksDetails(mTracksDetails)
                         .setSselectedTrack(mSelectedTrack)
                         .setIsTrackPlaying(isPlaying.get())
@@ -462,7 +475,16 @@ public class MusicPlayerService extends Service {
                         .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
                         .setPlayProgressPercentage(mPlayProgressPercentage)
                         .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-                        .build());
+                        .build()
+        );
+    }
+
+    private boolean isClientActive;
+    private void sendMessageToPlayerUi(PlayerControllerUiEvents event) {
+//        if (isClientActive) {
+        if (isPlayerControllerUiActive) {
+            eventBus.post(event);
+        }
     }
 
     public void onEvent(MusicPlayerServiceEvents event) {
@@ -529,7 +551,8 @@ public class MusicPlayerService extends Service {
                     {
 //                        prevTrackPlayPositionMsec = trackPlayPositionMsec;
                         mPlayProgressPercentage = trackPlayPositionMsec * 100 / trackPlaydurationMsec;
-                        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
+//                        eventBus.post(
+                        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
 //                            .setPlayProgressPercentage(trackPlayPositionMsec * 100 / trackPlaydurationMsec)
                                 .setPlayProgressPercentage(mPlayProgressPercentage)
                                 .build());
@@ -539,7 +562,8 @@ public class MusicPlayerService extends Service {
 //                Log.i(LOG_TAG, "called - finally");
 //                if (wasInterrupted) {
                 if (!isPausing.get()) {
-                    eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
+//                    eventBus.post(
+                    sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
                             .setPlayProgressPercentage(0)
                             .build());
                 }
