@@ -358,9 +358,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             mMusicPlayerService.processBeforeUnbindService();
             unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
-//            Log.i(LOG_TAG, "onStop - end - unbindService called");
+            Log.i(LOG_TAG, "onStop - end - unbindService called");
         }
-//        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
     private void processAfterConnectedToService() {
@@ -385,11 +385,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         public void onServiceDisconnected(ComponentName name) {
             Log.i(LOG_TAG, "onServiceDisconnected - start");
             // Unbind from the service
-            if (isMusicPlayerServiceBounded) {
-                Log.i(LOG_TAG, "onServiceDisconnected - calling unBind");
-                unbindService(mServiceConnection);
-                isMusicPlayerServiceBounded = false;
-            }
+//            if (isMusicPlayerServiceBounded) {
+//                Log.i(LOG_TAG, "onServiceDisconnected - calling unBind");
+//                unbindService(mServiceConnection);
+//                isMusicPlayerServiceBounded = false;
+//            }
             mMusicPlayerService = null;
             isMusicPlayerServiceBounded = false;
         }
