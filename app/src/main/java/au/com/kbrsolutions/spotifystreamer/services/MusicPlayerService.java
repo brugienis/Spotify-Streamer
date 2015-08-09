@@ -67,7 +67,7 @@ public class MusicPlayerService extends Service {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.i(LOG_TAG, "onBind - start");
+//        Log.i(LOG_TAG, "onBind - start");
 
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
@@ -78,7 +78,7 @@ public class MusicPlayerService extends Service {
 
     @Override
     public void onRebind(Intent intent) {
-        Log.i(LOG_TAG, "onRebind - start");
+//        Log.i(LOG_TAG, "onRebind - start");
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -86,17 +86,17 @@ public class MusicPlayerService extends Service {
         return;
     }
 
-    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
-        mTracksDetails = tracksDetails;
-        mSelectedTrack = selectedTrack;
-        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
-        if (stopForegroundRunnable != null) {
-            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
-        }
-        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
-                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-                .build());
-    }
+//    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+//        mTracksDetails = tracksDetails;
+//        mSelectedTrack = selectedTrack;
+//        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
+//        if (stopForegroundRunnable != null) {
+//            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
+//        }
+//        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
+//                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+//                .build());
+//    }
 
     /**
      * client should call this method after they got connected to this service - after they got call to the onServiceConnected(...).
@@ -115,20 +115,8 @@ public class MusicPlayerService extends Service {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         mIsBounded = true;
-        isClientActive = true;
+//        isClientActive = true;
     }
-
-//    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
-//        mTracksDetails = tracksDetails;
-//        mSelectedTrack = selectedTrack;
-//        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
-//        if (stopForegroundRunnable != null) {
-//            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
-//        }
-//        eventBus.post(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
-//                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-//                .build());
-//    }
 
     @Override
     public void onCreate() {
@@ -260,7 +248,7 @@ public class MusicPlayerService extends Service {
 
     TrackDetails currTrackDetails;
 
-    // TODO: 29/07/2015 not sure if I need below. Just do do anything that would caused Error?
+    // TODO: 29/07/2015 not sure if I need below. Just do not do anything that would caused Error?
     private void waitForPlayer(String source) {
 //        Log.i(LOG_TAG, "waitForPlayer - start - source: " + source);
         try {
@@ -391,7 +379,7 @@ public class MusicPlayerService extends Service {
         }
         if (connectedClientsCnt.get() == 0) {
             Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active");
-            isClientActive = false;
+//            isClientActive = false;
             scheduleStopForegroundChecker("processBeforeDisconnectingFromService");
         }
     }
@@ -414,14 +402,13 @@ public class MusicPlayerService extends Service {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
         }
 
-        // TODO: 3/08/2015 - do not use mostRecentClientDisconnectFromServiceTimeMillis. Instead of it use time when the client called processBeforeUnbindSrvice
         @Override
         public void run() {
 //            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
             if (connectedClientsCnt.get() == 0 &&
                     !mIsPlayerActive &&
                     System.currentTimeMillis() - mostRecentClientDisconnectFromServiceTimeMillis > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS)) {
-                Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground()");
+                Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground() and stopSelf()");
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 stopForeground(true);
@@ -463,7 +450,6 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
-    // TODO: 6/08/2015 - also send other info - show/hide prev/next and playing/pausing state
     private void sendPlayerStateDetails() {
 //        eventBus.post(
           sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
@@ -479,7 +465,7 @@ public class MusicPlayerService extends Service {
         );
     }
 
-    private boolean isClientActive;
+//    private boolean isClientActive;
     private void sendMessageToPlayerUi(PlayerControllerUiEvents event) {
 //        if (isClientActive) {
         if (isPlayerControllerUiActive) {
@@ -525,8 +511,6 @@ public class MusicPlayerService extends Service {
 
     private final class TrackPlayProgressCheckerCallable implements Callable<String> {
 
-//        private int prevTrackPlayPositionMsec;
-
         @Override
         public String call() {//throws Exception {
             int trackPlayPositionMsec;
@@ -545,15 +529,9 @@ public class MusicPlayerService extends Service {
                         break;
                     }
                     trackPlayPositionMsec = mMediaPlayer.getCurrentPosition();
-//                    if (prevTrackPlayPositionMsec == trackPlayPositionMsec) {
-//                        continue;
-//                    } else
                     {
-//                        prevTrackPlayPositionMsec = trackPlayPositionMsec;
                         mPlayProgressPercentage = trackPlayPositionMsec * 100 / trackPlaydurationMsec;
-//                        eventBus.post(
                         sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
-//                            .setPlayProgressPercentage(trackPlayPositionMsec * 100 / trackPlaydurationMsec)
                                 .setPlayProgressPercentage(mPlayProgressPercentage)
                                 .build());
                     }
@@ -562,7 +540,6 @@ public class MusicPlayerService extends Service {
 //                Log.i(LOG_TAG, "called - finally");
 //                if (wasInterrupted) {
                 if (!isPausing.get()) {
-//                    eventBus.post(
                     sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
                             .setPlayProgressPercentage(0)
                             .build());

@@ -47,7 +47,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private ProgressBarHandler mProgressBarHandler;
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
-    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
+    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
     private final String ACTIVITY_TITLE = "activity_title";
@@ -180,17 +180,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mProgressBarHandler.hide();
     }
 
-//    @Override
-//    public MusicPlayerService getMusicPlayerService() {
-//        return mMusicPlayerService;
-//    }
-
     /**
      * Up button was pressed - remove to top entry Back Stack
      */
     @Override
     public boolean onSupportNavigateUp() {
-        //This method is called when the up button is pressed. Just the pop back stack.
         getSupportFragmentManager().popBackStack();
         return true;
     }
@@ -225,12 +219,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
-
-//        Log.v(LOG_TAG, "onRestoreInstanceState - mWasPlayerControllerUiVisible/mDialogFragment: " + mWasPlayerControllerUiVisible + "/" + mDialogFragment);
-//        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
-//            mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
-//            Log.v(LOG_TAG, "onRestoreInstanceState - after mDialogFragment.show");
-//        }
     }
 
     public boolean wasPlayerControllerUiVisibleOnRestart() {

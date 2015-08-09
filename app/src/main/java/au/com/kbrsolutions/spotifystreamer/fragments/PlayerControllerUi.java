@@ -73,7 +73,6 @@ public class PlayerControllerUi extends DialogFragment {
     private boolean isPlaying;
     private boolean isPausing;
     private boolean mReconnectToPlayerService;
-//    private boolean mPlayClickedAtLeastOnceForCurrArtist;
     private boolean isMusicPlayerServiceBounded;
     private boolean isProgressBarShowing;
     private PlayerControllerUiCallbacks mCallbacks;
@@ -195,10 +194,8 @@ public class PlayerControllerUi extends DialogFragment {
         View playerView = inflater.inflate(R.layout.player_ui, container, false);
 
         artistName = (TextView) playerView.findViewById(R.id.playerArtistName);
-//        artistName.setText(mArtistName);
 
         albumName = (TextView) playerView.findViewById(R.id.playerAlbumName);
-//        albumName.setText(mTracksDetails.get(mSelectedTrackIdx).albumName);
 
         albumImage = (ImageView) playerView.findViewById(R.id.playerAlbumImageView);
 
@@ -207,15 +204,7 @@ public class PlayerControllerUi extends DialogFragment {
                     (int) getActivity().getResources().getDimension(R.dimen.artist_thumbnail_image_padding);
         }
 
-//        if (albumImage != null) {
-//            Picasso.with(getActivity())
-//                    .load(mTracksDetails.get(mSelectedTrackIdx).albumArtLargeImageUrl)
-//                    .resize(mWidthPx, mWidthPx).centerCrop()
-//                    .into(albumImage);
-//        }
-
         trackName = (TextView) playerView.findViewById(R.id.playerTrackName);
-//        trackName.setText(mTracksDetails.get(mSelectedTrackIdx).trackName);
 
         playerSeekBar =  (SeekBar) playerView.findViewById(R.id.playerSeekBar);
         playerSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
@@ -241,11 +230,6 @@ public class PlayerControllerUi extends DialogFragment {
 
         playPrev = playerView.findViewById(R.id.playerPrev);
 
-//        if (mSelectedTrackIdx == 0) {
-//            playPrev.setBackground(transparentDrawable);
-//        } else {
-//            playPrev.setBackground(playPrevDrawable);
-//        }
         playPrev.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -254,7 +238,6 @@ public class PlayerControllerUi extends DialogFragment {
         });
 
         playPauseProgressBar = (ProgressBar) playerView.findViewById(R.id.playerProgressBar);
-//        playPauseProgressBar.setVisibility(View.GONE);
 
         playPause = playerView.findViewById(R.id.playerStartStopPlaying);
         playPause.setOnClickListener(new View.OnClickListener() {
@@ -263,34 +246,14 @@ public class PlayerControllerUi extends DialogFragment {
                 playPauseClicked();
             }
         });
-//        if (isPlaying) {
-//            Log.v(LOG_TAG, "onCreateView - isPlaying");
-//            playPause.setBackground(pauseCurrentDrawable);
-//        } else {
-//            Log.v(LOG_TAG, "onCreateView - isPlaying NOT");
-//            playPause.setBackground(playCurrentDrawable);
-//        }
 
         playNext = playerView.findViewById(R.id.playerNext);
-//        if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
-//            playNext.setBackground(transparentDrawable);
-//        } else {
-//            playNext.setBackground(playNextDrawable);
-//        }
         playNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 playNextClicked();
             }
         });
-
-//        if (mReconnectToPlayerService) {
-//            Log.v(LOG_TAG, "onCreateView - before mMusicPlayerService: " + mMusicPlayerService);
-//            eventBus.post(
-//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
-//                            .build());
-//            Log.v(LOG_TAG, "onCreateView - after  mMusicPlayerService: " + mMusicPlayerService);
-//        }
 
         if (!mReconnectToPlayerService) {
             showCurrentTrackDetails(
@@ -303,13 +266,6 @@ public class PlayerControllerUi extends DialogFragment {
                     -1);
         }
 
-//        if (!eventBus.isRegistered(this)) {
-//            eventBus.register(this);
-//            Log.v(LOG_TAG, "onCreateView - HAD TO register");
-//        }
-//        Log.v(LOG_TAG, "onCreateView - almost end - mMusicPlayerService/eventBus registered/event: " +
-//                eventBus.hasSubscriberForEvent(PlayerControllerUiEvents.class) + "/" +
-//                eventBus.isRegistered(this) + "/" + mMusicPlayerService);
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         } else {
@@ -317,9 +273,6 @@ public class PlayerControllerUi extends DialogFragment {
             eventBus.post(
                     new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
                             .build());
-//            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
-//            mReconnectToPlayerService = true;passTracksdetailsToService();
-//            eventBus.unregister(this);
         }
 
 
@@ -445,15 +398,11 @@ public class PlayerControllerUi extends DialogFragment {
             Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
             return;
         }
-//        if (mReconnectToPlayerService) {
-//            return;
-//        }
         mMusicPlayerService.processAfterConnectedToService(true);
         mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
-//        isPlaying = true;
         isProgressBarShowing = true;
         playPause.setEnabled(false);
-        Log.v(LOG_TAG, "passTracksdetailsToService - playPause.setVisibility(View.GONE");
+//        Log.v(LOG_TAG, "passTracksdetailsToService - playPause.setVisibility(View.GONE");
         playPause.setVisibility(View.GONE);
         playPauseProgressBar.setVisibility(View.VISIBLE);
         eventBus.post(
@@ -510,26 +459,8 @@ public class PlayerControllerUi extends DialogFragment {
             // if track is in the prepare process, both  isPlaying and isPausing are false. Then, there will come event START_PLAYING_TRACK and playPause become enabled.
             // If user clicks on it the controll will move to this part of code.
             // Make sure isPlaying is set to true before thet view is enabled.
-
             if (true) throw new RuntimeException("PlayerControllerUi.playPauseClicked - we should never be here");
-//                mCallbacks.showProgress();
-//                isProgressBarShowing = true;
-//            playPrev.setEnabled(true);
-//            playNext.setEnabled(true);
-////                Log.i(LOG_TAG, "playPauseClicked - mSelectedTrackIdx/size: " + mSelectedTrackIdx + "/" +  mTracksDetails.size());
-//            if (mSelectedTrackIdx == 0) {
-//                playPrev.setEnabled(false);
-//                playPrev.setBackground(transparentDrawable);
-//            } else if (mSelectedTrackIdx == mTracksDetails.size() - 1) {
-//                playNext.setEnabled(false);
-//                playNext.setBackground(transparentDrawable);
-//            }
-//            playPause.setBackground(transparentDrawable);
-//            eventBus.post(
-//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-//                            .build());
         }
-//        mPlayClickedAtLeastOnceForCurrArtist = true;
         isPlaying = !isPlaying;
         isPausing = !isPausing;
     }
@@ -630,7 +561,7 @@ public class PlayerControllerUi extends DialogFragment {
                         event.playProgressPercentage,
                         event.durationTimeInSecs
                 );
-                Log.i(LOG_TAG, "onEvent - calling processAfterConnectedToService(true)");
+//                Log.i(LOG_TAG, "onEvent - calling processAfterConnectedToService(true)");
                 break;
         }
     }
@@ -641,8 +572,7 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onStop() {
         super.onStop();
-        Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-        // Unbind from the service
+//        Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         mMusicPlayerService.processBeforeDisconnectingFromService(true);
         if (isMusicPlayerServiceBounded) {
             // TODO: 9/08/2015 - do we need that is below?
@@ -653,9 +583,9 @@ public class PlayerControllerUi extends DialogFragment {
             isMusicPlayerServiceBounded = false;
         }
         if (isProgressBarShowing) {
-            Log.i(LOG_TAG, "onStop - hideProgress called");
+//            Log.i(LOG_TAG, "onStop - hideProgress called");
         }
-        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
     @Override

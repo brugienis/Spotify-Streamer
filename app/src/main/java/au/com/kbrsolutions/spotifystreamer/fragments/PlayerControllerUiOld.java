@@ -293,7 +293,7 @@ public class PlayerControllerUiOld extends DialogFragment {
         if (mMusicPlayerService == null) {
             startMusicServiceIfNotAlreadyBound();
         } else {
-            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
+//            mMusicPlayerService.reconnectedToMusicPlayerService(mTracksDetails, mSelectedTrackIdx);
         }
         return playerView;
     }
@@ -312,8 +312,6 @@ public class PlayerControllerUiOld extends DialogFragment {
         outState.putBoolean(IS_PLAYING, Boolean.valueOf(isPlaying));
         super.onSaveInstanceState(outState);
     }
-
-
 
     /**
      * The system calls this only when creating the layout in a dialog.
