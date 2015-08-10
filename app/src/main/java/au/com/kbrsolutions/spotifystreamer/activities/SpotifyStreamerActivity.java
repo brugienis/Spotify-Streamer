@@ -219,6 +219,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
+        Log.v(LOG_TAG, "onRestoreInstanceState - end - mWasPlayerControllerUiVisible/mDialogFragment: " + mWasPlayerControllerUiVisible + "/" + mDialogFragment);
+        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
+            mDialogFragment.setReconnectToPlayerService();
+        }
     }
 
     public boolean wasPlayerControllerUiVisibleOnRestart() {
@@ -312,6 +316,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
+        // FIXME: 10/08/2015 do I need to create a ne instance - check if the previous one still exists
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
                 (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(),
@@ -319,8 +324,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 reconnectToPlayerService);
 //        mDialogFragment.setCancelable(false);
 //        if (mTwoPane) {
+        mWasPlayerControllerUiVisible = true;
         if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
-            mWasPlayerControllerUiVisible = true;
             mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
         } else {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();

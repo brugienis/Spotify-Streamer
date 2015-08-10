@@ -109,6 +109,14 @@ public class PlayerControllerUi extends DialogFragment {
         return f;
     }
 
+    /**
+     * called from activity after the configuration changed
+     */
+    public void setReconnectToPlayerService() {
+        mReconnectToPlayerService = true;
+        Log.v(LOG_TAG, "setReconnectToPlayerService - end - mReconnectToPlayerService: " + mReconnectToPlayerService);
+    }
+
     @Override
     public void onAttach(Activity activity) {
 //        Log.v(LOG_TAG, "onAttach - start");
@@ -177,6 +185,7 @@ public class PlayerControllerUi extends DialogFragment {
 //        Log.v(LOG_TAG, "onCreateView - start");
 
         if (savedInstanceState != null) {
+            mReconnectToPlayerService = true;   // configuration changed?
             if (savedInstanceState.containsKey(ARTIST_NAME)) {
                 mArtistName = savedInstanceState.getString(ARTIST_NAME);
             }
@@ -266,15 +275,14 @@ public class PlayerControllerUi extends DialogFragment {
                     -1);
         }
 
-        if (mMusicPlayerService == null) {
-            startMusicServiceIfNotAlreadyBound();
-        } else {
-            mMusicPlayerService.processAfterConnectedToService(true);
-            eventBus.post(
-                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
-                            .build());
-        }
-
+//        if (mMusicPlayerService == null) {
+            connectToMusicPlayerService();
+//        } else {
+//            mMusicPlayerService.processAfterConnectedToService(true);
+//            eventBus.post(
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
+//                            .build());
+//        }
 
         return playerView;
     }
@@ -344,7 +352,7 @@ public class PlayerControllerUi extends DialogFragment {
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
-//        Log.v(LOG_TAG, "onSaveInstanceState");
+        Log.v(LOG_TAG, "onSaveInstanceState");
         outState.putString(ARTIST_NAME, mArtistName);
         if (mTracksDetails != null) {
             outState.putParcelableArrayList(TRACKS_DETAILS, (ArrayList) mTracksDetails);
@@ -374,40 +382,39 @@ public class PlayerControllerUi extends DialogFragment {
      * Starts MusicService as soon as possible - if it wasn't already started - when users clicks on
      * the track, most likely they will want to play them.
      */
-    private void startMusicServiceIfNotAlreadyBound() {
-        Log.i(LOG_TAG, "startMusicServiceIfNotAlreadyBound - start - mMusicPlayerService/isMusicPlayerServiceBounded: " + mMusicPlayerService + "/" + isMusicPlayerServiceBounded);
+    private void connectToMusicPlayerService() {
+        Log.i(LOG_TAG, "connectToMusicPlayerService - start - mMusicPlayerService/isMusicPlayerServiceBounded: " + mMusicPlayerService + "/" + isMusicPlayerServiceBounded);
 //        if (!isMusicPlayerServiceBounded) {
         if (mMusicPlayerService == null) {
             Intent intent = new Intent(getActivity(), MusicPlayerService.class);
             getActivity().bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
             getActivity().startService(intent);
-            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - sent intent to service - mSelectedTrackIdx: " + mSelectedTrackIdx);
+            Log.v(LOG_TAG, "connectToMusicPlayerService - sent intent to service - mSelectedTrackIdx: " + mSelectedTrackIdx);
         } else {
-            passTracksdetailsToService();
-            Log.v(LOG_TAG, "startMusicServiceIfNotAlreadyBound - service is ALREADY bound");
+            initialProcessingAfterConnectingToService();
+            Log.v(LOG_TAG, "connectToMusicPlayerService - service is ALREADY bound");
         }
     }
 
-    private void passTracksdetailsToService() {
-//        Log.i(LOG_TAG, "passTracksdetailsToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+    private void initialProcessingAfterConnectingToService() {
+//        Log.i(LOG_TAG, "initialProcessingAfterConnectingToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+        mMusicPlayerService.processAfterConnectedToService(true);
         if (mReconnectToPlayerService) {
-            Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService before mMusicPlayerService: " + mMusicPlayerService);
+//            Log.v(LOG_TAG, "initialProcessingAfterConnectingToService - mReconnectToPlayerService before mMusicPlayerService: " + mMusicPlayerService);
             eventBus.post(
                     new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
                             .build());
-            Log.v(LOG_TAG, "passTracksdetailsToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
-            return;
+//            Log.v(LOG_TAG, "initialProcessingAfterConnectingToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
+        } else {
+            mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
+            isProgressBarShowing = true;
+            playPause.setEnabled(false);
+            playPause.setVisibility(View.GONE);
+            playPauseProgressBar.setVisibility(View.VISIBLE);
+            eventBus.post(
+                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+                            .build());
         }
-        mMusicPlayerService.processAfterConnectedToService(true);
-        mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
-        isProgressBarShowing = true;
-        playPause.setEnabled(false);
-//        Log.v(LOG_TAG, "passTracksdetailsToService - playPause.setVisibility(View.GONE");
-        playPause.setVisibility(View.GONE);
-        playPauseProgressBar.setVisibility(View.VISIBLE);
-        eventBus.post(
-                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-                        .build());
     }
 
     /**
@@ -420,7 +427,7 @@ public class PlayerControllerUi extends DialogFragment {
             Log.i(LOG_TAG, "onServiceConnected - start");
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
             isMusicPlayerServiceBounded = true;
-            passTracksdetailsToService();
+            initialProcessingAfterConnectingToService();
         }
 
         @Override
