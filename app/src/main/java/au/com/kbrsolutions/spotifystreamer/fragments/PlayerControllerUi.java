@@ -112,10 +112,10 @@ public class PlayerControllerUi extends DialogFragment {
     /**
      * called from activity after the configuration changed
      */
-    public void setReconnectToPlayerService() {
-        mReconnectToPlayerService = true;
-        Log.v(LOG_TAG, "setReconnectToPlayerService - end - mReconnectToPlayerService: " + mReconnectToPlayerService);
-    }
+//    public void setReconnectToPlayerService() {
+//        mReconnectToPlayerService = true;
+//        Log.v(LOG_TAG, "setReconnectToPlayerService - end - mReconnectToPlayerService: " + mReconnectToPlayerService);
+//    }
 
     @Override
     public void onAttach(Activity activity) {

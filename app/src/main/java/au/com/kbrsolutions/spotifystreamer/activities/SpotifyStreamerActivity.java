@@ -48,6 +48,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
     private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
+    // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
     private final String ACTIVITY_TITLE = "activity_title";
@@ -220,9 +221,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             mArtistsFragment.showArtistsDetails();
         }
         Log.v(LOG_TAG, "onRestoreInstanceState - end - mWasPlayerControllerUiVisible/mDialogFragment: " + mWasPlayerControllerUiVisible + "/" + mDialogFragment);
-        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
-            mDialogFragment.setReconnectToPlayerService();
-        }
+//        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
+//            mDialogFragment.setReconnectToPlayerService();
+//        }
     }
 
     public boolean wasPlayerControllerUiVisibleOnRestart() {
