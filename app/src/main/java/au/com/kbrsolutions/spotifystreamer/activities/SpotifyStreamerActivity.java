@@ -311,19 +311,23 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(selectedTrack, false);
     }
+
     @Override
     public void showPlayerUiAndReconnectTuPlayerService() {
         showPlayerController(-1, true);
     }
 
     private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
-        // FIXME: 10/08/2015 do I need to create a ne instance - check if the previous one still exists
+        // FIXME: 11/08/2015 - I am confused - mDialogFragment is not NULL but prev is. Investigate.
+        Log.v(LOG_TAG, "showPlayerController - mDialogFragment:: " + mDialogFragment);
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
-                (ArrayList<TrackDetails>) mTracksFragment.getTrackDetails(),
+                mTracksFragment.getTrackDetails(),
                 selectedTrack,
                 reconnectToPlayerService);
-//        mDialogFragment.setCancelable(false);
+        if (mDialogFragment != null) {
+            Log.v(LOG_TAG, "showPlayerController - reusing existing mDialogFragment" + mDialogFragment.isVisible());
+        }
 //        if (mTwoPane) {
         mWasPlayerControllerUiVisible = true;
         if (showDialogFragment_AS_DIALOG_TEST_ONLY) {

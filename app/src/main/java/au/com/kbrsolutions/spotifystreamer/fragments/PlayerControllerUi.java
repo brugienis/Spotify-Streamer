@@ -582,10 +582,6 @@ public class PlayerControllerUi extends DialogFragment {
 //        Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         mMusicPlayerService.processBeforeDisconnectingFromService(true);
         if (isMusicPlayerServiceBounded) {
-            // TODO: 9/08/2015 - do we need that is below?
-            if (!mReconnectToPlayerService) {
-//                mMusicPlayerService.processBeforeDisconnectingFromService(true);
-            }
             getActivity().unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
         }
@@ -598,11 +594,9 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.i(LOG_TAG, "onDestroyView");
+//        Log.i(LOG_TAG, "onDestroyView");
         mCallbacks.playerControllerUiIdNotVisible();
-        // FIXME: 7/08/2015 - commenting below may break when used as a dialog
         eventBus.unregister(this);
     }
-
 
 }
