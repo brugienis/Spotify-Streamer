@@ -46,6 +46,8 @@ public class PlayerControllerUi extends DialogFragment {
 //        void showProgress();
 //        void hideProgress();
         void playerControllerUiIdNotVisible();
+        void showPlayNow();
+        void removePlayNow();
     }
 
     private View playPause;
@@ -147,6 +149,7 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onResume() {
         super.onResume();
+        mCallbacks.removePlayNow();
     }
 
     @Override
@@ -588,6 +591,7 @@ public class PlayerControllerUi extends DialogFragment {
         if (isProgressBarShowing) {
 //            Log.i(LOG_TAG, "onStop - hideProgress called");
         }
+        mCallbacks.showPlayNow();
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 

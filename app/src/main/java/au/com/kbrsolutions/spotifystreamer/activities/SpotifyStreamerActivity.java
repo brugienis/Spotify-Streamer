@@ -12,10 +12,12 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        ServiceConnection {
 
     private CharSequence mActivityTitle;
+    private CharSequence mActivitySubtitle;
     private ArtistsFragment mArtistsFragment;
     private TracksFragment mTracksFragment;
     private PlayerControllerUi mDialogFragment;
@@ -213,8 +216,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
-        CharSequence activitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
-        getSupportActionBar().setSubtitle(activitySubtitle);
+        mActivitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
+        getSupportActionBar().setSubtitle(mActivitySubtitle);
         mWasPlayerControllerUiVisible = savedInstanceState.getBoolean(PLAYER_CONTROLLER_UI_VISIBLE);
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
@@ -318,16 +321,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
-        // FIXME: 11/08/2015 - I am confused - mDialogFragment is not NULL but prev is. Investigate.
-        Log.v(LOG_TAG, "showPlayerController - mDialogFragment:: " + mDialogFragment);
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
                 mTracksFragment.getTrackDetails(),
                 selectedTrack,
                 reconnectToPlayerService);
-        if (mDialogFragment != null) {
-            Log.v(LOG_TAG, "showPlayerController - reusing existing mDialogFragment" + mDialogFragment.isVisible());
-        }
+//        if (mDialogFragment != null) {
+//            Log.v(LOG_TAG, "showPlayerController - reusing existing mDialogFragment" + mDialogFragment.isVisible());
+//        }
 //        if (mTwoPane) {
         mWasPlayerControllerUiVisible = true;
         if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
@@ -339,7 +340,36 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                     .addToBackStack(null)
                     .commit();
         }
-        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount/mWasPlayerControllerUiVisible: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mWasPlayerControllerUiVisible);
+//        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount/mWasPlayerControllerUiVisible: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mWasPlayerControllerUiVisible);
+    }
+
+    private int originalDisplayOptions = -1;
+    public void showPlayNow() {
+        ActionBar actionBar = getSupportActionBar();
+        originalDisplayOptions = actionBar.getDisplayOptions();
+        createActionbarCustomView(actionBar);
+    }
+
+    public void removePlayNow() {
+        Log.v(LOG_TAG, "removePlayNow - start");
+        getSupportActionBar().setDisplayOptions(originalDisplayOptions);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
+        getSupportActionBar().setTitle(mActivityTitle);
+        getSupportActionBar().setSubtitle(mActivitySubtitle);
+    }
+
+    private void createActionbarCustomView(ActionBar actionBar) {
+        actionBar.setCustomView(R.layout.play_naw_action_bar);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);	// | ActionBar.DISPLAY_SHOW_HOME);
+
+        View save = actionBar.getCustomView().findViewById(R.id.playingNowId);
+        save.setEnabled(true);
+        save.setOnClickListener(new View.OnClickListener() {
+
+            public void onClick(View v) {
+                showPlayerController(-1, true);
+            }
+        });
     }
 
     @Override
