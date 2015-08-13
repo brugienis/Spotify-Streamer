@@ -46,7 +46,7 @@ public class PlayerControllerUi extends DialogFragment {
 //        void showProgress();
 //        void hideProgress();
         void playerControllerUiIdNotVisible();
-        void showPlayNow();
+        void showPlayNow(String artistName, String albumName, String trackName);
         void removePlayNow();
     }
 
@@ -558,12 +558,13 @@ public class PlayerControllerUi extends DialogFragment {
                 break;
 
             case PROCESS_PLAYER_STATE:
-                int selectedTrackIdx = event.selectedTrack;
+                mTracksDetails = event.tracksDetails;
+                mSelectedTrackIdx = event.selectedTrack;
 //                TrackDetails trackDetails = event.tracksDetails.get(selectedTrackIdx);
                 isPlaying = event.isTrackPlaying;
                 isPausing = event.isTrackPausing;
                 showCurrentTrackDetails(
-                        event.tracksDetails.get(selectedTrackIdx),
+                        event.tracksDetails.get(mSelectedTrackIdx),
                         event.isTrackPlaying,
                         event.isTrackPausing,
                         event.isFirstTrackSelected,
@@ -591,7 +592,8 @@ public class PlayerControllerUi extends DialogFragment {
         if (isProgressBarShowing) {
 //            Log.i(LOG_TAG, "onStop - hideProgress called");
         }
-        mCallbacks.showPlayNow();
+        TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
+        mCallbacks.showPlayNow(mArtistName, trackDetails.albumName, trackDetails.trackName);
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 

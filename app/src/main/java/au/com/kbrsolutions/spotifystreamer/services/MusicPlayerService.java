@@ -29,9 +29,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.activities.SpotifyStreamerActivity;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
-import au.com.kbrsolutions.spotifystreamer.utils.HandleCancellableFuturesCallable;
 import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.PlayerControllerUiEvents;
+import au.com.kbrsolutions.spotifystreamer.events.SpotifyStreamerActivityEvents;
+import au.com.kbrsolutions.spotifystreamer.utils.HandleCancellableFuturesCallable;
 import de.greenrobot.event.EventBus;
 
 /**
@@ -178,10 +179,13 @@ public class MusicPlayerService extends Service {
     }
 
     private void handleOnCompletion() {
+        Log.i(LOG_TAG, "handleOnCompletion - start");
         isPlaying.set(false);
+        isPausing.set(true);
         handleCancellableFuturesCallable.cancelCurrFuture();
         waitForPlayer("playTrack");
         if (mSelectedTrack < mTracksDetails.size() - 1) {
+            Log.i(LOG_TAG, "handleOnCompletion - calling playNext");
             playNextTrack();
         } else {
             Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
@@ -197,6 +201,7 @@ public class MusicPlayerService extends Service {
     }
 
     private void playPrevTrack() {
+        Log.i(LOG_TAG, "playPrevTrack - start - mSelectedTrack: " + mSelectedTrack);
         if (mSelectedTrack > 0) {
             handleCancellableFuturesCallable.cancelCurrFuture();
             --mSelectedTrack;
@@ -215,6 +220,10 @@ public class MusicPlayerService extends Service {
                 .setSselectedTrack(mSelectedTrack)
                 .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
                 .build());
+        eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_NAME)
+                        .setCurrTrackName(mTracksDetails.get(mSelectedTrack).trackName)
+                        .build()
+        );
         playTrack(mTracksDetails.get(mSelectedTrack));
     }
 
@@ -235,6 +244,7 @@ public class MusicPlayerService extends Service {
 
     private boolean handleOnError(MediaPlayer mp, int what, int extra) {
         Log.i(LOG_TAG, "handleOnError - start - what/extra: " + what + "/" + extra);
+        handleCancellableFuturesCallable.cancelCurrFuture();
         configurePlayer();
         Log.i(LOG_TAG, "handleOnError - start - mMediaPlayer: " + mMediaPlayer);
         return false;

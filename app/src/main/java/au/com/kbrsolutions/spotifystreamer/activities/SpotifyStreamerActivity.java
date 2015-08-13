@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,11 +26,13 @@ import java.util.List;
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.adapters.TrackArrayAdapter;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.events.SpotifyStreamerActivityEvents;
 import au.com.kbrsolutions.spotifystreamer.fragments.ArtistsFragment;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
 import au.com.kbrsolutions.spotifystreamer.fragments.TracksFragment;
 import au.com.kbrsolutions.spotifystreamer.services.MusicPlayerService;
 import au.com.kbrsolutions.spotifystreamer.utils.ProgressBarHandler;
+import de.greenrobot.event.EventBus;
 
 /**
  * Shows artists details or top 10 tracks of selected artist.
@@ -42,6 +45,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         TracksFragment.TracksFragmentCallbacks {
 //        ServiceConnection {
 
+    TextView currTrackName;
     private CharSequence mActivityTitle;
     private CharSequence mActivitySubtitle;
     private ArtistsFragment mArtistsFragment;
@@ -54,6 +58,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
+    private EventBus eventBus;
+
     private final String ACTIVITY_TITLE = "activity_title";
     private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
     private final String PLAYER_CONTROLLER_UI_VISIBLE = "player_controller_ui_visible";
@@ -72,6 +78,13 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         super.onCreate(savedInstanceState);
 //        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
         setContentView(R.layout.activity_spotifystreamer);
+        if (eventBus == null) {
+            eventBus = EventBus.getDefault();
+            eventBus.register(this);
+        }
+        if (!eventBus.isRegistered(this)) {
+            eventBus.register(this);
+        }
 
         getSupportFragmentManager().addOnBackStackChangedListener(
                 new FragmentManager.OnBackStackChangedListener() {
@@ -344,32 +357,48 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     private int originalDisplayOptions = -1;
-    public void showPlayNow() {
+
+    public void showPlayNow(String artistName, String albumName, String trackName) {
         ActionBar actionBar = getSupportActionBar();
         originalDisplayOptions = actionBar.getDisplayOptions();
-        createActionbarCustomView(actionBar);
+        createActionbarCustomView(actionBar, albumName, artistName, trackName);
     }
 
     public void removePlayNow() {
         Log.v(LOG_TAG, "removePlayNow - start");
         getSupportActionBar().setDisplayOptions(originalDisplayOptions);
-        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
+        // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
+        if (getSupportFragmentManager()
+                .getBackStackEntryCount() > 0) {
+            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
+        } else {
+            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+        }
         getSupportActionBar().setTitle(mActivityTitle);
         getSupportActionBar().setSubtitle(mActivitySubtitle);
     }
 
-    private void createActionbarCustomView(ActionBar actionBar) {
+    private void createActionbarCustomView(ActionBar actionBar, String artistName, String albumName, String trackName) {
         actionBar.setCustomView(R.layout.play_naw_action_bar);
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);	// | ActionBar.DISPLAY_SHOW_HOME);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);	// | ActionBar.DISPLAY_SHOW_HOME);
 
-        View save = actionBar.getCustomView().findViewById(R.id.playingNowId);
-        save.setEnabled(true);
-        save.setOnClickListener(new View.OnClickListener() {
+        View button = actionBar.getCustomView().findViewById(R.id.playingNowId);
+        button.setEnabled(true);
+        button.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
                 showPlayerController(-1, true);
             }
         });
+
+        TextView artist = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowArtistsId);
+        artist.setText(artistName);
+
+        TextView album = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowAlbumId);
+        album.setText(albumName);
+
+        currTrackName = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowTrackNameId);
+        currTrackName.setText(trackName);
     }
 
     @Override
@@ -422,4 +451,20 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             isMusicPlayerServiceBounded = false;
         }
     };
+
+    public void onEvent(SpotifyStreamerActivityEvents event) {
+        SpotifyStreamerActivityEvents.SpotifyStreamerEvents requestEvent = event.event;
+        Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent);
+        switch (requestEvent) {
+
+            case CURR_TRACK_NAME:
+                if (currTrackName != null) {
+                    currTrackName.setText(event.currTrackName);
+                }
+                break;
+
+            default:
+                throw new RuntimeException("LOC_CAT_TAG - onEvent - no code to handle requestEvent: " + requestEvent);
+        }
+    }
 }
