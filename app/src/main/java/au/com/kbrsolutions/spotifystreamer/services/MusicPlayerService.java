@@ -222,8 +222,7 @@ public class MusicPlayerService extends Service {
                 .build());
         eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_NAME)
                         .setCurrTrackName(mTracksDetails.get(mSelectedTrack).trackName)
-                        .build()
-        );
+                        .build());
         playTrack(mTracksDetails.get(mSelectedTrack));
     }
 
@@ -483,6 +482,13 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    private void sendPlayNowData() {
+        eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.SET_CURR_PLAY_NOW_DATA)
+                .setCurrArtistName("N/A")
+                .setTrackDetails(currTrackDetails)
+                .build());
+    }
+
     public void onEvent(MusicPlayerServiceEvents event) {
         MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
         Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent + "/" + mSelectedTrack + " - " + Thread.currentThread().getName());
@@ -510,6 +516,10 @@ public class MusicPlayerService extends Service {
 
             case GET_PLAYER_STATE_DETAILS:
                 sendPlayerStateDetails();
+                break;
+
+            case GET_PLAY_NOW_DATA:
+                sendPlayNowData();
                 break;
 
             default:

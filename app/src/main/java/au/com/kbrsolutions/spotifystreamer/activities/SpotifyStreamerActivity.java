@@ -26,6 +26,7 @@ import java.util.List;
 import au.com.kbrsolutions.spotifystreamer.R;
 import au.com.kbrsolutions.spotifystreamer.adapters.TrackArrayAdapter;
 import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
+import au.com.kbrsolutions.spotifystreamer.events.MusicPlayerServiceEvents;
 import au.com.kbrsolutions.spotifystreamer.events.SpotifyStreamerActivityEvents;
 import au.com.kbrsolutions.spotifystreamer.fragments.ArtistsFragment;
 import au.com.kbrsolutions.spotifystreamer.fragments.PlayerControllerUi;
@@ -54,6 +55,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private ProgressBarHandler mProgressBarHandler;
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
+    private boolean mWasPlayNowVisible;
     private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
@@ -62,6 +64,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     private final String ACTIVITY_TITLE = "activity_title";
     private final String ACTIVITY_SUB_TITLE = "activity_sub_title";
+    private final String PLAY_NOW_VISIBLE = "play_now_visible";
     private final String PLAYER_CONTROLLER_UI_VISIBLE = "player_controller_ui_visible";
     private final String ARTIST_TAG = "artist_tag";
     private final String TRACK_TAG = "track_tag";
@@ -209,11 +212,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-//        Log.v(LOG_TAG, "onSaveInstanceState");
+        Log.v(LOG_TAG, "onSaveInstanceState");
 
         outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
         outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
         outState.putBoolean(PLAYER_CONTROLLER_UI_VISIBLE, mWasPlayerControllerUiVisible);
+        outState.putBoolean(PLAY_NOW_VISIBLE, mWasPlayNowVisible);
 //        Log.v(LOG_TAG, "onSaveInstanceState - outState: " + outState);
     }
 
@@ -232,11 +236,12 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mActivitySubtitle = savedInstanceState.getCharSequence(ACTIVITY_SUB_TITLE);
         getSupportActionBar().setSubtitle(mActivitySubtitle);
         mWasPlayerControllerUiVisible = savedInstanceState.getBoolean(PLAYER_CONTROLLER_UI_VISIBLE);
+        mWasPlayNowVisible = savedInstanceState.getBoolean(PLAY_NOW_VISIBLE);
 
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
-        Log.v(LOG_TAG, "onRestoreInstanceState - end - mWasPlayerControllerUiVisible/mDialogFragment: " + mWasPlayerControllerUiVisible + "/" + mDialogFragment);
+        Log.v(LOG_TAG, "onRestoreInstanceState - end - mWasPlayerControllerUiVisible/mWasPlayNowVisible: " + mWasPlayerControllerUiVisible + "/" + mWasPlayNowVisible);
 //        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
 //            mDialogFragment.setReconnectToPlayerService();
 //        }
@@ -359,6 +364,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private int originalDisplayOptions = -1;
 
     public void showPlayNow(String artistName, String albumName, String trackName) {
+        mWasPlayNowVisible = true;
         ActionBar actionBar = getSupportActionBar();
         originalDisplayOptions = actionBar.getDisplayOptions();
         createActionbarCustomView(actionBar, albumName, artistName, trackName);
@@ -366,6 +372,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     public void removePlayNow() {
         Log.v(LOG_TAG, "removePlayNow - start");
+        mWasPlayNowVisible = false;
         getSupportActionBar().setDisplayOptions(originalDisplayOptions);
         // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
         if (getSupportFragmentManager()
@@ -420,8 +427,20 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.i(LOG_TAG, "onDestroy");
+        eventBus.unregister(this);
+    }
+
     private void processAfterConnectedToService() {
         mMusicPlayerService.processAfterConnectedToService(false);
+        if (mWasPlayNowVisible) {
+            eventBus.post(
+                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAY_NOW_DATA)
+                            .build());
+        }
     }
 
     /**
@@ -461,6 +480,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 if (currTrackName != null) {
                     currTrackName.setText(event.currTrackName);
                 }
+                break;
+
+            case SET_CURR_PLAY_NOW_DATA:
+                showPlayNow(event.currArtistName, event.trackDetails.albumName, event.trackDetails.trackName);
                 break;
 
             default:
