@@ -417,7 +417,18 @@ public class MusicPlayerService extends Service {
         Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
         prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
         PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent playPauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+        playPauseIntent.setAction(PLAY_PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
+        PendingIntent playPausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, playPauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
+        Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+        nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
+        PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+
         int prevIcon = R.drawable.ic_action_previous;
+        int playPauseIcon = R.drawable.ic_action_pause;
+        int nextIcon = R.drawable.ic_action_next;
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getApplicationContext())
@@ -425,13 +436,11 @@ public class MusicPlayerService extends Service {
                         .setSmallIcon(R.drawable.ic_action_next)
                         .setLargeIcon(largeIcon)
                         .setContentTitle(getString(R.string.service_notification_title))
-                                // Add media control buttons that invoke intents in your media service
-                        .addAction(prevIcon, "Previous", prevPendingIntent) // #0
-//                        .addAction(R.drawable.ic_pause, "Pause", pausePendingIntent)  // #1
-//                        .addAction(R.drawable.ic_next, "Next", nextPendingIntent)     // #2
-                                .setContentText(text);
-        // Make something interesting happen when the user clicks on the notification.
-        // In this case, opening the app is sufficient.
+                        .addAction(prevIcon, "", prevPendingIntent) // #0
+                        .addAction(playPauseIcon, "", playPausePendingIntent)  // #1
+                        .addAction(nextIcon, "", nextPendingIntent)     // #2
+                        .setContentText(text);
+
         Intent resultIntent = new Intent(getApplicationContext(), SpotifyStreamerActivity.class);
 
         // The stack builder object will contain an artificial back stack for the
