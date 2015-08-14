@@ -6,6 +6,8 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -17,6 +19,9 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.TaskStackBuilder;
 import android.util.Log;
 import android.widget.Toast;
+
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -370,13 +375,43 @@ public class MusicPlayerService extends Service {
     }
 
     private void sendNotification() {
-        NotificationManager mNotificationManager =
-                (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-        // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
-        mNotificationManager.notify(NOTIFICATION_ID, buildNotification());
+        if (mIsForegroundStarted) {
+            Picasso.with(this).load(currTrackDetails.albumArtLargeImageUrl).into(target);
+//            NotificationManager mNotificationManager =
+//                    (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+//            mNotificationManager.notify(NOTIFICATION_ID, buildNotification());
+        }
     }
 
-    private Notification buildNotification() {
+    /**
+     * from http://stackoverflow.com/questions/20181491/use-picasso-to-get-a-callback-with-a-bitmap
+     * check also https://github.com/square/picasso/issues/308
+     */
+    private Target target = new Target() {
+        @Override
+        public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            NotificationManager mNotificationManager =
+                    (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+            // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
+            mNotificationManager.notify(NOTIFICATION_ID, buildNotification(bitmap));
+        }
+
+        @Override
+        public void onPrepareLoad(Drawable placeHolderDrawable) {
+            Log.i(LOG_TAG, "onPrepareLoad - start");
+        }
+
+        @Override
+        public void onBitmapFailed(Drawable drawable) {
+            Log.i(LOG_TAG, "onBitmapFailed - start");
+        }
+    };
+
+//    private void someMethod() {
+//        Picasso.with(this).load("url").into(target);
+//    }
+
+    private Notification buildNotification(Bitmap largeIcon) {
         String text = getString(R.string.service_notification_text, currTrackDetails.trackName);
 
         Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
@@ -388,7 +423,7 @@ public class MusicPlayerService extends Service {
                 new NotificationCompat.Builder(getApplicationContext())
 //                        .setColor(resources.getColor(R.color.sunshine_light_blue))
                         .setSmallIcon(R.drawable.ic_action_next)
-//                        .setLargeIcon(R.drawable.ic_action_next)
+                        .setLargeIcon(largeIcon)
                         .setContentTitle(getString(R.string.service_notification_title))
                                 // Add media control buttons that invoke intents in your media service
                         .addAction(prevIcon, "Previous", prevPendingIntent) // #0
@@ -439,7 +474,7 @@ public class MusicPlayerService extends Service {
         }
         if (connectedClientsCnt.get() == 0) {
             if (!mIsForegroundStarted) {
-                startForeground(NOTIFICATION_ID, buildNotification());
+                startForeground(NOTIFICATION_ID, buildNotification(null));
                 mIsForegroundStarted = true;
             }
             Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active - Foreground started");
@@ -505,6 +540,7 @@ public class MusicPlayerService extends Service {
         super.onDestroy();
         mExecutorService.shutdown();
         stopForeground(true);
+        Picasso.with(this).cancelRequest(target);
         Log.i(LOG_TAG, "onDestroy - end");
     }
 
