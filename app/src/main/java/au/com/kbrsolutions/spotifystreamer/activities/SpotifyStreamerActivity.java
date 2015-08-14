@@ -367,7 +367,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mWasPlayNowVisible = true;
         ActionBar actionBar = getSupportActionBar();
         originalDisplayOptions = actionBar.getDisplayOptions();
-        createActionbarCustomView(actionBar, albumName, artistName, trackName);
+        createActionbarCustomView(actionBar, artistName, albumName, trackName);
     }
 
     public void removePlayNow() {
@@ -471,7 +471,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         }
     };
 
-    public void onEvent(SpotifyStreamerActivityEvents event) {
+    public void onEventMainThread(SpotifyStreamerActivityEvents event) {
         SpotifyStreamerActivityEvents.SpotifyStreamerEvents requestEvent = event.event;
         Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent);
         switch (requestEvent) {

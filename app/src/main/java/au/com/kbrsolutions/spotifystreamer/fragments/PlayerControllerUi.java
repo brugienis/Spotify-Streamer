@@ -409,7 +409,7 @@ public class PlayerControllerUi extends DialogFragment {
                             .build());
 //            Log.v(LOG_TAG, "initialProcessingAfterConnectingToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
         } else {
-            mMusicPlayerService.setTracksDetails(mTracksDetails, mSelectedTrackIdx);
+            mMusicPlayerService.setTracksDetails(mArtistName, mTracksDetails, mSelectedTrackIdx);
             isProgressBarShowing = true;
             playPause.setEnabled(false);
             playPause.setVisibility(View.GONE);

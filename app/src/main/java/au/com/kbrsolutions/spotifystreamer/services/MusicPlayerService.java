@@ -41,6 +41,7 @@ import de.greenrobot.event.EventBus;
 public class MusicPlayerService extends Service {
 
     private MediaPlayer mMediaPlayer;
+    private String mArtistName;
     private ArrayList<TrackDetails> mTracksDetails;
     private int mSelectedTrack;
     private boolean mIsForegroundStarted;
@@ -453,7 +454,8 @@ public class MusicPlayerService extends Service {
         Log.i(LOG_TAG, "onDestroy - end");
     }
 
-    public void setTracksDetails(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+    public void setTracksDetails(String artistName, ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
+        mArtistName = artistName;
         mTracksDetails = tracksDetails;
         mSelectedTrack = selectedTrack;
 //        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
@@ -462,16 +464,16 @@ public class MusicPlayerService extends Service {
     private void sendPlayerStateDetails() {
 //        eventBus.post(
           sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
-                        .setTracksDetails(mTracksDetails)
-                        .setSselectedTrack(mSelectedTrack)
-                        .setIsTrackPlaying(isPlaying.get())
-                        .setIsTrackPausing(isPausing.get())
-                        .setIsFirstTrackSelected(mSelectedTrack == 0)
-                        .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
-                        .setPlayProgressPercentage(mPlayProgressPercentage)
-                        .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-                        .build()
-        );
+                          .setTracksDetails(mTracksDetails)
+                          .setSselectedTrack(mSelectedTrack)
+                          .setIsTrackPlaying(isPlaying.get())
+                          .setIsTrackPausing(isPausing.get())
+                          .setIsFirstTrackSelected(mSelectedTrack == 0)
+                          .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
+                          .setPlayProgressPercentage(mPlayProgressPercentage)
+                          .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+                          .build()
+          );
     }
 
 //    private boolean isClientActive;
@@ -484,7 +486,7 @@ public class MusicPlayerService extends Service {
 
     private void sendPlayNowData() {
         eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.SET_CURR_PLAY_NOW_DATA)
-                .setCurrArtistName("N/A")
+                .setCurrArtistName(mArtistName)
                 .setTrackDetails(currTrackDetails)
                 .build());
     }
