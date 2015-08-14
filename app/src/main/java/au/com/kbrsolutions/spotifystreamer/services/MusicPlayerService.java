@@ -48,6 +48,7 @@ public class MusicPlayerService extends Service {
     private boolean mIsBounded;
     private boolean mIsPlayerActive;
     private boolean isPlayerControllerUiActive;
+    private boolean isRegisterForPlayNowEvents;
     protected Handler handler = new Handler();
     int trackPlaydurationMsec = -1;
     private HandleCancellableFuturesCallable handleCancellableFuturesCallable;
@@ -108,6 +109,10 @@ public class MusicPlayerService extends Service {
      * Always set mIsBounded to true.
      */
     public void processAfterConnectedToService(boolean playerControllerUi) {
+        if (mIsForegroundStarted) {
+            stopForeground(true);
+            mIsForegroundStarted = false;
+        }
         connectedClientsCnt.getAndIncrement();
         if (playerControllerUi) {
             isPlayerControllerUiActive = true;
@@ -193,6 +198,9 @@ public class MusicPlayerService extends Service {
             sendMessageToPlayerUi(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
+            eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.PLAYER_STAUS)
+                    .setCurrPlayerStatus("Stopped")
+                    .build());
             mIsPlayerActive = false;
             if (connectedClientsCnt.get() == 0) {
                 Log.i(LOG_TAG, "handleOnCompletion - all clients disconnected");
@@ -221,23 +229,18 @@ public class MusicPlayerService extends Service {
                 .setSselectedTrack(mSelectedTrack)
                 .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
                 .build());
-        eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_NAME)
-                        .setCurrTrackName(mTracksDetails.get(mSelectedTrack).trackName)
-                        .build());
         playTrack(mTracksDetails.get(mSelectedTrack));
     }
 
     private void handleOnPrepared(MediaPlayer player) {
         trackPlaydurationMsec = player.getDuration();
-        // TODO: 30/07/2015 - not sure if that is the best place to startForeground
-        if (!mIsForegroundStarted) {
-            startForeground(NOTIFICATION_ID, buildNotification());
-            mIsForegroundStarted = true;
-        }
         isPlaying.set(true);
         player.start();
         sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
                 .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+                .build());
+        eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.PLAYER_STAUS)
+                .setCurrPlayerStatus("Playing")
                 .build());
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
     }
@@ -274,6 +277,14 @@ public class MusicPlayerService extends Service {
 
     public void playTrack(TrackDetails trackDetails) {
 //        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
+        // TODO: 14/08/2015 - Activity should register/unregister interest in Playing Now. Send message below only if registered
+        if (connectedClientsCnt.get() > 0 && isRegisterForPlayNowEvents) {
+            eventBus.post(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_INFO)
+                    .setCurrArtistName(mArtistName)
+                    .setTrackDetails(mTracksDetails.get(mSelectedTrack))
+                    .setCurrPlayerStatus("Preparing")
+                    .build());
+        }
         isPlaying.set(false);
         isPausing.set(false);
         if (mMediaPlayer == null) {
@@ -388,7 +399,11 @@ public class MusicPlayerService extends Service {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         if (connectedClientsCnt.get() == 0) {
-            Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active");
+            if (!mIsForegroundStarted) {
+                startForeground(NOTIFICATION_ID, buildNotification());
+                mIsForegroundStarted = true;
+            }
+            Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active - Foreground started");
 //            isClientActive = false;
             scheduleStopForegroundChecker("processBeforeDisconnectingFromService");
         }
@@ -522,6 +537,14 @@ public class MusicPlayerService extends Service {
 
             case GET_PLAY_NOW_DATA:
                 sendPlayNowData();
+                break;
+
+            case REGISTER_FOR_PLAY_NAW_EVENTS:
+                isRegisterForPlayNowEvents = true;
+                break;
+
+            case UNREGISTER_FOR_PLAY_NAW_EVENTS:
+                isRegisterForPlayNowEvents = false;
                 break;
 
             default:

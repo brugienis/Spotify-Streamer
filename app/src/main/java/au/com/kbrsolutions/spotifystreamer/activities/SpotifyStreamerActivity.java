@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -46,7 +47,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         TracksFragment.TracksFragmentCallbacks {
 //        ServiceConnection {
 
-    TextView currTrackName;
+    private Button playerStatusBt;
+    private TextView artistTv;
+    private TextView albumTv;
+    TextView currTrackNameTv;
     private CharSequence mActivityTitle;
     private CharSequence mActivitySubtitle;
     private ArtistsFragment mArtistsFragment;
@@ -56,7 +60,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
     private boolean mWasPlayNowVisible;
-    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
+    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
@@ -364,7 +368,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private int originalDisplayOptions = -1;
 
     public void showPlayNow(String artistName, String albumName, String trackName) {
+        Log.v(LOG_TAG, "removePlayNow - start");
         mWasPlayNowVisible = true;
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NAW_EVENTS)
+                        .build());
         ActionBar actionBar = getSupportActionBar();
         originalDisplayOptions = actionBar.getDisplayOptions();
         createActionbarCustomView(actionBar, artistName, albumName, trackName);
@@ -373,6 +381,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     public void removePlayNow() {
         Log.v(LOG_TAG, "removePlayNow - start");
         mWasPlayNowVisible = false;
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NAW_EVENTS)
+                        .build());
         getSupportActionBar().setDisplayOptions(originalDisplayOptions);
         // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
         if (getSupportFragmentManager()
@@ -389,23 +400,23 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         actionBar.setCustomView(R.layout.play_naw_action_bar);
         actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);	// | ActionBar.DISPLAY_SHOW_HOME);
 
-        View button = actionBar.getCustomView().findViewById(R.id.playingNowId);
-        button.setEnabled(true);
-        button.setOnClickListener(new View.OnClickListener() {
+        playerStatusBt = (Button) actionBar.getCustomView().findViewById(R.id.playingNowId);
+        playerStatusBt.setEnabled(true);
+        playerStatusBt.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View v) {
                 showPlayerController(-1, true);
             }
         });
 
-        TextView artist = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowArtistsId);
-        artist.setText(artistName);
+        artistTv = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowArtistsId);
+        artistTv.setText(artistName);
 
-        TextView album = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowAlbumId);
-        album.setText(albumName);
+        albumTv = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowAlbumId);
+        albumTv.setText(albumName);
 
-        currTrackName = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowTrackNameId);
-        currTrackName.setText(trackName);
+        currTrackNameTv = (TextView) actionBar.getCustomView().findViewById(R.id.playingNowTrackNameId);
+        currTrackNameTv.setText(trackName);
     }
 
     @Override
@@ -476,14 +487,25 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent);
         switch (requestEvent) {
 
-            case CURR_TRACK_NAME:
-                if (currTrackName != null) {
-                    currTrackName.setText(event.currTrackName);
+            case CURR_TRACK_INFO:
+                if (artistTv != null) {
+                    artistTv.setText(event.currArtistName);
                 }
+                if (albumTv != null) {
+                    albumTv.setText(event.trackDetails.albumName);
+                }
+                if (currTrackNameTv != null) {
+                    currTrackNameTv.setText(event.trackDetails.trackName);
+                }
+                playerStatusBt.setText(event.currPlayerStatus);
                 break;
 
             case SET_CURR_PLAY_NOW_DATA:
                 showPlayNow(event.currArtistName, event.trackDetails.albumName, event.trackDetails.trackName);
+                break;
+
+            case PLAYER_STAUS:
+                playerStatusBt.setText(event.currPlayerStatus);
                 break;
 
             default:

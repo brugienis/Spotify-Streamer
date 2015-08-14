@@ -8,19 +8,20 @@ import au.com.kbrsolutions.spotifystreamer.data.TrackDetails;
 public class SpotifyStreamerActivityEvents {
 
     public enum SpotifyStreamerEvents {
-        CURR_TRACK_NAME,
-        SET_CURR_PLAY_NOW_DATA
+        CURR_TRACK_INFO,
+        SET_CURR_PLAY_NOW_DATA,
+        PLAYER_STAUS
     }
 
     public final SpotifyStreamerEvents event;
     public final String currArtistName;
-    public final String currTrackName;
+    public final String currPlayerStatus;
     public final TrackDetails trackDetails;
 
     private SpotifyStreamerActivityEvents(Builder builder) {
         this.event = builder.event;
         this.currArtistName = builder.currArtistName;
-        this.currTrackName = builder.currTrackName;
+        this.currPlayerStatus = builder.currPlayerStatus;
         this.trackDetails = builder.trackDetails;
     }
 
@@ -32,7 +33,7 @@ public class SpotifyStreamerActivityEvents {
 
         private SpotifyStreamerEvents event;
         private String currArtistName;
-        private String currTrackName;
+        private String currPlayerStatus;
         private TrackDetails trackDetails;
 
         public Builder setCurrArtistName(String currArtistName) {
@@ -40,8 +41,8 @@ public class SpotifyStreamerActivityEvents {
             return this;
         }
 
-        public Builder setCurrTrackName(String currTrackName) {
-            this.currTrackName = currTrackName;
+        public Builder setCurrPlayerStatus(String currPlayerStatus) {
+            this.currPlayerStatus = currPlayerStatus;
             return this;
         }
 
