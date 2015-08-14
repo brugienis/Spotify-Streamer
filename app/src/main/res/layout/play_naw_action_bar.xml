@@ -7,10 +7,10 @@
 
     <Button
         android:id="@+id/playingNowId"
-        android:layout_width="0dp"
+        android:layout_width="100dp"
         android:layout_height="wrap_content"
-        android:layout_weight="10"
-        android:text="Now Playing"
+        style="?android:attr/buttonStyleSmall"
+        android:text="Preparing"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:gravity="center" />
