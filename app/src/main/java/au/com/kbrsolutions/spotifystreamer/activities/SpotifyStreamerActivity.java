@@ -429,6 +429,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         super.onStop();
 //        Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         // Unbind from the service
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NAW_EVENTS)
+                        .build());
         if (isMusicPlayerServiceBounded) {
             mMusicPlayerService.processBeforeDisconnectingFromService(false);
             unbindService(mServiceConnection);
