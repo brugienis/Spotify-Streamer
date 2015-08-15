@@ -60,7 +60,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
     private boolean mWasPlayNowVisible;
-    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
+    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
@@ -384,6 +384,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NAW_EVENTS)
                         .build());
+//        eventBus.post(
+//                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET)
+//                        .build());
         getSupportActionBar().setDisplayOptions(originalDisplayOptions);
         // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
         if (getSupportFragmentManager()

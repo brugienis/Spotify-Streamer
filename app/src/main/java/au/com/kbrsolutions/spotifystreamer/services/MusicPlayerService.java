@@ -72,7 +72,8 @@ public class MusicPlayerService extends Service {
     private AtomicBoolean isPausing = new AtomicBoolean(false);
     private AtomicInteger connectedClientsCnt = new AtomicInteger(0);
     private static final String PLAY_PREV_TRACK = "play_prev_track";
-    private static final String PLAY_PAUSE_TRACK = "play_pause_track";
+    private static final String PLAY_TRACK = "play_track";
+    private static final String PAUSE_TRACK = "pause_track";
     private static final String PLAY_NEXT_TRACK = "play_next_track";
 
     private final String LOG_TAG = MusicPlayerService.class.getSimpleName();
@@ -80,20 +81,40 @@ public class MusicPlayerService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
-        Log.i(LOG_TAG, "onBind - start - action: " + action);
+        Log.i(LOG_TAG, "onStartCommand - start - action: " + action);
         if (action != null) {
             switch (action) {
 
                 case PLAY_PREV_TRACK:
-                    playPrevTrack();
+                    if (mSelectedTrack > 0) {
+                        playPrevTrack();
+                    } else {
+                        Log.i(LOG_TAG, "onStartCommand - ignoring prev request");
+                    }
                     break;
 
-                case PLAY_PAUSE_TRACK:
-                    pause();
+                case PLAY_TRACK:
+                    if (isPausing.get()) {
+                        resume();
+                    } else {
+                        Log.i(LOG_TAG, "onStartCommand - ignoring resume request");
+                    }
+                    break;
+
+                case PAUSE_TRACK:
+                    if (isPlaying.get()) {
+                        pause();
+                    } else {
+                        Log.i(LOG_TAG, "onStartCommand - ignoring pause request");
+                    }
                     break;
 
                 case PLAY_NEXT_TRACK:
-                    playNextTrack();
+                    if (mSelectedTrack < mTracksDetails.size() - 1) {
+                        playNextTrack();
+                    } else {
+                        Log.i(LOG_TAG, "onStartCommand - ignoring next request");
+                    }
                     break;
 
                 default:
@@ -353,6 +374,7 @@ public class MusicPlayerService extends Service {
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
             mIsPlayerActive = false;
+            sendNotification();
         }
     }
 
@@ -372,14 +394,22 @@ public class MusicPlayerService extends Service {
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
         sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PLAYING_TRACK)
                 .build());
+        sendNotification();
     }
+
+    private String prevAlbumLargeImageUrl;
+    private Bitmap prevAlbumLargeImageBitmap;
 
     private void sendNotification() {
         if (mIsForegroundStarted) {
-            Picasso.with(this).load(currTrackDetails.albumArtLargeImageUrl).into(target);
-//            NotificationManager mNotificationManager =
-//                    (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-//            mNotificationManager.notify(NOTIFICATION_ID, buildNotification());
+            if (prevAlbumLargeImageUrl == currTrackDetails.albumArtLargeImageUrl) {
+                NotificationManager mNotificationManager =
+                        (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+                mNotificationManager.notify(NOTIFICATION_ID, buildNotification(prevAlbumLargeImageBitmap));
+            } else {
+                prevAlbumLargeImageUrl = currTrackDetails.albumArtLargeImageUrl;
+                Picasso.with(this).load(currTrackDetails.albumArtLargeImageUrl).resize(50, 50).into(target);
+            }
         }
     }
 
@@ -390,9 +420,9 @@ public class MusicPlayerService extends Service {
     private Target target = new Target() {
         @Override
         public void onBitmapLoaded(Bitmap bitmap, Picasso.LoadedFrom from) {
+            prevAlbumLargeImageBitmap = bitmap;
             NotificationManager mNotificationManager =
                     (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-            // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
             mNotificationManager.notify(NOTIFICATION_ID, buildNotification(bitmap));
         }
 
@@ -414,20 +444,9 @@ public class MusicPlayerService extends Service {
     private Notification buildNotification(Bitmap largeIcon) {
         String text = getString(R.string.service_notification_text, currTrackDetails.trackName);
 
-        Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
-        prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
-        PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        Intent playPauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
-        playPauseIntent.setAction(PLAY_PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
-        PendingIntent playPausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, playPauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
-        Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
-        nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
-        PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
         int prevIcon = R.drawable.ic_action_previous;
-        int playPauseIcon = R.drawable.ic_action_pause;
+        int playIcon = R.drawable.ic_action_play;
+        int pauseIcon = R.drawable.ic_action_pause;
         int nextIcon = R.drawable.ic_action_next;
 
         NotificationCompat.Builder mBuilder =
@@ -436,10 +455,39 @@ public class MusicPlayerService extends Service {
                         .setSmallIcon(R.drawable.ic_action_next)
                         .setLargeIcon(largeIcon)
                         .setContentTitle(getString(R.string.service_notification_title))
-                        .addAction(prevIcon, "", prevPendingIntent) // #0
-                        .addAction(playPauseIcon, "", playPausePendingIntent)  // #1
-                        .addAction(nextIcon, "", nextPendingIntent)     // #2
                         .setContentText(text);
+
+        if (mSelectedTrack > 0) {
+            Log.v(LOG_TAG, "buildNotification - showing prev");
+            Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(prevIcon, "", prevPendingIntent);
+        }
+
+        if (isPausing.get()) {
+            Log.v(LOG_TAG, "buildNotification - showing play");
+            Intent playIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            playIntent.setAction(PLAY_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(playIcon, "", playPendingIntent);
+        }
+
+        if (isPlaying.get()) {
+            Log.v(LOG_TAG, "buildNotification - showing pause");
+            Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            pauseIntent.setAction(PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(pauseIcon, "", pausePendingIntent);
+        }
+
+        if (mSelectedTrack < mTracksDetails.size() - 1) {
+            Log.v(LOG_TAG, "buildNotification - showing next");
+            Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(nextIcon, "", nextPendingIntent);
+        }
 
         Intent resultIntent = new Intent(getApplicationContext(), SpotifyStreamerActivity.class);
 
@@ -483,8 +531,10 @@ public class MusicPlayerService extends Service {
         }
         if (connectedClientsCnt.get() == 0) {
             if (!mIsForegroundStarted) {
-                startForeground(NOTIFICATION_ID, buildNotification(null));
-                mIsForegroundStarted = true;
+                if (mTracksDetails != null) {       /* do not start foreground if no tracks data passed to the service */
+                    startForeground(NOTIFICATION_ID, buildNotification(null));
+                    mIsForegroundStarted = true;
+                }
             }
             Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active - Foreground started");
 //            isClientActive = false;
@@ -561,7 +611,6 @@ public class MusicPlayerService extends Service {
     }
 
     private void sendPlayerStateDetails() {
-//        eventBus.post(
           sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
                           .setTracksDetails(mTracksDetails)
                           .setSselectedTrack(mSelectedTrack)
@@ -629,6 +678,15 @@ public class MusicPlayerService extends Service {
 
             case REGISTER_FOR_PLAY_NAW_EVENTS:
                 isRegisterForPlayNowEvents = true;
+                /* FIXME: 15/08/2015 - if below sendPlayNowData() is uncommented, it goes for endles loop:
+08-15 18:15:58.860    5320-5320/au.com.kbrsolutions.spotifystreamer I/MusicPlayerService﹕ onEvent - start - got event/mSelectedTrack: REGISTER_FOR_PLAY_NAW_EVENTS/0 - main
+08-15 18:15:58.860    5320-5320/au.com.kbrsolutions.spotifystreamer I/SpotifyStreamerActivity﹕ onEvent - start - got event/mSelectedTrack: SET_CURR_PLAY_NOW_DATA
+08-15 18:15:58.860    5320-5320/au.com.kbrsolutions.spotifystreamer V/SpotifyStreamerActivity﹕ removePlayNow - start
+08-15 18:15:58.871    5320-5320/au.com.kbrsolutions.spotifystreamer I/MusicPlayerService﹕ onEvent - start - got event/mSelectedTrack: REGISTER_FOR_PLAY_NAW_EVENTS/0 - main
+08-15 18:15:58.871    5320-5320/au.com.kbrsolutions.spotifystreamer I/SpotifyStreamerActivity﹕ onEvent - start - got event/mSelectedTrack: SET_CURR_PLAY_NOW_DATA
+
+                */
+//                sendPlayNowData();
                 break;
 
             case UNREGISTER_FOR_PLAY_NAW_EVENTS:
