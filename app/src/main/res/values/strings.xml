@@ -26,5 +26,7 @@
     <string name="pref_country_key" translatable="false">country_code</string>
     <string name="pref_country_default">US</string>
     <string name="service_notification_title">Spotify Streamer Player</string>
-    <string name="service_notification_text">Playing "%1$s</string>
+    <string name="service_notification_playing_text">Playing "%1$s</string>
+    <string name="service_notification_pausing_text">Pausing "%1$s</string>
+    <string name="service_notification_preparing_text">Preparing "%1$s</string>
 </resources>

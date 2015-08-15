@@ -320,7 +320,7 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    TrackDetails currTrackDetails;
+    TrackDetails currPlayingTrackDetails;
 
     // TODO: 29/07/2015 not sure if I need below. Just do not do anything that would caused Error?
     private void waitForPlayer(String source) {
@@ -338,6 +338,8 @@ public class MusicPlayerService extends Service {
 
     public void playTrack(TrackDetails trackDetails) {
 //        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
+        isPlaying.set(false);
+        isPausing.set(false);
         // TODO: 14/08/2015 - Activity should register/unregister interest in Playing Now. Send message below only if registered
         if (connectedClientsCnt.get() > 0 && isRegisterForPlayNowEvents) {
             sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_INFO)
@@ -346,14 +348,13 @@ public class MusicPlayerService extends Service {
                     .setCurrPlayerStatus("Preparing")
                     .build());
         }
-        isPlaying.set(false);
-        isPausing.set(false);
+        sendNotification();
         if (mMediaPlayer == null) {
             configurePlayer();
         }
         waitForPlayer("playTrack");
         mIsPlayerActive = true;
-        currTrackDetails = trackDetails;
+        currPlayingTrackDetails = trackDetails;
         try {
             mMediaPlayer.reset();
             mMediaPlayer.setDataSource(trackDetails.previewUrl);
@@ -383,8 +384,8 @@ public class MusicPlayerService extends Service {
         mIsPlayerActive = true;
         // TODO: 29/07/2015 - something wrong with the if below?
         if (mMediaPlayer == null) {
-            if (currTrackDetails != null) {
-                playTrack(currTrackDetails);
+            if (currPlayingTrackDetails != null) {
+                playTrack(currPlayingTrackDetails);
             }
             return;
         }
@@ -402,13 +403,15 @@ public class MusicPlayerService extends Service {
 
     private void sendNotification() {
         if (mIsForegroundStarted) {
-            if (prevAlbumLargeImageUrl == currTrackDetails.albumArtLargeImageUrl) {
+            TrackDetails selectedTrackDetails = mTracksDetails.get(mSelectedTrack);
+            if (prevAlbumLargeImageUrl == selectedTrackDetails.albumArtLargeImageUrl) {
                 NotificationManager mNotificationManager =
                         (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
                 mNotificationManager.notify(NOTIFICATION_ID, buildNotification(prevAlbumLargeImageBitmap));
             } else {
-                prevAlbumLargeImageUrl = currTrackDetails.albumArtLargeImageUrl;
-                Picasso.with(this).load(currTrackDetails.albumArtLargeImageUrl).resize(50, 50).into(target);
+                prevAlbumLargeImageUrl = selectedTrackDetails.albumArtLargeImageUrl;
+//                Picasso.with(this).load(currPlayingTrackDetails.albumArtLargeImageUrl).resize(50, 50).into(target);
+                Picasso.with(this).load(selectedTrackDetails.albumArtLargeImageUrl).into(target);
             }
         }
     }
@@ -442,8 +445,7 @@ public class MusicPlayerService extends Service {
 //    }
 
     private Notification buildNotification(Bitmap largeIcon) {
-        String text = getString(R.string.service_notification_text, currTrackDetails.trackName);
-
+        // TODO: 16/08/2015 move below to onCreate?
         int prevIcon = R.drawable.ic_action_previous;
         int playIcon = R.drawable.ic_action_play;
         int pauseIcon = R.drawable.ic_action_pause;
@@ -454,8 +456,7 @@ public class MusicPlayerService extends Service {
 //                        .setColor(resources.getColor(R.color.sunshine_light_blue))
                         .setSmallIcon(R.drawable.ic_action_next)
                         .setLargeIcon(largeIcon)
-                        .setContentTitle(getString(R.string.service_notification_title))
-                        .setContentText(text);
+                        .setContentTitle(getString(R.string.service_notification_title));
 
         if (mSelectedTrack > 0) {
             Log.v(LOG_TAG, "buildNotification - showing prev");
@@ -465,20 +466,24 @@ public class MusicPlayerService extends Service {
             mBuilder.addAction(prevIcon, "", prevPendingIntent);
         }
 
+        TrackDetails selectedTrackDetails = mTracksDetails.get(mSelectedTrack);
         if (isPausing.get()) {
             Log.v(LOG_TAG, "buildNotification - showing play");
             Intent playIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             playIntent.setAction(PLAY_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(playIcon, "", playPendingIntent);
-        }
-
-        if (isPlaying.get()) {
+            mBuilder.setContentText(getString(R.string.service_notification_pausing_text, selectedTrackDetails.trackName));
+        } else if (isPlaying.get()) {
             Log.v(LOG_TAG, "buildNotification - showing pause");
             Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             pauseIntent.setAction(PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(pauseIcon, "", pausePendingIntent);
+            mBuilder.setContentText(getString(R.string.service_notification_playing_text, selectedTrackDetails.trackName));
+        } else {
+            Log.v(LOG_TAG, "buildNotification - showing prepare");
+            mBuilder.setContentText(getString(R.string.service_notification_preparing_text, selectedTrackDetails.trackName));
         }
 
         if (mSelectedTrack < mTracksDetails.size() - 1) {
@@ -488,6 +493,9 @@ public class MusicPlayerService extends Service {
             PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(nextIcon, "", nextPendingIntent);
         }
+
+        /* API 21 - start */
+        /* API 21 - end */
 
         Intent resultIntent = new Intent(getApplicationContext(), SpotifyStreamerActivity.class);
 
@@ -610,6 +618,9 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
+    /**
+     * problem - start playing track and click home button. when the music stops playing and a minute passed the service kills itself. Open app from the recents. The PlayerUi starts and tries to get details from the service that just started and has no details of selected tracks. NullPointerException in MusicPlayerService.sendPlayerStateDetails. PlayerUi was showing as dialog.
+     */
     private void sendPlayerStateDetails() {
           sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
                           .setTracksDetails(mTracksDetails)
@@ -627,7 +638,7 @@ public class MusicPlayerService extends Service {
     private void sendPlayNowData() {
         sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.SET_CURR_PLAY_NOW_DATA)
                 .setCurrArtistName(mArtistName)
-                .setTrackDetails(currTrackDetails)
+                .setTrackDetails(currPlayingTrackDetails)
                 .build());
     }
 
