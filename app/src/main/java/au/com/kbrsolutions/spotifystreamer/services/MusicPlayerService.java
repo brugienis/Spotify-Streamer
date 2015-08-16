@@ -1,5 +1,6 @@
 package au.com.kbrsolutions.spotifystreamer.services;
 
+import android.annotation.TargetApi;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -244,23 +245,28 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    private boolean isLastTrackPlayed;
     private void handleOnCompletion() {
         Log.i(LOG_TAG, "handleOnCompletion - start");
         isPlaying.set(false);
         isPausing.set(true);
         handleCancellableFuturesCallable.cancelCurrFuture();
         waitForPlayer("playTrack");
+//        ++mSelectedTrack;
         if (mSelectedTrack < mTracksDetails.size() - 1) {
+//        if (mSelectedTrack < mTracksDetails.size()) {
             Log.i(LOG_TAG, "handleOnCompletion - calling playNext");
             playNextTrack();
         } else {
             Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
+            isLastTrackPlayed = true;
             sendMessageToPlayerUi(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
             sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.PLAYER_STAUS)
-                    .setCurrPlayerStatus("Stopped")
+                    .setCurrPlayerStatus(getString(R.string.player_stopped))
                     .build());
+            sendNotification();
             mIsPlayerActive = false;
             if (connectedClientsCnt.get() == 0) {
                 Log.i(LOG_TAG, "handleOnCompletion - all clients disconnected");
@@ -300,7 +306,7 @@ public class MusicPlayerService extends Service {
                 .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
                 .build());
         sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.PLAYER_STAUS)
-                .setCurrPlayerStatus("Playing")
+                .setCurrPlayerStatus(getString(R.string.player_playing))
                 .build());
         sendNotification();
         handleCancellableFuturesCallable.submitCallable(new TrackPlayProgressCheckerCallable());
@@ -340,12 +346,13 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
         isPlaying.set(false);
         isPausing.set(false);
+        isLastTrackPlayed = false;
         // TODO: 14/08/2015 - Activity should register/unregister interest in Playing Now. Send message below only if registered
         if (connectedClientsCnt.get() > 0 && isRegisterForPlayNowEvents) {
             sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_INFO)
                     .setCurrArtistName(mArtistName)
                     .setTrackDetails(mTracksDetails.get(mSelectedTrack))
-                    .setCurrPlayerStatus("Preparing")
+                    .setCurrPlayerStatus(getString(R.string.player_preparing))
                     .build());
         }
         sendNotification();
@@ -380,6 +387,7 @@ public class MusicPlayerService extends Service {
     }
 
     public void resume() {
+        isLastTrackPlayed = false;
         waitForPlayer("resume");
         mIsPlayerActive = true;
         // TODO: 29/07/2015 - something wrong with the if below?
@@ -440,10 +448,6 @@ public class MusicPlayerService extends Service {
         }
     };
 
-//    private void someMethod() {
-//        Picasso.with(this).load("url").into(target);
-//    }
-
     private Notification buildNotification(Bitmap largeIcon) {
         // TODO: 16/08/2015 move below to onCreate?
         int prevIcon = R.drawable.ic_action_previous;
@@ -492,9 +496,93 @@ public class MusicPlayerService extends Service {
             nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(nextIcon, "", nextPendingIntent);
+        } else if (isLastTrackPlayed) {
+            mBuilder.setContentText(getString(R.string.service_notification_stopped_text, selectedTrackDetails.trackName));
+        }
+
+        Intent resultIntent = new Intent(getApplicationContext(), SpotifyStreamerActivity.class);
+
+        // The stack builder object will contain an artificial back stack for the
+        // started Activity.
+        // This ensures that navigating backward from the Activity leads out of
+        // your application to the Home screen.
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(getApplicationContext());
+        stackBuilder.addNextIntent(resultIntent);
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(
+                        0,
+                        PendingIntent.FLAG_UPDATE_CURRENT
+                );
+        mBuilder.setContentIntent(resultPendingIntent);
+
+        return mBuilder.build();
+    }
+
+    /**
+     * Leave for later
+     *
+     * @param largeIcon
+     * @return
+     */
+    @TargetApi(21)
+    private Notification buildNotificationApi21Plus(Bitmap largeIcon) {
+        // TODO: 16/08/2015 move below to onCreate?
+        int prevIcon = R.drawable.ic_action_previous;
+        int playIcon = R.drawable.ic_action_play;
+        int pauseIcon = R.drawable.ic_action_pause;
+        int nextIcon = R.drawable.ic_action_next;
+
+        Notification.Builder mBuilder =
+                new Notification.Builder(getApplicationContext())
+//                        .setColor(resources.getColor(R.color.sunshine_light_blue))
+                        .setSmallIcon(R.drawable.ic_action_next)
+                        .setLargeIcon(largeIcon)
+                        .setContentTitle(getString(R.string.service_notification_title));
+
+        if (mSelectedTrack > 0) {
+            Log.v(LOG_TAG, "buildNotification - showing prev");
+            Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(prevIcon, "", prevPendingIntent);
+        }
+
+        TrackDetails selectedTrackDetails = mTracksDetails.get(mSelectedTrack);
+        if (isPausing.get()) {
+            Log.v(LOG_TAG, "buildNotification - showing play");
+            Intent playIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            playIntent.setAction(PLAY_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(playIcon, "", playPendingIntent);
+            mBuilder.setContentText(getString(R.string.service_notification_pausing_text, selectedTrackDetails.trackName));
+        } else if (isPlaying.get()) {
+            Log.v(LOG_TAG, "buildNotification - showing pause");
+            Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            pauseIntent.setAction(PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(pauseIcon, "", pausePendingIntent);
+            mBuilder.setContentText(getString(R.string.service_notification_playing_text, selectedTrackDetails.trackName));
+        } else {
+            Log.v(LOG_TAG, "buildNotification - showing prepare");
+            mBuilder.setContentText(getString(R.string.service_notification_preparing_text, selectedTrackDetails.trackName));
+        }
+
+        if (mSelectedTrack < mTracksDetails.size() - 1) {
+            Log.v(LOG_TAG, "buildNotification - showing next");
+            Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
+            nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
+            PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+            mBuilder.addAction(nextIcon, "", nextPendingIntent);
+        } else {
+            mBuilder.setContentText(getString(R.string.service_notification_stopped_text, selectedTrackDetails.trackName));
         }
 
         /* API 21 - start */
+        mBuilder
+                .setStyle(new Notification.MediaStyle())
+                .setStyle(new Notification.MediaStyle().setShowActionsInCompactView(0 /* #1: pause button */));
+//                .setMediaSession(mMediaSession.getSessionToken())
+//        ;
         /* API 21 - end */
 
         Intent resultIntent = new Intent(getApplicationContext(), SpotifyStreamerActivity.class);
@@ -513,11 +601,6 @@ public class MusicPlayerService extends Service {
         mBuilder.setContentIntent(resultPendingIntent);
 
         return mBuilder.build();
-
-//        NotificationManager mNotificationManager =
-//                (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
-//        // WEATHER_NOTIFICATION_ID allows you to update the notification later on.
-//        mNotificationManager.notify(WEATHER_NOTIFICATION_ID, mBuilder.build());
     }
 
     /**
@@ -636,7 +719,12 @@ public class MusicPlayerService extends Service {
     }
 
     private void sendPlayNowData() {
+        String playerStatus = isPlaying.get() ?
+                getString(R.string.player_playing) :
+                isPausing.get() ?
+                        getResources().getString(R.string.player_paused) : getString(R.string.player_preparing);
         sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.SET_CURR_PLAY_NOW_DATA)
+                .setCurrPlayerStatus(playerStatus)
                 .setCurrArtistName(mArtistName)
                 .setTrackDetails(currPlayingTrackDetails)
                 .build());

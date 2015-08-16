@@ -25,8 +25,16 @@
     <string name="pref_country_label">Country code</string>
     <string name="pref_country_key" translatable="false">country_code</string>
     <string name="pref_country_default">US</string>
+
+    <!-- MusicPlayerService -->
     <string name="service_notification_title">Spotify Streamer Player</string>
+    <string name="service_notification_preparing_text">Preparing "%1$s</string>
     <string name="service_notification_playing_text">Playing "%1$s</string>
     <string name="service_notification_pausing_text">Pausing "%1$s</string>
-    <string name="service_notification_preparing_text">Preparing "%1$s</string>
+    <string name="service_notification_stopped_text">Stopped</string>
+
+    <string name="player_preparing">Preparing</string>
+    <string name="player_playing">Playing</string>
+    <string name="player_paused">Paused</string>
+    <string name="player_stopped">Stopped</string>
 </resources>

@@ -46,7 +46,7 @@ public class PlayerControllerUi extends DialogFragment {
 //        void showProgress();
 //        void hideProgress();
         void playerControllerUiIdNotVisible();
-        void showPlayNow(String artistName, String albumName, String trackName);
+        void showPlayNow(String playerStatus, String artistName, String albumName, String trackName);
         void removePlayNow();
     }
 
@@ -593,7 +593,12 @@ public class PlayerControllerUi extends DialogFragment {
 //            Log.i(LOG_TAG, "onStop - hideProgress called");
         }
         TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
-        mCallbacks.showPlayNow(mArtistName, trackDetails.albumName, trackDetails.trackName);
+        // TODO: 16/08/2015 - move those strings to string
+        String playerStatus = isPlaying ?
+                getString(R.string.player_playing) :
+                isPausing ?
+                        getResources().getString(R.string.player_paused) : getString(R.string.player_preparing);
+        mCallbacks.showPlayNow(playerStatus, mArtistName, trackDetails.albumName, trackDetails.trackName);
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
