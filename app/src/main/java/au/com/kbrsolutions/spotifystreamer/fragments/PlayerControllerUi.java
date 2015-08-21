@@ -47,7 +47,10 @@ public class PlayerControllerUi extends DialogFragment {
 //        void hideProgress();
         void playerControllerUiIdNotVisible();
         void showPlayNow(String playerStatus, String artistName, String albumName, String trackName);
-        void removePlayNow();
+        void removePlayNow(String source);
+        boolean wasPlayerControllerUiVisibleOnRestart();
+        void setWasPlayerControllerUiVisible(boolean value);
+//        void setReconnectToPlayerService();
     }
 
     private View playPause;
@@ -76,7 +79,9 @@ public class PlayerControllerUi extends DialogFragment {
     private boolean isPausing;
     private boolean mReconnectToPlayerService;
     private boolean isMusicPlayerServiceBounded;
-    private boolean isProgressBarShowing;
+    private boolean isThisSessionOnCreateCalled;
+//    private boolean isProgressBarShowing;
+//    private boolean isReconnectToPlayerService;
     private PlayerControllerUiCallbacks mCallbacks;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
@@ -107,6 +112,7 @@ public class PlayerControllerUi extends DialogFragment {
         args.putInt(SELECTED_TRACK, selectedTrack);
         args.putBoolean(RECONNECT_TO_PLAYER_SERVICE, reconnectToPlayerService);
         f.setArguments(args);
+        Log.v(LOG_TAG, "newInstance - start - hash: " + f.hashCode());
 
         return f;
     }
@@ -147,15 +153,10 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-        mCallbacks.removePlayNow();
-    }
-
-    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        Log.v(LOG_TAG, "onCreate - start");
+        Log.v(LOG_TAG, "onCreate - start - hash: " + hashCode());
+        isThisSessionOnCreateCalled = true;
 
         if (getArguments() != null) {
             if (getArguments().containsKey(TRACKS_DETAILS)) {
@@ -170,6 +171,7 @@ public class PlayerControllerUi extends DialogFragment {
             if (getArguments().containsKey(RECONNECT_TO_PLAYER_SERVICE)) {
                 mReconnectToPlayerService = getArguments().getBoolean(RECONNECT_TO_PLAYER_SERVICE);
             }
+            Log.v(LOG_TAG, "onCreate - mReconnectToPlayerService: " + mReconnectToPlayerService);
         }
         setRetainInstance(true);
 
@@ -185,7 +187,7 @@ public class PlayerControllerUi extends DialogFragment {
                              Bundle savedInstanceState) {
         // Inflate the layout to use as dialog or embedded fragment
 //        Log.v(LOG_TAG, "onCreateView - start - savedInstanceState: " + savedInstanceState);
-//        Log.v(LOG_TAG, "onCreateView - start");
+        Log.v(LOG_TAG, "onCreateView - start - savedInstanceState/hash: " + (savedInstanceState == null) + "/" + hashCode());
 
         if (savedInstanceState != null) {
             mReconnectToPlayerService = true;   // configuration changed?
@@ -279,7 +281,7 @@ public class PlayerControllerUi extends DialogFragment {
         }
 
 //        if (mMusicPlayerService == null) {
-            connectToMusicPlayerService();
+//            connectToMusicPlayerService();  // moved ro onResume()
 //        } else {
 //            mMusicPlayerService.processAfterConnectedToService(true);
 //            eventBus.post(
@@ -382,8 +384,7 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     /**
-     * Starts MusicService as soon as possible - if it wasn't already started - when users clicks on
-     * the track, most likely they will want to play them.
+     *
      */
     private void connectToMusicPlayerService() {
         Log.i(LOG_TAG, "connectToMusicPlayerService - start - mMusicPlayerService/isMusicPlayerServiceBounded: " + mMusicPlayerService + "/" + isMusicPlayerServiceBounded);
@@ -400,25 +401,40 @@ public class PlayerControllerUi extends DialogFragment {
     }
 
     private void initialProcessingAfterConnectingToService() {
-//        Log.i(LOG_TAG, "initialProcessingAfterConnectingToService - mSelectedTrackIdx: " + mSelectedTrackIdx);
+        Log.i(LOG_TAG, "initialProcessingAfterConnectingToService - mReconnectToPlayerService: " + mReconnectToPlayerService);
         mMusicPlayerService.processAfterConnectedToService(true);
         if (mReconnectToPlayerService) {
 //            Log.v(LOG_TAG, "initialProcessingAfterConnectingToService - mReconnectToPlayerService before mMusicPlayerService: " + mMusicPlayerService);
             eventBus.post(
                     new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET_PLAYER_STATE_DETAILS)
                             .build());
+            mReconnectToPlayerService = false;
 //            Log.v(LOG_TAG, "initialProcessingAfterConnectingToService - mReconnectToPlayerService after  mMusicPlayerService: " + mMusicPlayerService);
         } else {
-            mMusicPlayerService.setTracksDetails(mArtistName, mTracksDetails, mSelectedTrackIdx);
-            isProgressBarShowing = true;
-            playPause.setEnabled(false);
-            playPause.setVisibility(View.GONE);
-            playPauseProgressBar.setVisibility(View.VISIBLE);
-            eventBus.post(
-                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
-                            .build());
+            setTracksDetailsAndPlaySelectedTrack();
+//            mMusicPlayerService.setTracksDetails(mArtistName, mTracksDetails, mSelectedTrackIdx);
+//            playPause.setEnabled(false);
+//            playPause.setVisibility(View.GONE);
+//            playPauseProgressBar.setVisibility(View.VISIBLE);
+//            eventBus.post(
+//                    new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+//                            .build());
         }
     }
+
+    private void setTracksDetailsAndPlaySelectedTrack() {
+        mMusicPlayerService.setTracksDetails(mArtistName, mTracksDetails, mSelectedTrackIdx);
+        playPause.setEnabled(false);
+        playPause.setVisibility(View.GONE);
+        playPauseProgressBar.setVisibility(View.VISIBLE);
+        eventBus.post(
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.PLAY_TRACK)
+                        .build());
+    }
+
+    // TODO: 20/08/2015   connectedClientsCnt after each rotation is incremented by one because it was already bounded. Think about it.
+    // Do not use isMusicPlayerServiceBounded because when later in onStop() there is an attempt to unbind and it crashed.
+    // Keep calling prepare beforeUnbind separate from real unbindService*).
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -457,7 +473,8 @@ public class PlayerControllerUi extends DialogFragment {
      * Normally isPlaying is the oposite isPausing. But, when Player UI gets its state from the MusicPlayerService, they both could be false.
      * It can happen is the OnPrepare is active. If that is happening the playPause should be invisible and the progress bar visible.
      */
-    // TODO: 5/08/2015 something is wrong here. You click pause. Music stops. Change orientation and click play. It should resume, but it plays and progress goes to zero. 
+    // TODO: 5/08/2015 something is wrong here. You click pause. Music stops. Change orientation and click play. It should resume, but it plays and progress goes to zero.
+    // TODO: 20/08/2015 happened again
     private void playPauseClicked() {
         if (isPlaying) {
             mMusicPlayerService.pause();
@@ -467,9 +484,11 @@ public class PlayerControllerUi extends DialogFragment {
         } else {
             // TODO: 3/08/2015 - how can we go into that part of code - investigate
             // if track is in the prepare process, both  isPlaying and isPausing are false. Then, there will come event START_PLAYING_TRACK and playPause become enabled.
-            // If user clicks on it the controll will move to this part of code.
-            // Make sure isPlaying is set to true before thet view is enabled.
-            if (true) throw new RuntimeException("PlayerControllerUi.playPauseClicked - we should never be here");
+            // If user clicks on it the control will move to this part of code.
+            // Make sure isPlaying is set to true before that view is enabled.
+//            if (true) throw new RuntimeException("PlayerControllerUi.playPauseClicked - we should never be here");
+            // we should never be here - ignore this click
+            return;
         }
         isPlaying = !isPlaying;
         isPausing = !isPausing;
@@ -489,15 +508,15 @@ public class PlayerControllerUi extends DialogFragment {
 
     public void onEventMainThread(PlayerControllerUiEvents event) {
 //        if (event.event == PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS & event.playProgressPercentage == 0 ||
-        if (event.event != PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS) {
-            Log.i(LOG_TAG, "onEventMainThread - event/playProgressPercentage" + event.event + "/" + event.playProgressPercentage);
-        }
+//        if (event.event != PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS) {
+//            Log.i(LOG_TAG, "onEventMainThread - event/playProgressPercentage" + event.event + "/" + event.playProgressPercentage);
+//        }
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
             case START_PLAYING_TRACK:
                 isPlaying = true;
                 playPause.setEnabled(true);
-                isProgressBarShowing = false;
+//                isProgressBarShowing = false;
                 playPause.setBackground(pauseDrawable);
                 playPause.setVisibility(View.VISIBLE);
                 playPauseProgressBar.setVisibility(View.GONE);
@@ -558,23 +577,54 @@ public class PlayerControllerUi extends DialogFragment {
                 break;
 
             case PROCESS_PLAYER_STATE:
-                mTracksDetails = event.tracksDetails;
-                mSelectedTrackIdx = event.selectedTrack;
-//                TrackDetails trackDetails = event.tracksDetails.get(selectedTrackIdx);
-                isPlaying = event.isTrackPlaying;
-                isPausing = event.isTrackPausing;
-                showCurrentTrackDetails(
-                        event.tracksDetails.get(mSelectedTrackIdx),
-                        event.isTrackPlaying,
-                        event.isTrackPausing,
-                        event.isFirstTrackSelected,
-                        event.isLastTrackSelected,
-                        event.playProgressPercentage,
-                        event.durationTimeInSecs
-                );
+                if (event.tracksDetails == null) {
+//                    mSelectedTrackIdx = event.selectedTrack;
+//                    isPlaying = event.isTrackPlaying;
+//                    isPausing = event.isTrackPausing;
+                    showCurrentTrackDetails(
+                            mTracksDetails.get(mSelectedTrackIdx),
+                            false,
+                            false,
+                            mSelectedTrackIdx == 0,
+                            mSelectedTrackIdx == mTracksDetails.size() - 1,
+                            -1,
+                            -1);
+                    setTracksDetailsAndPlaySelectedTrack();
+                } else {
+                    mTracksDetails = event.tracksDetails;
+                    mSelectedTrackIdx = event.selectedTrack;
+                    isPlaying = event.isTrackPlaying;
+                    isPausing = event.isTrackPausing;
+                    showCurrentTrackDetails(
+                            event.tracksDetails.get(mSelectedTrackIdx),
+                            event.isTrackPlaying,
+                            event.isTrackPausing,
+                            event.isFirstTrackSelected,
+                            event.isLastTrackSelected,
+                            event.playProgressPercentage,
+                            event.durationTimeInSecs
+                    );
+                }
 //                Log.i(LOG_TAG, "onEvent - calling processAfterConnectedToService(true)");
                 break;
         }
+    }
+
+    public void setReconnectToPlayerService() {
+        mReconnectToPlayerService = true;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mCallbacks.removePlayNow("onResume " + hashCode());
+        Log.v(LOG_TAG, "onResume - start - wasPlayerControllerUiVisibleOnRestart/isThisSessionOnCreateCalled: " + mCallbacks.wasPlayerControllerUiVisibleOnRestart() + "/" + isThisSessionOnCreateCalled);
+        if (mCallbacks.wasPlayerControllerUiVisibleOnRestart() || !isThisSessionOnCreateCalled) {
+            mReconnectToPlayerService = true;
+        }
+        mCallbacks.setWasPlayerControllerUiVisible(true);
+        Log.v(LOG_TAG, "onResume - start - mReconnectToPlayerService/ hash: " + mReconnectToPlayerService + "/" + hashCode());
+        connectToMusicPlayerService();
     }
 
     /**
@@ -583,22 +633,23 @@ public class PlayerControllerUi extends DialogFragment {
     @Override
     public void onStop() {
         super.onStop();
-//        Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-        mMusicPlayerService.processBeforeDisconnectingFromService(true);
+        Log.i(LOG_TAG, "onStop - start - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//        mMusicPlayerService.processBeforeDisconnectingFromService(true);
+        isThisSessionOnCreateCalled = false;
         if (isMusicPlayerServiceBounded) {
             getActivity().unbindService(mServiceConnection);
+//            mMusicPlayerService.processBeforeDisconnectingFromService(true);  // moved out of the loop 21/08/2015
             isMusicPlayerServiceBounded = false;
+            Log.i(LOG_TAG, "onStop - start - after unbindService - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         }
-        if (isProgressBarShowing) {
-//            Log.i(LOG_TAG, "onStop - hideProgress called");
-        }
+        mMusicPlayerService.processBeforeDisconnectingFromService(true);
         TrackDetails trackDetails = mTracksDetails.get(mSelectedTrackIdx);
-        // TODO: 16/08/2015 - move those strings to string
         String playerStatus = isPlaying ?
                 getString(R.string.player_playing) :
                 isPausing ?
                         getResources().getString(R.string.player_paused) : getString(R.string.player_preparing);
         mCallbacks.showPlayNow(playerStatus, mArtistName, trackDetails.albumName, trackDetails.trackName);
+        mCallbacks.setWasPlayerControllerUiVisible(false);
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 

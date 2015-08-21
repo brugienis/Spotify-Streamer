@@ -170,6 +170,7 @@ public class MusicPlayerService extends Service {
      * Always set mIsBounded to true.
      */
     public void processAfterConnectedToService(boolean playerControllerUi) {
+        Log.i(LOG_TAG, "processAfterConnectedToService - start - playerControllerUi: " + playerControllerUi);
         if (mIsForegroundStarted) {
             stopForeground(true);
             mIsForegroundStarted = false;
@@ -247,7 +248,7 @@ public class MusicPlayerService extends Service {
 
     private boolean isLastTrackPlayed;
     private void handleOnCompletion() {
-        Log.i(LOG_TAG, "handleOnCompletion - start");
+//        Log.i(LOG_TAG, "handleOnCompletion - start");
         isPlaying.set(false);
         isPausing.set(true);
         handleCancellableFuturesCallable.cancelCurrFuture();
@@ -255,7 +256,7 @@ public class MusicPlayerService extends Service {
 //        ++mSelectedTrack;
         if (mSelectedTrack < mTracksDetails.size() - 1) {
 //        if (mSelectedTrack < mTracksDetails.size()) {
-            Log.i(LOG_TAG, "handleOnCompletion - calling playNext");
+//            Log.i(LOG_TAG, "handleOnCompletion - calling playNext");
             playNextTrack();
         } else {
             Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
@@ -381,7 +382,7 @@ public class MusicPlayerService extends Service {
             sendMessageToPlayerUi(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
                             .build());
-            mIsPlayerActive = false;
+            mIsPlayerActive = true;
             sendNotification();
         }
     }
@@ -463,7 +464,7 @@ public class MusicPlayerService extends Service {
                         .setContentTitle(getString(R.string.service_notification_title));
 
         if (mSelectedTrack > 0) {
-            Log.v(LOG_TAG, "buildNotification - showing prev");
+//            Log.v(LOG_TAG, "buildNotification - showing prev");
             Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -472,26 +473,26 @@ public class MusicPlayerService extends Service {
 
         TrackDetails selectedTrackDetails = mTracksDetails.get(mSelectedTrack);
         if (isPausing.get()) {
-            Log.v(LOG_TAG, "buildNotification - showing play");
+//            Log.v(LOG_TAG, "buildNotification - showing play");
             Intent playIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             playIntent.setAction(PLAY_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(playIcon, "", playPendingIntent);
             mBuilder.setContentText(getString(R.string.service_notification_pausing_text, selectedTrackDetails.trackName));
         } else if (isPlaying.get()) {
-            Log.v(LOG_TAG, "buildNotification - showing pause");
+//            Log.v(LOG_TAG, "buildNotification - showing pause");
             Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             pauseIntent.setAction(PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(pauseIcon, "", pausePendingIntent);
             mBuilder.setContentText(getString(R.string.service_notification_playing_text, selectedTrackDetails.trackName));
         } else {
-            Log.v(LOG_TAG, "buildNotification - showing prepare");
+//            Log.v(LOG_TAG, "buildNotification - showing prepare");
             mBuilder.setContentText(getString(R.string.service_notification_preparing_text, selectedTrackDetails.trackName));
         }
 
         if (mSelectedTrack < mTracksDetails.size() - 1) {
-            Log.v(LOG_TAG, "buildNotification - showing next");
+//            Log.v(LOG_TAG, "buildNotification - showing next");
             Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -611,6 +612,7 @@ public class MusicPlayerService extends Service {
      * Always set mIsBounded to true.
      */
     public void processBeforeDisconnectingFromService(boolean playerControllerUi) {
+        Log.i(LOG_TAG, "processBeforeDisconnectingFromService - start - playerControllerUi: " + playerControllerUi);
         mostRecentClientDisconnectFromServiceTimeMillis = System.currentTimeMillis();
         connectedClientsCnt.getAndDecrement();
         if (playerControllerUi) {
@@ -641,7 +643,7 @@ public class MusicPlayerService extends Service {
 //            Log.i(LOG_TAG, "onUnbind - player is not active");
 //            scheduleStopForegroundChecker("onUnbind");
 //        }
-        Log.i(LOG_TAG, "onUnbind - end");
+        Log.i(LOG_TAG, "onUnbind - end - connectedClientsCnt: " + connectedClientsCnt);
         return false;
     }
 
@@ -701,21 +703,32 @@ public class MusicPlayerService extends Service {
 //        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
+    public boolean areTracksDetailsSet() {
+        return mTracksDetails != null;
+    }
+
     /**
      * problem - start playing track and click home button. when the music stops playing and a minute passed the service kills itself. Open app from the recents. The PlayerUi starts and tries to get details from the service that just started and has no details of selected tracks. NullPointerException in MusicPlayerService.sendPlayerStateDetails. PlayerUi was showing as dialog.
      */
     private void sendPlayerStateDetails() {
-          sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
-                          .setTracksDetails(mTracksDetails)
-                          .setSselectedTrack(mSelectedTrack)
-                          .setIsTrackPlaying(isPlaying.get())
-                          .setIsTrackPausing(isPausing.get())
-                          .setIsFirstTrackSelected(mSelectedTrack == 0)
-                          .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
-                          .setPlayProgressPercentage(mPlayProgressPercentage)
-                          .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-                          .build()
-          );
+        if (mTracksDetails == null) {
+            sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
+                            .setTracksDetails(mTracksDetails)
+                            .build()
+            );
+        } else {
+            sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PROCESS_PLAYER_STATE)
+                            .setTracksDetails(mTracksDetails)
+                            .setSselectedTrack(mSelectedTrack)
+                            .setIsTrackPlaying(isPlaying.get())
+                            .setIsTrackPausing(isPausing.get())
+                            .setIsFirstTrackSelected(mSelectedTrack == 0)
+                            .setIsLastTrackSelected(mSelectedTrack == mTracksDetails.size() - 1)
+                            .setPlayProgressPercentage(mPlayProgressPercentage)
+                            .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
+                            .build()
+            );
+        }
     }
 
     private void sendPlayNowData() {
@@ -775,20 +788,11 @@ public class MusicPlayerService extends Service {
                 sendPlayNowData();
                 break;
 
-            case REGISTER_FOR_PLAY_NAW_EVENTS:
+            case REGISTER_FOR_PLAY_NOW_EVENTS:
                 isRegisterForPlayNowEvents = true;
-                /* FIXME: 15/08/2015 - if below sendPlayNowData() is uncommented, it goes for endles loop:
-08-15 18:15:58.860    5320-5320/au.com.kbrsolutions.spotifystreamer I/MusicPlayerService﹕ onEvent - start - got event/mSelectedTrack: REGISTER_FOR_PLAY_NAW_EVENTS/0 - main
-08-15 18:15:58.860    5320-5320/au.com.kbrsolutions.spotifystreamer I/SpotifyStreamerActivity﹕ onEvent - start - got event/mSelectedTrack: SET_CURR_PLAY_NOW_DATA
-08-15 18:15:58.860    5320-5320/au.com.kbrsolutions.spotifystreamer V/SpotifyStreamerActivity﹕ removePlayNow - start
-08-15 18:15:58.871    5320-5320/au.com.kbrsolutions.spotifystreamer I/MusicPlayerService﹕ onEvent - start - got event/mSelectedTrack: REGISTER_FOR_PLAY_NAW_EVENTS/0 - main
-08-15 18:15:58.871    5320-5320/au.com.kbrsolutions.spotifystreamer I/SpotifyStreamerActivity﹕ onEvent - start - got event/mSelectedTrack: SET_CURR_PLAY_NOW_DATA
-
-                */
-//                sendPlayNowData();
                 break;
 
-            case UNREGISTER_FOR_PLAY_NAW_EVENTS:
+            case UNREGISTER_FOR_PLAY_NOW_EVENTS:
                 isRegisterForPlayNowEvents = false;
                 break;
 

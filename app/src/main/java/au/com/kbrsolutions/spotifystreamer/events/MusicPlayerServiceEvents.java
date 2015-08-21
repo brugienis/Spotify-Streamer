@@ -22,8 +22,8 @@ public class MusicPlayerServiceEvents {
         PLAY_NEXT_TRACK,
         GET_PLAYER_STATE_DETAILS,
         GET_PLAY_NOW_DATA,
-        REGISTER_FOR_PLAY_NAW_EVENTS,
-        UNREGISTER_FOR_PLAY_NAW_EVENTS
+        REGISTER_FOR_PLAY_NOW_EVENTS,
+        UNREGISTER_FOR_PLAY_NOW_EVENTS
     }
 
     public MusicPlayerServiceEvents(Builder builder) {

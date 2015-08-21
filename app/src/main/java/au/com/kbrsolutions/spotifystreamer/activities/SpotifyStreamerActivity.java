@@ -60,7 +60,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
     private boolean mWasPlayNowVisible;
-    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = true;
+    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
@@ -83,7 +83,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
+        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
         setContentView(R.layout.activity_spotifystreamer);
         if (eventBus == null) {
             eventBus = EventBus.getDefault();
@@ -177,11 +177,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mProgressBarHandler = new ProgressBarHandler(this);
 
 //        Log.v(LOG_TAG, "onCreate - starting player service - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
-        startService(intent);
-        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+//        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
+//        startService(intent);
+//        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
 //        Log.v(LOG_TAG, "onCreate - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-        isMusicPlayerServiceBounded = true;
+//        isMusicPlayerServiceBounded = true;
 //        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
 
@@ -231,8 +231,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        Log.v(LOG_TAG, "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
-//        Log.v(LOG_TAG, "onRestoreInstanceState");
 //        Log.v(LOG_TAG, "onRestoreInstanceState - savedInstanceState: " + savedInstanceState);
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
@@ -251,10 +251,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        }
     }
 
+    @Override
     public boolean wasPlayerControllerUiVisibleOnRestart() {
-//        boolean wasPlayerControllerUiVisible = mWasPlayerControllerUiVisible;
-//        mWasPlayerControllerUiVisible = false;
         return mWasPlayerControllerUiVisible;
+    }
+
+    @Override
+    public void setWasPlayerControllerUiVisible(boolean value) {
+        mWasPlayerControllerUiVisible = value;
     }
 
     @Override
@@ -333,16 +337,35 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     @Override
     public void newTrackClicked(int selectedTrack) {
-//        Log.v(LOG_TAG, "newTrackClicked - start");
+        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(selectedTrack, false);
     }
 
     @Override
     public void showPlayerUiAndReconnectTuPlayerService() {
+        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(-1, true);
     }
 
     private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
+        Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService: " + reconnectToPlayerService);
+        PlayerControllerUi mDialogFragmentNow =
+                (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
+        int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+        if (mDialogFragment == null) {
+            Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService/mDialogFragment/mDialogFragmentNow: " + reconnectToPlayerService + "/null/" + mDialogFragmentNow);
+        } else {
+            Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService/mDialogFragment.isVisible()/mDialogFragmentNow: " + reconnectToPlayerService + "/" + mDialogFragment.isVisible() + "/" + mDialogFragmentNow);
+//            mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
+//            return;
+        }
+        if (mDialogFragmentNow != null) {
+            Log.v(LOG_TAG, "showPlayerController - should show automatically");
+            if (reconnectToPlayerService) {
+                mDialogFragmentNow.setReconnectToPlayerService();
+            }
+            return;
+        }
         mDialogFragment = PlayerControllerUi.newInstance(
                 mArtistsFragment.getArtistName(),
                 mTracksFragment.getTrackDetails(),
@@ -352,7 +375,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //            Log.v(LOG_TAG, "showPlayerController - reusing existing mDialogFragment" + mDialogFragment.isVisible());
 //        }
 //        if (mTwoPane) {
-        mWasPlayerControllerUiVisible = true;
+//        mWasPlayerControllerUiVisible = true;
         if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
             mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
         } else {
@@ -369,10 +392,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     @Override
     public void showPlayNow(String playerStatus, String artistName, String albumName, String trackName) {
-        Log.v(LOG_TAG, "removePlayNow - start");
+        Log.v(LOG_TAG, "showPlayNow - start");
         mWasPlayNowVisible = true;
+        playerControllerUiIdNotVisible();
         eventBus.post(
-                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NAW_EVENTS)
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
         ActionBar actionBar = getSupportActionBar();
         originalDisplayOptions = actionBar.getDisplayOptions();
@@ -404,11 +428,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     @Override
-    public void removePlayNow() {
-        Log.v(LOG_TAG, "removePlayNow - start");
+    public void removePlayNow(String source) {
+        Log.v(LOG_TAG, "removePlayNow - start - source: " + source);
         mWasPlayNowVisible = false;
         eventBus.post(
-                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NAW_EVENTS)
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
 //        eventBus.post(
 //                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET)
@@ -431,18 +455,29 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        Log.i(LOG_TAG, "onResume - start");
+        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
+        startService(intent);
+        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
+        Log.v(LOG_TAG, "onResume - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+//        isMusicPlayerServiceBounded = true;
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
-//        Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+        Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         // Unbind from the service
         eventBus.post(
-                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NAW_EVENTS)
+                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
         if (isMusicPlayerServiceBounded) {
             mMusicPlayerService.processBeforeDisconnectingFromService(false);
             unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
-//            Log.i(LOG_TAG, "onStop - end - unbindService called");
+            Log.i(LOG_TAG, "onStop - end - unbindService called");
         }
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
@@ -470,7 +505,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-//            Log.i(LOG_TAG, "onServiceConnected - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
+            Log.i(LOG_TAG, "onServiceConnected - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
             isMusicPlayerServiceBounded = true;
             processAfterConnectedToService();
