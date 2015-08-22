@@ -653,8 +653,16 @@ public class PlayerControllerUi extends DialogFragment {
 //        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
+    /**
+     * on device rotation, the Player UI would automatically appear and then would disappear. Followed advice in the:
+     *     http://stackoverflow.com/questions/12433397/android-dialogfragment-disappears-after-orientation-change
+     */
     @Override
     public void onDestroyView() {
+        /* yhe 'if' block below solves the problem */
+        if (getDialog() != null && getRetainInstance()) {
+            getDialog().setDismissMessage(null);
+        }
         super.onDestroyView();
 //        Log.i(LOG_TAG, "onDestroyView");
         mCallbacks.playerControllerUiIdNotVisible();

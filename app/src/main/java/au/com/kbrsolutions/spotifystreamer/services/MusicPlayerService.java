@@ -785,6 +785,7 @@ public class MusicPlayerService extends Service {
                 break;
 
             case GET_PLAY_NOW_DATA:
+                isRegisterForPlayNowEvents = true;
                 sendPlayNowData();
                 break;
 

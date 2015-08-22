@@ -374,9 +374,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        if (mDialogFragment != null) {
 //            Log.v(LOG_TAG, "showPlayerController - reusing existing mDialogFragment" + mDialogFragment.isVisible());
 //        }
-//        if (mTwoPane) {
 //        mWasPlayerControllerUiVisible = true;
-        if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
+        if (mTwoPane) {
+//        if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
             mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
         } else {
             FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
@@ -490,6 +490,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     }
 
     private void processAfterConnectedToService() {
+        Log.i(LOG_TAG, "processAfterConnectedToService - start - mWasPlayNowVisible: " + mWasPlayNowVisible);
         mMusicPlayerService.processAfterConnectedToService(false);
         if (mWasPlayNowVisible) {
             eventBus.post(
