@@ -578,9 +578,7 @@ public class PlayerControllerUi extends DialogFragment {
 
             case PROCESS_PLAYER_STATE:
                 if (event.tracksDetails == null) {
-//                    mSelectedTrackIdx = event.selectedTrack;
-//                    isPlaying = event.isTrackPlaying;
-//                    isPausing = event.isTrackPausing;
+                    mSelectedTrackIdx = 0;
                     showCurrentTrackDetails(
                             mTracksDetails.get(mSelectedTrackIdx),
                             false,

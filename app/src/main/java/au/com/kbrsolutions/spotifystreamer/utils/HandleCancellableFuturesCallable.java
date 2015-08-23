@@ -28,8 +28,9 @@ public class HandleCancellableFuturesCallable implements Callable<String> {
 
     public void submitCallable(Callable<String> callable) {
         cancelCurrFuture();
-        currExecutingFuture = completionService.submit(callable);
-//        cancellableExecutingTaksCnt.addAndGet(1);
+        if (currExecutingFuture != null) {
+            currExecutingFuture = completionService.submit(callable);
+        }
     }
 
     public void cancelCurrFuture() {
