@@ -351,7 +351,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService: " + reconnectToPlayerService);
         PlayerControllerUi mDialogFragmentNow =
                 (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
-        int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
+//        int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
         if (mDialogFragment == null) {
             Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService/mDialogFragment/mDialogFragmentNow: " + reconnectToPlayerService + "/null/" + mDialogFragmentNow);
         } else {
@@ -395,11 +395,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         Log.v(LOG_TAG, "showPlayNow - start");
         mWasPlayNowVisible = true;
         playerControllerUiIdNotVisible();
+        ActionBar actionBar = getSupportActionBar();
+        originalDisplayOptions = actionBar.getDisplayOptions();
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
-        ActionBar actionBar = getSupportActionBar();
-        originalDisplayOptions = actionBar.getDisplayOptions();
         createActionbarCustomView(actionBar, playerStatus, artistName, albumName, trackName);
     }
 

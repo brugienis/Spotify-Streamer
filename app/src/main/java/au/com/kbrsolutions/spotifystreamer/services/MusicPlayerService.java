@@ -479,6 +479,7 @@ public class MusicPlayerService extends Service {
             PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(playIcon, "", playPendingIntent);
             mBuilder.setContentText(getString(R.string.service_notification_pausing_text, selectedTrackDetails.trackName));
+            mBuilder.setSmallIcon(R.drawable.ic_pause_circle_outline_black_48dp);
         } else if (isPlaying.get()) {
 //            Log.v(LOG_TAG, "buildNotification - showing pause");
             Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
@@ -486,6 +487,7 @@ public class MusicPlayerService extends Service {
             PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(pauseIcon, "", pausePendingIntent);
             mBuilder.setContentText(getString(R.string.service_notification_playing_text, selectedTrackDetails.trackName));
+            mBuilder.setSmallIcon(R.drawable.ic_play_circle_outline_black_48dp);
         } else {
 //            Log.v(LOG_TAG, "buildNotification - showing prepare");
             mBuilder.setContentText(getString(R.string.service_notification_preparing_text, selectedTrackDetails.trackName));
