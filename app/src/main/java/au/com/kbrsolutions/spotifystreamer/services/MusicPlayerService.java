@@ -82,7 +82,7 @@ public class MusicPlayerService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
-        Log.i(LOG_TAG, "onStartCommand - start - action: " + action);
+//        Log.i(LOG_TAG, "onStartCommand - start - action: " + action);
         if (action != null) {
             switch (action) {
 
@@ -90,7 +90,7 @@ public class MusicPlayerService extends Service {
                     if (mSelectedTrack > 0) {
                         playPrevTrack();
                     } else {
-                        Log.i(LOG_TAG, "onStartCommand - ignoring prev request");
+//                        Log.i(LOG_TAG, "onStartCommand - ignoring prev request");
                     }
                     break;
 
@@ -98,7 +98,7 @@ public class MusicPlayerService extends Service {
                     if (isPausing.get()) {
                         resume();
                     } else {
-                        Log.i(LOG_TAG, "onStartCommand - ignoring resume request");
+//                        Log.i(LOG_TAG, "onStartCommand - ignoring resume request");
                     }
                     break;
 
@@ -106,7 +106,7 @@ public class MusicPlayerService extends Service {
                     if (isPlaying.get()) {
                         pause();
                     } else {
-                        Log.i(LOG_TAG, "onStartCommand - ignoring pause request");
+//                        Log.i(LOG_TAG, "onStartCommand - ignoring pause request");
                     }
                     break;
 
@@ -114,7 +114,7 @@ public class MusicPlayerService extends Service {
                     if (mSelectedTrack < mTracksDetails.size() - 1) {
                         playNextTrack();
                     } else {
-                        Log.i(LOG_TAG, "onStartCommand - ignoring next request");
+//                        Log.i(LOG_TAG, "onStartCommand - ignoring next request");
                     }
                     break;
 
@@ -666,8 +666,9 @@ public class MusicPlayerService extends Service {
                 mMediaPlayer = null;
                 stopForeground(true);
 
-                // TODO: 8/08/2015 - check if below will stop the service 
                 stopSelf();
+                mTracksDetails = null;
+                mSelectedTrack = 0;
                 
                 stopFuturesHandlers();
 //                Log.i(LOG_TAG, "StopForegroundRunnable.run - called  stopForeground()");

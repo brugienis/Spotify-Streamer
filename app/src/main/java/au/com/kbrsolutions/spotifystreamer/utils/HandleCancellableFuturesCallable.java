@@ -23,6 +23,7 @@ public class HandleCancellableFuturesCallable implements Callable<String> {
 
     public HandleCancellableFuturesCallable(ExecutorService mExecutorService) {
         completionService = new ExecutorCompletionService<>(mExecutorService);
+        Log.v(LOG_TAG, "constructor - completionService: " + completionService);
 //        cancellableExecutingTaksCnt.set(0);
     }
 
