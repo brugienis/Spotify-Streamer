@@ -61,7 +61,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean mTwoPane;
     private boolean mWasPlayNowVisible;
     private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
-    private int mOriginalDisplayOptions = -1;
+//    private int mOriginalDisplayOptions = -1;
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
@@ -402,7 +402,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         playerControllerUiIdNotVisible();
         ActionBar actionBar = getSupportActionBar();
 //        mOriginalDisplayOptions =  actionBar.getDisplayOptions();
-        Log.v(LOG_TAG, "showPlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
+//        Log.v(LOG_TAG, "showPlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
@@ -443,8 +443,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        eventBus.post(
 //                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET)
 //                        .build());
-        Log.v(LOG_TAG, "removePlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
-        getSupportActionBar().setDisplayOptions(mOriginalDisplayOptions);
+//        Log.v(LOG_TAG, "removePlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
+//        getSupportActionBar().setDisplayOptions(mOriginalDisplayOptions);
+        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
         // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
 //        if (getSupportFragmentManager()
 //                .getBackStackEntryCount() > 0) {
@@ -466,9 +467,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     protected void onResume() {
         super.onResume();
         Log.i(LOG_TAG, "onResume - start");
-        mOriginalDisplayOptions = getSupportActionBar().getDisplayOptions();
+//        mOriginalDisplayOptions = getSupportActionBar().getDisplayOptions();
         mActivityTitle = getResources().getString(R.string.title_activity_artists);
-        Log.v(LOG_TAG, "onResume - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
+//        Log.v(LOG_TAG, "onResume - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
         startService(intent);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);

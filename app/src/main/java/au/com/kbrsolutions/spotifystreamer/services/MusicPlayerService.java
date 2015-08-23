@@ -746,6 +746,7 @@ public class MusicPlayerService extends Service {
     }
 
     private void sendMessageToPlayerUi(PlayerControllerUiEvents event) {
+//        Log.i(LOG_TAG, "sendMessageToPlayerUi - start - isPlayerControllerUiActive: " + isPlayerControllerUiActive);
         if (isPlayerControllerUiActive) {
             eventBus.post(event);
         }
@@ -810,6 +811,7 @@ public class MusicPlayerService extends Service {
 
         @Override
         public String call() {//throws Exception {
+//            Log.i(LOG_TAG, "TrackPlayProgressCheckerCallable.run - start");
             int trackPlayPositionMsec;
             boolean wasInterrupted = false;
             try {

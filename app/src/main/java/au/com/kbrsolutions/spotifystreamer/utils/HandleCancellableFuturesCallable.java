@@ -22,15 +22,13 @@ public class HandleCancellableFuturesCallable implements Callable<String> {
     private final static String LOG_TAG = HandleCancellableFuturesCallable.class.getSimpleName();
 
     public HandleCancellableFuturesCallable(ExecutorService mExecutorService) {
-        completionService = new ExecutorCompletionService<String>(mExecutorService);
+        completionService = new ExecutorCompletionService<>(mExecutorService);
 //        cancellableExecutingTaksCnt.set(0);
     }
 
     public void submitCallable(Callable<String> callable) {
         cancelCurrFuture();
-        if (currExecutingFuture != null) {
-            currExecutingFuture = completionService.submit(callable);
-        }
+        currExecutingFuture = completionService.submit(callable);
     }
 
     public void cancelCurrFuture() {
@@ -51,7 +49,7 @@ public class HandleCancellableFuturesCallable implements Callable<String> {
                 try {
                     cancellableFuture.get();
                 } catch (ExecutionException e) {
-                    Log.v(LOG_TAG, "call = exception: " + e);
+                    Log.v(LOG_TAG, "call - exception: " + e);
 //                    eventBus.post(new ActivitiesEvents.Builder(HomeEvents.SHOW_MESSAGE)
 //                            .setMsgContents("Problems with access to Google Drive - try again")
 //                            .build());
