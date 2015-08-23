@@ -5,6 +5,13 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <!-- BR created application theme. -->
+    <style name="BRAppTheme" parent="Theme.AppCompat.Light">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+    </style>
+
     <!-- Main activity theme. -->
     <style name="ForecastTheme" parent="AppTheme">
         <item name="actionBarStyle">@style/ActionBar.Solid.Sunshine.NoTitle</item>
