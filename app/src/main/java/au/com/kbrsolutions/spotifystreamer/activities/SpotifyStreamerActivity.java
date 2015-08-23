@@ -98,17 +98,18 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 new FragmentManager.OnBackStackChangedListener() {
                     public void onBackStackChanged() {
                         int cnt = getSupportFragmentManager().getBackStackEntryCount();
+                        Log.v(LOG_TAG, "onCreate - backStack cnt/: " + cnt + "/" + mTwoPane);
                         if (cnt == 0) {      /* we came back from artist's tracks to artists list */
                             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
                             showArtistsData();
-                        } else {
+                        } else if (!mTwoPane) {
                             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                         }
                     }
                 });
 
-        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager()
-                .getBackStackEntryCount() > 0);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager()
+//                .getBackStackEntryCount() > 0);
 
 
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
@@ -136,6 +137,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         } else {
             mTwoPane = false;
 //            getSupportActionBar().setElevation(0f);
+        }
+
+        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
         mArtistsFragment =
@@ -406,7 +411,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     private void createActionbarCustomView(ActionBar actionBar, String playerStatus, String artistName, String albumName, String trackName) {
         actionBar.setCustomView(R.layout.play_naw_action_bar);
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);	// | ActionBar.DISPLAY_SHOW_HOME);
+        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
 
         playerStatusBt = (Button) actionBar.getCustomView().findViewById(R.id.playingNowId);
         playerStatusBt.setEnabled(true);
