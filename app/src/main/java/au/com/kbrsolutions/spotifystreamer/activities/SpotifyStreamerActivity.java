@@ -139,9 +139,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //            getSupportActionBar().setElevation(0f);
         }
 
-        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
+        /* move if below to onResume() */
+//        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
+//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+//        }
 
         mArtistsFragment =
                 (ArtistsFragment) getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
@@ -224,10 +225,13 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         super.onSaveInstanceState(outState);
         Log.v(LOG_TAG, "onSaveInstanceState");
 
-        outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
-        outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
+//        outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
+//        outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
+        outState.putCharSequence(ACTIVITY_TITLE, mActivityTitle);
+        outState.putCharSequence(ACTIVITY_SUB_TITLE, mActivitySubtitle);
         outState.putBoolean(PLAYER_CONTROLLER_UI_VISIBLE, mWasPlayerControllerUiVisible);
         outState.putBoolean(PLAY_NOW_VISIBLE, mWasPlayNowVisible);
+        Log.v(LOG_TAG, "onSaveInstanceState - end - mActivityTitle/mActivitySubtitle: " + getSupportActionBar().getTitle() + "/" + getSupportActionBar().getSubtitle());
 //        Log.v(LOG_TAG, "onSaveInstanceState - outState: " + outState);
     }
 
@@ -251,7 +255,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
-        Log.v(LOG_TAG, "onRestoreInstanceState - end - mWasPlayerControllerUiVisible/mWasPlayNowVisible: " + mWasPlayerControllerUiVisible + "/" + mWasPlayNowVisible);
+        Log.v(LOG_TAG, "onRestoreInstanceState - end - mActivityTitle/mActivitySubtitle: " + mActivityTitle + "/" + mActivitySubtitle);
 //        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
 //            mDialogFragment.setReconnectToPlayerService();
 //        }
@@ -411,7 +415,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     private void createActionbarCustomView(ActionBar actionBar, String playerStatus, String artistName, String albumName, String trackName) {
         actionBar.setCustomView(R.layout.play_naw_action_bar);
-        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+//        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+
+        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);
+            Log.v(LOG_TAG, "onResume - setDisplayHomeAsUpEnabled(true) done");
+        } else {
+            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        }
 
         playerStatusBt = (Button) actionBar.getCustomView().findViewById(R.id.playingNowId);
         playerStatusBt.setEnabled(true);
@@ -445,7 +456,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //                        .build());
 //        Log.v(LOG_TAG, "removePlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
 //        getSupportActionBar().setDisplayOptions(mOriginalDisplayOptions);
-        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
+
+
+        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
+            Log.v(LOG_TAG, "onResume - setDisplayHomeAsUpEnabled(true) done");
+        } else {
+            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
+        }
         // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
 //        if (getSupportFragmentManager()
 //                .getBackStackEntryCount() > 0) {
@@ -469,6 +487,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         Log.i(LOG_TAG, "onResume - start");
 //        mOriginalDisplayOptions = getSupportActionBar().getDisplayOptions();
         mActivityTitle = getResources().getString(R.string.title_activity_artists);
+        Log.v(LOG_TAG, "onResume - backStack cnt/: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mTwoPane);
+        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            Log.v(LOG_TAG, "onResume - setDisplayHomeAsUpEnabled(true) done");
+        }
 //        Log.v(LOG_TAG, "onResume - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
         startService(intent);
