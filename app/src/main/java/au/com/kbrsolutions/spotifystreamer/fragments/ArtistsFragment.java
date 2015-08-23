@@ -71,6 +71,7 @@ public class ArtistsFragment extends Fragment {
     private Activity mActivity;
     private boolean mSearchInProgress;
     private String mArtistName;
+    private String mSelectedArtistName;
     private final String ARTIST_NAME = "artist_name";
     private final String ARTISTS_DATA = "artists_data";
     private final String LIST_VIEW_FIRST_VISIBLE_POSITION = "list_view_first_visible_position";
@@ -202,6 +203,7 @@ public class ArtistsFragment extends Fragment {
     private void handleArtistRowClicked(int position) {
         mCallbacks.showProgress();
         ArtistDetails artistDetails = mArtistArrayAdapter.getItem(position);
+        mSelectedArtistName = artistDetails.name;
         TracksDataFetcherWithCallbacks tracksFetcher = new TracksDataFetcherWithCallbacks();
         tracksFetcher.execute(
                 new SelectedArtistRowDetails(
@@ -224,9 +226,9 @@ public class ArtistsFragment extends Fragment {
      * onSaveInstanceState method. If search is in progress don't show previously saved data.
      */
     // TODO: 13/07/2015 thionk about it - it was probably called from activity onSaveInstanceState method
-    public synchronized boolean isSearchInProgress() {
-        return mSearchInProgress;
-    }
+//    public synchronized boolean isSearchInProgress() {
+//        return mSearchInProgress;
+//    }
 
     /**
      * Show artists details or empty view if no data found.
@@ -271,10 +273,17 @@ public class ArtistsFragment extends Fragment {
     }
 
     /**
-     * Returns artist's name.
+     * Returns 'searched' artist's name.
      */
     public String getArtistName() {
         return mArtistName;
+    }
+
+    /**
+     * Returns selected artist's name.
+     */
+    public String getSelectedArtistName() {
+        return mSelectedArtistName;
     }
 
     /**

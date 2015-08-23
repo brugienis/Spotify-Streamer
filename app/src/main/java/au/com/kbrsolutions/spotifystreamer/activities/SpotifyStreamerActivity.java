@@ -369,7 +369,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             return;
         }
         mDialogFragment = PlayerControllerUi.newInstance(
-                mArtistsFragment.getArtistName(),
+                mArtistsFragment.getSelectedArtistName(),
                 mTracksFragment.getTrackDetails(),
                 selectedTrack,
                 reconnectToPlayerService);
