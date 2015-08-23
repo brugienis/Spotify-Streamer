@@ -50,7 +50,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private Button playerStatusBt;
     private TextView artistTv;
     private TextView albumTv;
-    TextView currTrackNameTv;
+    private TextView currTrackNameTv;
     private CharSequence mActivityTitle;
     private CharSequence mActivitySubtitle;
     private ArtistsFragment mArtistsFragment;
@@ -61,6 +61,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean mTwoPane;
     private boolean mWasPlayNowVisible;
     private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
+    private int mOriginalDisplayOptions = -1;
     // TODO: 10/08/2015 - I do not think I need that 
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
@@ -317,6 +318,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void showTracksData(String artistName, List<TrackDetails> tracksDetails) {
+        mActivitySubtitle = artistName;
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
 //        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
@@ -388,15 +390,14 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount/mWasPlayerControllerUiVisible: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mWasPlayerControllerUiVisible);
     }
 
-    private int originalDisplayOptions = -1;
-
     @Override
     public void showPlayNow(String playerStatus, String artistName, String albumName, String trackName) {
         Log.v(LOG_TAG, "showPlayNow - start");
         mWasPlayNowVisible = true;
         playerControllerUiIdNotVisible();
         ActionBar actionBar = getSupportActionBar();
-        originalDisplayOptions = actionBar.getDisplayOptions();
+//        mOriginalDisplayOptions =  actionBar.getDisplayOptions();
+        Log.v(LOG_TAG, "showPlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
@@ -437,14 +438,16 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //        eventBus.post(
 //                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET)
 //                        .build());
-        getSupportActionBar().setDisplayOptions(originalDisplayOptions);
+        Log.v(LOG_TAG, "removePlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
+        getSupportActionBar().setDisplayOptions(mOriginalDisplayOptions);
         // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
-        if (getSupportFragmentManager()
-                .getBackStackEntryCount() > 0) {
-            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
-        } else {
-            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-        }
+//        if (getSupportFragmentManager()
+//                .getBackStackEntryCount() > 0) {
+//            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
+//        } else {
+//            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
+//        }
+        Log.v(LOG_TAG, "removePlayNow - mActivityTitle/mActivitySubtitle: " + mActivityTitle + "/" + mActivitySubtitle);
         getSupportActionBar().setTitle(mActivityTitle);
         getSupportActionBar().setSubtitle(mActivitySubtitle);
     }
@@ -458,6 +461,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     protected void onResume() {
         super.onResume();
         Log.i(LOG_TAG, "onResume - start");
+        mOriginalDisplayOptions = getSupportActionBar().getDisplayOptions();
+        mActivityTitle = getResources().getString(R.string.title_activity_artists);
+        Log.v(LOG_TAG, "onResume - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
         startService(intent);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
