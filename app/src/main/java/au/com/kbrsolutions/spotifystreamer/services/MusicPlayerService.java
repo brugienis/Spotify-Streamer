@@ -197,6 +197,7 @@ public class MusicPlayerService extends Service {
             Log.i(LOG_TAG, "onCreate - after eventBus.register");
         }
         mExecutorService = Executors.newCachedThreadPool();
+        Log.i(LOG_TAG, "onCreate - after mExecutorService setup - mExecutorService: " + mExecutorService);
         startFuturesHandlers("onCreate");
         configurePlayer();
 //        Log.i(LOG_TAG, "onCreate - end");
@@ -693,7 +694,7 @@ public class MusicPlayerService extends Service {
     public void onDestroy() {
         Log.i(LOG_TAG, "onDestroy - start");
         super.onDestroy();
-        mExecutorService.shutdown();
+        mExecutorService.shutdownNow();
         stopForeground(true);
         Picasso.with(this).cancelRequest(target);
         Log.i(LOG_TAG, "onDestroy - end");
