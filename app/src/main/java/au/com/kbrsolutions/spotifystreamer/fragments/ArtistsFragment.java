@@ -107,7 +107,6 @@ public class ArtistsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-//        Log.v(LOG_TAG, "onCreateView");
         View rootView = inflater.inflate(R.layout.fragments_artists_view, container, false);
         List<ArtistDetails> artistsItemsList = new ArrayList<>();
 
@@ -167,7 +166,6 @@ public class ArtistsFragment extends Fragment {
      * Called when user pressed search button. Starts search if search text is not empty.
      */
     private boolean handleSearchButtonClicked(int actionId) {
-//        Log.v(LOG_TAG, "handleSearchButtonClicked - start");
         boolean handled = false;
         if (actionId == EditorInfo.IME_ACTION_SEARCH) {
             mArtistName = mSearchText.getText().toString();
@@ -222,15 +220,6 @@ public class ArtistsFragment extends Fragment {
     }
 
     /**
-     * Should be called before trying to show artists data saved in parent activity in the
-     * onSaveInstanceState method. If search is in progress don't show previously saved data.
-     */
-    // TODO: 13/07/2015 thionk about it - it was probably called from activity onSaveInstanceState method
-//    public synchronized boolean isSearchInProgress() {
-//        return mSearchInProgress;
-//    }
-
-    /**
      * Show artists details or empty view if no data found.
      */
     public void showArtistsDetails() {
@@ -259,7 +248,6 @@ public class ArtistsFragment extends Fragment {
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
-//        Log.v(LOG_TAG, "onSaveInstanceState");
         mArtistName = mSearchText.getText().toString();
         outState.putString(ARTIST_NAME, mArtistName);
         if (mArtistsDetailsList != null) {
