@@ -3,13 +3,17 @@
       xmlns:tools="http://schemas.android.com/tools"
       tools:context="au.com.kbrsolutions.spotifystreamer.activities.TracksActivity">
 
-    <item android:id="@+id/action_show_player"
-          android:title="Show player"
-          android:orderInCategory="10"
-          app:showAsAction="never"/>
-
     <item android:id="@+id/action_settings"
           android:title="@string/action_settings"
           android:orderInCategory="100"
           app:showAsAction="never"/>
 </menu>
+<!--
+
+
+    <item android:id="@+id/action_show_player"
+          android:title="Show player"
+          android:orderInCategory="10"
+          app:showAsAction="never"/>
+
+-->

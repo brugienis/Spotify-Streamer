@@ -14,7 +14,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -43,9 +42,7 @@ import de.greenrobot.event.EventBus;
 public class SpotifyStreamerActivity extends ActionBarActivity implements
         ArtistsFragment.ArtistsFragmentCallbacks,
         PlayerControllerUi.PlayerControllerUiCallbacks,
-//        PlayerControllerUi.PlayerControllerUiCallbacks,
         TracksFragment.TracksFragmentCallbacks {
-//        ServiceConnection {
 
     private Button playerStatusBt;
     private TextView artistTv;
@@ -60,9 +57,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     private boolean isMusicPlayerServiceBounded;
     private boolean mTwoPane;
     private boolean mWasPlayNowVisible;
-    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
-//    private int mOriginalDisplayOptions = -1;
-    // TODO: 10/08/2015 - I do not think I need that 
+//    private boolean showDialogFragment_AS_DIALOG_TEST_ONLY = false;
     private boolean mWasPlayerControllerUiVisible = false;
     private MusicPlayerService mMusicPlayerService;
     private EventBus eventBus;
@@ -84,7 +79,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v(LOG_TAG, "onCreate - start - activity hashCode: " + this.hashCode());
         setContentView(R.layout.activity_spotifystreamer);
         if (eventBus == null) {
             eventBus = EventBus.getDefault();
@@ -98,7 +92,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 new FragmentManager.OnBackStackChangedListener() {
                     public void onBackStackChanged() {
                         int cnt = getSupportFragmentManager().getBackStackEntryCount();
-                        Log.v(LOG_TAG, "onCreate - backStack cnt/: " + cnt + "/" + mTwoPane);
                         if (cnt == 0) {      /* we came back from artist's tracks to artists list */
                             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
                             showArtistsData();
@@ -107,10 +100,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                         }
                     }
                 });
-
-//        getSupportActionBar().setDisplayHomeAsUpEnabled(getSupportFragmentManager()
-//                .getBackStackEntryCount() > 0);
-
 
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
         if (findViewById(R.id.right_dynamic_fragments_frame) != null) {
@@ -139,11 +128,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 //            getSupportActionBar().setElevation(0f);
         }
 
-        /* move if below to onResume() */
-//        if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
-//            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-//        }
-
         mArtistsFragment =
                 (ArtistsFragment) getSupportFragmentManager().findFragmentByTag(ARTIST_TAG);
 
@@ -158,7 +142,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mDialogFragment =
                 (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
         int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
-//        Log.v(LOG_TAG, "onCreate - BackStackEntryCount/mDialogFragment: " + bckStackEntryCount + "/" + mDialogFragment);
 
         /* count 1 - artist and tracks fragments: 2 - artists, tracks and player - DON'T add to BackStack */
         switch (bckStackEntryCount) {
@@ -173,7 +156,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 break;
 
             case 2:
-//                Log.v(LOG_TAG, "onCreate - replacing with mDialogFragment");
                 getSupportFragmentManager()
                         .beginTransaction()
                         .replace(R.id.left_dynamic_fragments_frame, mDialogFragment, PLAYER_TAG)
@@ -182,14 +164,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         }
 
         mProgressBarHandler = new ProgressBarHandler(this);
-
-//        Log.v(LOG_TAG, "onCreate - starting player service - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-//        Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
-//        startService(intent);
-//        bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-//        Log.v(LOG_TAG, "onCreate - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-//        isMusicPlayerServiceBounded = true;
-//        Log.v(LOG_TAG, "onCreate - end - BackStackEntryCount: " + bckStackEntryCount);
     }
 
 
@@ -223,16 +197,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.v(LOG_TAG, "onSaveInstanceState");
 
-//        outState.putCharSequence(ACTIVITY_TITLE, getSupportActionBar().getTitle());
-//        outState.putCharSequence(ACTIVITY_SUB_TITLE, getSupportActionBar().getSubtitle());
         outState.putCharSequence(ACTIVITY_TITLE, mActivityTitle);
         outState.putCharSequence(ACTIVITY_SUB_TITLE, mActivitySubtitle);
         outState.putBoolean(PLAYER_CONTROLLER_UI_VISIBLE, mWasPlayerControllerUiVisible);
         outState.putBoolean(PLAY_NOW_VISIBLE, mWasPlayNowVisible);
-        Log.v(LOG_TAG, "onSaveInstanceState - end - mActivityTitle/mActivitySubtitle: " + getSupportActionBar().getTitle() + "/" + getSupportActionBar().getSubtitle());
-//        Log.v(LOG_TAG, "onSaveInstanceState - outState: " + outState);
     }
 
     /**
@@ -241,9 +210,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        Log.v(LOG_TAG, "onRestoreInstanceState");
         super.onRestoreInstanceState(savedInstanceState);
-//        Log.v(LOG_TAG, "onRestoreInstanceState - savedInstanceState: " + savedInstanceState);
 
         mActivityTitle = savedInstanceState.getCharSequence(ACTIVITY_TITLE);
         getSupportActionBar().setTitle(mActivityTitle);
@@ -255,10 +222,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         if (getSupportFragmentManager().getBackStackEntryCount() == 0) {
             mArtistsFragment.showArtistsDetails();
         }
-        Log.v(LOG_TAG, "onRestoreInstanceState - end - mActivityTitle/mActivitySubtitle: " + mActivityTitle + "/" + mActivitySubtitle);
-//        if (mWasPlayerControllerUiVisible && mDialogFragment != null) {
-//            mDialogFragment.setReconnectToPlayerService();
-//        }
     }
 
     @Override
@@ -285,13 +248,8 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        } else if (id == R.id.action_show_player) {
-            // TODO: 15/07/2015 remove this menu after testing 
-            showPlayerController(-1, false);
             return true;
         }
 
@@ -303,7 +261,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void artistSearchStarted() {
-//        Log.v(LOG_TAG, "artistSearchStarted - mTracksFragment: " + mTracksFragment);
         showProgress();
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setListAdapter(new TrackArrayAdapter<>(this, new ArrayList<TrackDetails>()));
@@ -316,7 +273,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
      */
     @Override
     public void artistSearchEnded() {
-//        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
         if (mTracksFragment != null && mTracksFragment.isVisible()) {
             mTracksFragment.setEmptyText("Select an artist to see top 10 tracks");
         }
@@ -330,7 +286,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mActivitySubtitle = artistName;
         getSupportActionBar().setSubtitle(artistName);
         mTracksFragment = (TracksFragment) getSupportFragmentManager().findFragmentByTag(TRACK_TAG);
-//        Log.v(LOG_TAG, "showTracksData - mTracksFragment: " + mTracksFragment);
         if (mTracksFragment == null) {
             mTracksFragment = new TracksFragment();
         }
@@ -348,30 +303,18 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     @Override
     public void newTrackClicked(int selectedTrack) {
-        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(selectedTrack, false);
     }
 
     @Override
     public void showPlayerUiAndReconnectTuPlayerService() {
-        Log.v(LOG_TAG, "newTrackClicked - start");
         showPlayerController(-1, true);
     }
 
     private void showPlayerController(int selectedTrack, boolean reconnectToPlayerService) {
-        Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService: " + reconnectToPlayerService);
         PlayerControllerUi mDialogFragmentNow =
                 (PlayerControllerUi) getSupportFragmentManager().findFragmentByTag(PLAYER_TAG);
-//        int bckStackEntryCount = getSupportFragmentManager().getBackStackEntryCount();
-        if (mDialogFragment == null) {
-            Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService/mDialogFragment/mDialogFragmentNow: " + reconnectToPlayerService + "/null/" + mDialogFragmentNow);
-        } else {
-            Log.v(LOG_TAG, "showPlayerController - reconnectToPlayerService/mDialogFragment.isVisible()/mDialogFragmentNow: " + reconnectToPlayerService + "/" + mDialogFragment.isVisible() + "/" + mDialogFragmentNow);
-//            mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
-//            return;
-        }
         if (mDialogFragmentNow != null) {
-            Log.v(LOG_TAG, "showPlayerController - should show automatically");
             if (reconnectToPlayerService) {
                 mDialogFragmentNow.setReconnectToPlayerService();
             }
@@ -382,10 +325,7 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                 mTracksFragment.getTrackDetails(),
                 selectedTrack,
                 reconnectToPlayerService);
-//        if (mDialogFragment != null) {
-//            Log.v(LOG_TAG, "showPlayerController - reusing existing mDialogFragment" + mDialogFragment.isVisible());
-//        }
-//        mWasPlayerControllerUiVisible = true;
+
         if (mTwoPane) {
 //        if (showDialogFragment_AS_DIALOG_TEST_ONLY) {
             mDialogFragment.show(getSupportFragmentManager(), PLAYER_TAG);
@@ -396,17 +336,13 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
                     .addToBackStack(null)
                     .commit();
         }
-//        Log.v(LOG_TAG, "showPlayerController - BackStackEntryCount/mWasPlayerControllerUiVisible: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mWasPlayerControllerUiVisible);
     }
 
     @Override
     public void showPlayNow(String playerStatus, String artistName, String albumName, String trackName) {
-        Log.v(LOG_TAG, "showPlayNow - start");
         mWasPlayNowVisible = true;
         playerControllerUiIdNotVisible();
         ActionBar actionBar = getSupportActionBar();
-//        mOriginalDisplayOptions =  actionBar.getDisplayOptions();
-//        Log.v(LOG_TAG, "showPlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.REGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
@@ -415,11 +351,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     private void createActionbarCustomView(ActionBar actionBar, String playerStatus, String artistName, String albumName, String trackName) {
         actionBar.setCustomView(R.layout.play_naw_action_bar);
-//        actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
 
         if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_HOME_AS_UP);
-            Log.v(LOG_TAG, "onResume - setDisplayHomeAsUpEnabled(true) done");
         } else {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         }
@@ -446,32 +380,16 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     @Override
     public void removePlayNow(String source) {
-        Log.v(LOG_TAG, "removePlayNow - start - source: " + source);
         mWasPlayNowVisible = false;
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NOW_EVENTS)
                         .build());
-//        eventBus.post(
-//                new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.GET)
-//                        .build());
-//        Log.v(LOG_TAG, "removePlayNow - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
-//        getSupportActionBar().setDisplayOptions(mOriginalDisplayOptions);
-
 
         if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
-            Log.v(LOG_TAG, "onResume - setDisplayHomeAsUpEnabled(true) done");
         } else {
             getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_TITLE);
         }
-        // FIXME: 12/08/2015 show ActionBar.DISPLAY_HOME_AS_UP only if above first level - different in on pane or not
-//        if (getSupportFragmentManager()
-//                .getBackStackEntryCount() > 0) {
-//            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE | ActionBar.DISPLAY_HOME_AS_UP);
-//        } else {
-//            getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_HOME | ActionBar.DISPLAY_SHOW_TITLE);
-//        }
-        Log.v(LOG_TAG, "removePlayNow - mActivityTitle/mActivitySubtitle: " + mActivityTitle + "/" + mActivitySubtitle);
         getSupportActionBar().setTitle(mActivityTitle);
         getSupportActionBar().setSubtitle(mActivitySubtitle);
     }
@@ -484,26 +402,18 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
     @Override
     protected void onResume() {
         super.onResume();
-        Log.i(LOG_TAG, "onResume - start");
-//        mOriginalDisplayOptions = getSupportActionBar().getDisplayOptions();
         mActivityTitle = getResources().getString(R.string.title_activity_artists);
-        Log.v(LOG_TAG, "onResume - backStack cnt/: " + getSupportFragmentManager().getBackStackEntryCount() + "/" + mTwoPane);
         if (!mTwoPane && getSupportFragmentManager().getBackStackEntryCount() > 0) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            Log.v(LOG_TAG, "onResume - setDisplayHomeAsUpEnabled(true) done");
         }
-//        Log.v(LOG_TAG, "onResume - mOriginalDisplayOptions: " + mOriginalDisplayOptions);
         Intent intent = new Intent(getApplicationContext(), MusicPlayerService.class);
         startService(intent);
         bindService(intent, mServiceConnection, Context.BIND_AUTO_CREATE);
-        Log.v(LOG_TAG, "onResume - bind called             - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
-//        isMusicPlayerServiceBounded = true;
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.i(LOG_TAG, "onStop - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         // Unbind from the service
         eventBus.post(
                 new MusicPlayerServiceEvents.Builder(MusicPlayerServiceEvents.MusicServiceEvents.UNREGISTER_FOR_PLAY_NOW_EVENTS)
@@ -512,20 +422,16 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
             mMusicPlayerService.processBeforeDisconnectingFromService(false);
             unbindService(mServiceConnection);
             isMusicPlayerServiceBounded = false;
-            Log.i(LOG_TAG, "onStop - end - unbindService called");
         }
-//        Log.i(LOG_TAG, "onStop - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i(LOG_TAG, "onDestroy");
         eventBus.unregister(this);
     }
 
     private void processAfterConnectedToService() {
-        Log.i(LOG_TAG, "processAfterConnectedToService - start - mWasPlayNowVisible: " + mWasPlayNowVisible);
         mMusicPlayerService.processAfterConnectedToService(false);
         if (mWasPlayNowVisible) {
             eventBus.post(
@@ -541,22 +447,13 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            Log.i(LOG_TAG, "onServiceConnected - start- isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
             mMusicPlayerService = ((MusicPlayerService.LocalBinder) service).getService();
             isMusicPlayerServiceBounded = true;
             processAfterConnectedToService();
-//            Log.i(LOG_TAG, "onServiceConnected - end - isMusicPlayerServiceBounded: " + isMusicPlayerServiceBounded);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            Log.i(LOG_TAG, "onServiceDisconnected - start");
-            // Unbind from the service
-//            if (isMusicPlayerServiceBounded) {
-//                Log.i(LOG_TAG, "onServiceDisconnected - calling unBind");
-//                unbindService(mServiceConnection);
-//                isMusicPlayerServiceBounded = false;
-//            }
             mMusicPlayerService = null;
             isMusicPlayerServiceBounded = false;
         }
@@ -564,7 +461,6 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
 
     public void onEventMainThread(SpotifyStreamerActivityEvents event) {
         SpotifyStreamerActivityEvents.SpotifyStreamerEvents requestEvent = event.event;
-        Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent);
         switch (requestEvent) {
 
             case CURR_TRACK_INFO:
