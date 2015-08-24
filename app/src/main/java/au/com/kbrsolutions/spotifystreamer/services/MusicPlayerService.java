@@ -64,7 +64,6 @@ public class MusicPlayerService extends Service {
     private StopForegroundRunnable stopForegroundRunnable;
     private long WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS = 60L * 1000;
     private long mostRecentClientDisconnectFromServiceTimeMillis;
-    //    private int selectedTrack;
     private CountDownLatch callBackResultsCountDownLatch;
     private EventBus eventBus;
     private LocalBinder mLocalBinder = new LocalBinder();
@@ -82,39 +81,30 @@ public class MusicPlayerService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
-//        Log.i(LOG_TAG, "onStartCommand - start - action: " + action);
         if (action != null) {
             switch (action) {
 
                 case PLAY_PREV_TRACK:
                     if (mSelectedTrack > 0) {
                         playPrevTrack();
-                    } else {
-//                        Log.i(LOG_TAG, "onStartCommand - ignoring prev request");
                     }
                     break;
 
                 case PLAY_TRACK:
                     if (isPausing.get()) {
                         resume();
-                    } else {
-//                        Log.i(LOG_TAG, "onStartCommand - ignoring resume request");
                     }
                     break;
 
                 case PAUSE_TRACK:
                     if (isPlaying.get()) {
                         pause();
-                    } else {
-//                        Log.i(LOG_TAG, "onStartCommand - ignoring pause request");
                     }
                     break;
 
                 case PLAY_NEXT_TRACK:
                     if (mSelectedTrack < mTracksDetails.size() - 1) {
                         playNextTrack();
-                    } else {
-//                        Log.i(LOG_TAG, "onStartCommand - ignoring next request");
                     }
                     break;
 
@@ -131,7 +121,6 @@ public class MusicPlayerService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         String action = intent.getAction();
-        Log.i(LOG_TAG, "onBind - start - action: " + action);
 
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
@@ -142,25 +131,12 @@ public class MusicPlayerService extends Service {
 
     @Override
     public void onRebind(Intent intent) {
-//        Log.i(LOG_TAG, "onRebind - start");
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         mIsBounded = true;
         return;
     }
-
-//    public void reconnectedToMusicPlayerService(ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
-//        mTracksDetails = tracksDetails;
-//        mSelectedTrack = selectedTrack;
-//        Log.i(LOG_TAG, "reconnectedToMusicPlayerService - start - mSelectedTrack/mTracksDetails: " + mSelectedTrack + "/" + mTracksDetails);
-//        if (stopForegroundRunnable != null) {
-//            handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
-//        }
-//        sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.START_PLAYING_TRACK)
-//                .setDurationTimeInSecs(trackPlaydurationMsec / 1000)
-//                .build());
-//    }
 
     /**
      * client should call this method after they got connected to this service - after they got call to the onServiceConnected(...).
@@ -170,7 +146,6 @@ public class MusicPlayerService extends Service {
      * Always set mIsBounded to true.
      */
     public void processAfterConnectedToService(boolean playerControllerUi) {
-        Log.i(LOG_TAG, "processAfterConnectedToService - start - playerControllerUi: " + playerControllerUi);
         if (mIsForegroundStarted) {
             stopForeground(true);
             mIsForegroundStarted = false;
@@ -179,32 +154,25 @@ public class MusicPlayerService extends Service {
         if (playerControllerUi) {
             isPlayerControllerUiActive = true;
         }
-        Log.i(LOG_TAG, "processAfterConnectedToService - start - connectedClientsCnt/isPlayerControllerUiActive: " + connectedClientsCnt.get() + "/" + isPlayerControllerUiActive);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
         mIsBounded = true;
-//        isClientActive = true;
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
-//        Log.i(LOG_TAG, "onCreate - start");
         if (eventBus == null) {
             eventBus = EventBus.getDefault();
             eventBus.register(this);
-            Log.i(LOG_TAG, "onCreate - after eventBus.register");
         }
         mExecutorService = Executors.newCachedThreadPool();
-        Log.i(LOG_TAG, "onCreate - after mExecutorService setup - mExecutorService: " + mExecutorService);
         startFuturesHandlers("onCreate");
         configurePlayer();
-//        Log.i(LOG_TAG, "onCreate - end");
     }
 
     private void configurePlayer() {
-//        Log.i(LOG_TAG, "configurePlayer - start");
         callBackResultsCountDownLatch = new CountDownLatch(1);
         mMediaPlayer = new MediaPlayer();
         mMediaPlayer.setWakeMode(getApplicationContext(), PowerManager.PARTIAL_WAKE_LOCK);
@@ -228,7 +196,6 @@ public class MusicPlayerService extends Service {
             }
         });
         callBackResultsCountDownLatch.countDown();
-//        Log.i(LOG_TAG, "configurePlayer - end");
     }
 
     private Future<String> cancellableFuture;
@@ -249,18 +216,13 @@ public class MusicPlayerService extends Service {
 
     private boolean isLastTrackPlayed;
     private void handleOnCompletion() {
-//        Log.i(LOG_TAG, "handleOnCompletion - start");
         isPlaying.set(false);
         isPausing.set(true);
         handleCancellableFuturesCallable.cancelCurrFuture();
         waitForPlayer("playTrack");
-//        ++mSelectedTrack;
         if (mSelectedTrack < mTracksDetails.size() - 1) {
-//        if (mSelectedTrack < mTracksDetails.size()) {
-//            Log.i(LOG_TAG, "handleOnCompletion - calling playNext");
             playNextTrack();
         } else {
-            Log.i(LOG_TAG, "handleOnCompletion - last track played - mSelectedTrack/tracks cnt: " + mSelectedTrack + "/" + mTracksDetails.size());
             isLastTrackPlayed = true;
             sendMessageToPlayerUi(
                     new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.PAUSED_TRACK)
@@ -271,14 +233,12 @@ public class MusicPlayerService extends Service {
             sendNotification();
             mIsPlayerActive = false;
             if (connectedClientsCnt.get() == 0) {
-                Log.i(LOG_TAG, "handleOnCompletion - all clients disconnected");
                 scheduleStopForegroundChecker("handleOnCompletion");
             }
         }
     }
 
     private void playPrevTrack() {
-        Log.i(LOG_TAG, "playPrevTrack - start - mSelectedTrack: " + mSelectedTrack);
         if (mSelectedTrack > 0) {
             handleCancellableFuturesCallable.cancelCurrFuture();
             --mSelectedTrack;
@@ -315,10 +275,8 @@ public class MusicPlayerService extends Service {
     }
 
     private boolean handleOnError(MediaPlayer mp, int what, int extra) {
-        Log.i(LOG_TAG, "handleOnError - start - what/extra: " + what + "/" + extra);
         handleCancellableFuturesCallable.cancelCurrFuture();
         configurePlayer();
-        Log.i(LOG_TAG, "handleOnError - start - mMediaPlayer: " + mMediaPlayer);
         return false;
     }
     public class LocalBinder extends Binder {
@@ -330,9 +288,7 @@ public class MusicPlayerService extends Service {
 
     TrackDetails currPlayingTrackDetails;
 
-    // TODO: 29/07/2015 not sure if I need below. Just do not do anything that would caused Error?
     private void waitForPlayer(String source) {
-//        Log.i(LOG_TAG, "waitForPlayer - start - source: " + source);
         try {
             callBackResultsCountDownLatch.await();
         } catch (InterruptedException nothingCanBeDone) {
@@ -341,15 +297,12 @@ public class MusicPlayerService extends Service {
                             .getString(R.string.search_unsuccessful_internal_problems),
                     Toast.LENGTH_LONG).show();
         }
-//        Log.i(LOG_TAG, "waitForPlayer - end   - source: " + source);
     }
 
     public void playTrack(TrackDetails trackDetails) {
-//        Log.i(LOG_TAG, "playTrack - previewUrl: " + trackDetails.previewUrl);
         isPlaying.set(false);
         isPausing.set(false);
         isLastTrackPlayed = false;
-        // TODO: 14/08/2015 - Activity should register/unregister interest in Playing Now. Send message below only if registered
         if (connectedClientsCnt.get() > 0 && isRegisterForPlayNowEvents) {
             sendMessageToSpotifyStreamerActivity(new SpotifyStreamerActivityEvents.Builder(SpotifyStreamerActivityEvents.SpotifyStreamerEvents.CURR_TRACK_INFO)
                     .setCurrArtistName(mArtistName)
@@ -441,7 +394,6 @@ public class MusicPlayerService extends Service {
 
         @Override
         public void onPrepareLoad(Drawable placeHolderDrawable) {
-            Log.i(LOG_TAG, "onPrepareLoad - start");
         }
 
         @Override
@@ -451,7 +403,6 @@ public class MusicPlayerService extends Service {
     };
 
     private Notification buildNotification(Bitmap largeIcon) {
-        // TODO: 16/08/2015 move below to onCreate?
         int prevIcon = R.drawable.ic_action_previous;
         int playIcon = R.drawable.ic_action_play;
         int pauseIcon = R.drawable.ic_action_pause;
@@ -459,13 +410,11 @@ public class MusicPlayerService extends Service {
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getApplicationContext())
-//                        .setColor(resources.getColor(R.color.sunshine_light_blue))
                         .setSmallIcon(R.drawable.ic_action_next)
                         .setLargeIcon(largeIcon)
                         .setContentTitle(getString(R.string.service_notification_title));
 
         if (mSelectedTrack > 0) {
-//            Log.v(LOG_TAG, "buildNotification - showing prev");
             Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -474,7 +423,6 @@ public class MusicPlayerService extends Service {
 
         TrackDetails selectedTrackDetails = mTracksDetails.get(mSelectedTrack);
         if (isPausing.get()) {
-//            Log.v(LOG_TAG, "buildNotification - showing play");
             Intent playIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             playIntent.setAction(PLAY_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -482,7 +430,6 @@ public class MusicPlayerService extends Service {
             mBuilder.setContentText(getString(R.string.service_notification_pausing_text, selectedTrackDetails.trackName));
             mBuilder.setSmallIcon(R.drawable.ic_pause_circle_outline_black_48dp);
         } else if (isPlaying.get()) {
-//            Log.v(LOG_TAG, "buildNotification - showing pause");
             Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             pauseIntent.setAction(PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -490,12 +437,10 @@ public class MusicPlayerService extends Service {
             mBuilder.setContentText(getString(R.string.service_notification_playing_text, selectedTrackDetails.trackName));
             mBuilder.setSmallIcon(R.drawable.ic_play_circle_outline_black_48dp);
         } else {
-//            Log.v(LOG_TAG, "buildNotification - showing prepare");
             mBuilder.setContentText(getString(R.string.service_notification_preparing_text, selectedTrackDetails.trackName));
         }
 
         if (mSelectedTrack < mTracksDetails.size() - 1) {
-//            Log.v(LOG_TAG, "buildNotification - showing next");
             Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -530,7 +475,6 @@ public class MusicPlayerService extends Service {
      */
     @TargetApi(21)
     private Notification buildNotificationApi21Plus(Bitmap largeIcon) {
-        // TODO: 16/08/2015 move below to onCreate?
         int prevIcon = R.drawable.ic_action_previous;
         int playIcon = R.drawable.ic_action_play;
         int pauseIcon = R.drawable.ic_action_pause;
@@ -544,7 +488,6 @@ public class MusicPlayerService extends Service {
                         .setContentTitle(getString(R.string.service_notification_title));
 
         if (mSelectedTrack > 0) {
-            Log.v(LOG_TAG, "buildNotification - showing prev");
             Intent prevIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             prevIntent.setAction(PLAY_PREV_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent prevPendingIntent = PendingIntent.getService(getApplicationContext(), 0, prevIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -553,26 +496,22 @@ public class MusicPlayerService extends Service {
 
         TrackDetails selectedTrackDetails = mTracksDetails.get(mSelectedTrack);
         if (isPausing.get()) {
-            Log.v(LOG_TAG, "buildNotification - showing play");
             Intent playIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             playIntent.setAction(PLAY_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent playPendingIntent = PendingIntent.getService(getApplicationContext(), 0, playIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(playIcon, "", playPendingIntent);
             mBuilder.setContentText(getString(R.string.service_notification_pausing_text, selectedTrackDetails.trackName));
         } else if (isPlaying.get()) {
-            Log.v(LOG_TAG, "buildNotification - showing pause");
             Intent pauseIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             pauseIntent.setAction(PAUSE_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent pausePendingIntent = PendingIntent.getService(getApplicationContext(), 0, pauseIntent, PendingIntent.FLAG_CANCEL_CURRENT);
             mBuilder.addAction(pauseIcon, "", pausePendingIntent);
             mBuilder.setContentText(getString(R.string.service_notification_playing_text, selectedTrackDetails.trackName));
         } else {
-            Log.v(LOG_TAG, "buildNotification - showing prepare");
             mBuilder.setContentText(getString(R.string.service_notification_preparing_text, selectedTrackDetails.trackName));
         }
 
         if (mSelectedTrack < mTracksDetails.size() - 1) {
-            Log.v(LOG_TAG, "buildNotification - showing next");
             Intent nextIntent = new Intent(getApplicationContext(), MusicPlayerService.class);
             nextIntent.setAction(PLAY_NEXT_TRACK); // PendingIntents "lose" their extras if no action is set.
             PendingIntent nextPendingIntent = PendingIntent.getService(getApplicationContext(), 0, nextIntent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -615,13 +554,11 @@ public class MusicPlayerService extends Service {
      * Always set mIsBounded to true.
      */
     public void processBeforeDisconnectingFromService(boolean playerControllerUi) {
-        Log.i(LOG_TAG, "processBeforeDisconnectingFromService - start - playerControllerUi: " + playerControllerUi);
         mostRecentClientDisconnectFromServiceTimeMillis = System.currentTimeMillis();
         connectedClientsCnt.getAndDecrement();
         if (playerControllerUi) {
             isPlayerControllerUiActive = false;
         }
-        Log.i(LOG_TAG, "processBeforeDisconnectingFromService - start - connectedClientsCnt/isPlayerControllerUiActive: " + connectedClientsCnt.get() + "/" + isPlayerControllerUiActive);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -632,37 +569,25 @@ public class MusicPlayerService extends Service {
                     mIsForegroundStarted = true;
                 }
             }
-            Log.i(LOG_TAG, "processBeforeDisconnectingFromService - no connected clients and player is not active - Foreground started");
-//            isClientActive = false;
             scheduleStopForegroundChecker("processBeforeDisconnectingFromService");
         }
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.i(LOG_TAG, "onUnbind - start");
-//        mIsBounded = false;
-//        if (!mIsPlayerActive) {
-//            Log.i(LOG_TAG, "onUnbind - player is not active");
-//            scheduleStopForegroundChecker("onUnbind");
-//        }
-        Log.i(LOG_TAG, "onUnbind - end - connectedClientsCnt: " + connectedClientsCnt);
         return false;
     }
 
     private class StopForegroundRunnable implements Runnable {
 
         StopForegroundRunnable(String source) {
-//            Log.i(LOG_TAG, "StopForegroundRunnable.constructor - source: " + source);
         }
 
         @Override
         public void run() {
-//            Log.i(LOG_TAG, "StopForegroundRunnable.run - start");
             if (connectedClientsCnt.get() == 0 &&
                     !mIsPlayerActive &&
                     System.currentTimeMillis() - mostRecentClientDisconnectFromServiceTimeMillis > (WAIT_TIME_BEFORE_SERVICE_SHUTDOWN_AFTER_LAST_ACTIVITY_UNBOUND_MSECS)) {
-                Log.i(LOG_TAG, "StopForegroundRunnable.run - calling stopForeground() and stopSelf()");
                 mMediaPlayer.release();
                 mMediaPlayer = null;
                 stopForeground(true);
@@ -672,17 +597,13 @@ public class MusicPlayerService extends Service {
                 mSelectedTrack = 0;
                 
                 stopFuturesHandlers();
-//                Log.i(LOG_TAG, "StopForegroundRunnable.run - called  stopForeground()");
             } else {
-//                Log.i(LOG_TAG, "StopForegroundRunnable.run - scheduling StopForegroindRunnable task again");
                 scheduleStopForegroundChecker("StopForegroundRunnable.run");
             }
-            Log.i(LOG_TAG, "StopForegroundRunnable.run - end");
         }
     }
 
     private void scheduleStopForegroundChecker(String source) {
-        Log.i(LOG_TAG, "scheduleStopForegroundChecker - source: " + source);
         if (stopForegroundRunnable != null) {
             handler.removeCallbacks(stopForegroundRunnable);			// remove just in case if there is already one waiting in a queue
         }
@@ -692,24 +613,21 @@ public class MusicPlayerService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.i(LOG_TAG, "onDestroy - start");
         super.onDestroy();
         mExecutorService.shutdownNow();
         stopForeground(true);
         Picasso.with(this).cancelRequest(target);
-        Log.i(LOG_TAG, "onDestroy - end");
     }
 
     public void setTracksDetails(String artistName, ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
         mArtistName = artistName;
         mTracksDetails = tracksDetails;
         mSelectedTrack = selectedTrack;
-//        Log.i(LOG_TAG, "setTracksDetails - start - got mSelectedTrack/track name: " + mSelectedTrack + " - " + tracksDetails.get(mSelectedTrack).trackName);
     }
 
-    public boolean areTracksDetailsSet() {
-        return mTracksDetails != null;
-    }
+//    public boolean areTracksDetailsSet() {
+//        return mTracksDetails != null;
+//    }
 
     /**
      * problem - start playing track and click home button. when the music stops playing and a minute passed the service kills itself. Open app from the recents. The PlayerUi starts and tries to get details from the service that just started and has no details of selected tracks. NullPointerException in MusicPlayerService.sendPlayerStateDetails. PlayerUi was showing as dialog.
@@ -748,7 +666,6 @@ public class MusicPlayerService extends Service {
     }
 
     private void sendMessageToPlayerUi(PlayerControllerUiEvents event) {
-//        Log.i(LOG_TAG, "sendMessageToPlayerUi - start - isPlayerControllerUiActive: " + isPlayerControllerUiActive);
         if (isPlayerControllerUiActive) {
             eventBus.post(event);
         }
@@ -762,7 +679,6 @@ public class MusicPlayerService extends Service {
 
     public void onEvent(MusicPlayerServiceEvents event) {
         MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
-        Log.i(LOG_TAG, "onEvent - start - got event/mSelectedTrack: " + requestEvent + "/" + mSelectedTrack + " - " + Thread.currentThread().getName());
         switch (requestEvent) {
 
             case PLAY_TRACK:
@@ -802,8 +718,8 @@ public class MusicPlayerService extends Service {
                 isRegisterForPlayNowEvents = false;
                 break;
 
-            default:
-                throw new RuntimeException("LOC_CAT_TAG - onEvent - no code to handle requestEvent: " + requestEvent);
+//            default:
+//                throw new RuntimeException("LOC_CAT_TAG - onEvent - no code to handle requestEvent: " + requestEvent);
         }
     }
 
@@ -812,18 +728,13 @@ public class MusicPlayerService extends Service {
     private final class TrackPlayProgressCheckerCallable implements Callable<String> {
 
         @Override
-        public String call() {//throws Exception {
-//            Log.i(LOG_TAG, "TrackPlayProgressCheckerCallable.run - start");
+        public String call() {
             int trackPlayPositionMsec;
-            boolean wasInterrupted = false;
             try {
                 while (true) {
-                    // TODO: 28/07/2015 keep internal constant in preferences
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
-//                        Log.i(LOG_TAG, "call - INTERRUPTED");
-                        wasInterrupted = true;
                         break;
                     }
                     if (!isPlaying.get()) {
@@ -838,8 +749,6 @@ public class MusicPlayerService extends Service {
                     }
                 }
             } finally {
-//                Log.i(LOG_TAG, "called - finally");
-//                if (wasInterrupted) {
                 if (!isPausing.get()) {
                     sendMessageToPlayerUi(new PlayerControllerUiEvents.Builder(PlayerControllerUiEvents.PlayerUiEvents.TRACK_PLAY_PROGRESS)
                             .setPlayProgressPercentage(0)

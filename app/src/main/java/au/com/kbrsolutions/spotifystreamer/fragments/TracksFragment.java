@@ -7,7 +7,6 @@ package au.com.kbrsolutions.spotifystreamer.fragments;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
 
@@ -67,7 +66,6 @@ public class TracksFragment extends ListFragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.v(LOG_TAG, "onResume");
         if (getListAdapter().getCount() == 0) {
             setEmptyText(getActivity().getResources().getString(R.string.tracks_data_not_found));
         }
@@ -79,7 +77,6 @@ public class TracksFragment extends ListFragment {
     @Override
     public void onStop() {
         super.onStop();
-        Log.v(LOG_TAG, "onStop");
     }
 
     public ArrayList<TrackDetails> getTrackDetails() {
