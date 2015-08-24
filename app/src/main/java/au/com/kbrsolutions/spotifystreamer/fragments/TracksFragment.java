@@ -63,6 +63,9 @@ public class TracksFragment extends ListFragment {
         mCallbacks.newTrackClicked(position);
     }
 
+    /**
+     * If Player UI was visible at the time when the app was restarted, call activity to show it again.
+     */
     @Override
     public void onResume() {
         super.onResume();

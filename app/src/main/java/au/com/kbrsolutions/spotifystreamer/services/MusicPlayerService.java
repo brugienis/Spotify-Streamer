@@ -78,6 +78,10 @@ public class MusicPlayerService extends Service {
 
     private final String LOG_TAG = MusicPlayerService.class.getSimpleName();
 
+    /**
+     *
+     * Called from the notification - performs required action.
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String action = intent.getAction();
@@ -279,6 +283,7 @@ public class MusicPlayerService extends Service {
         configurePlayer();
         return false;
     }
+
     public class LocalBinder extends Binder {
 
         public MusicPlayerService getService() {
@@ -286,7 +291,7 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    TrackDetails currPlayingTrackDetails;
+    private TrackDetails currPlayingTrackDetails;
 
     private void waitForPlayer(String source) {
         try {
@@ -299,7 +304,10 @@ public class MusicPlayerService extends Service {
         }
     }
 
-    public void playTrack(TrackDetails trackDetails) {
+    /**
+     * Called to start track playing - will start async prepare
+     */
+    private void playTrack(TrackDetails trackDetails) {
         isPlaying.set(false);
         isPausing.set(false);
         isLastTrackPlayed = false;
@@ -402,6 +410,9 @@ public class MusicPlayerService extends Service {
         }
     };
 
+    /**
+     * Build Notification that will be sent to the system when app is stopped.
+     */
     private Notification buildNotification(Bitmap largeIcon) {
         int prevIcon = R.drawable.ic_action_previous;
         int playIcon = R.drawable.ic_action_play;
@@ -470,8 +481,6 @@ public class MusicPlayerService extends Service {
     /**
      * Leave for later
      *
-     * @param largeIcon
-     * @return
      */
     @TargetApi(21)
     private Notification buildNotificationApi21Plus(Bitmap largeIcon) {
@@ -578,6 +587,10 @@ public class MusicPlayerService extends Service {
         return false;
     }
 
+    /**
+     * Runnable that will start after all clients are disconnected from the service. If player is
+     * not active and enough time has elapsed, the service will shutdown.
+     */
     private class StopForegroundRunnable implements Runnable {
 
         StopForegroundRunnable(String source) {
@@ -619,6 +632,9 @@ public class MusicPlayerService extends Service {
         Picasso.with(this).cancelRequest(target);
     }
 
+    /**
+     * Called from the client to set up tracks details.
+     */
     public void setTracksDetails(String artistName, ArrayList<TrackDetails> tracksDetails, int selectedTrack) {
         mArtistName = artistName;
         mTracksDetails = tracksDetails;
@@ -677,6 +693,9 @@ public class MusicPlayerService extends Service {
         }
     }
 
+    /**
+     * Get messages through Event Bus from Green Robot
+     */
     public void onEvent(MusicPlayerServiceEvents event) {
         MusicPlayerServiceEvents.MusicServiceEvents requestEvent = event.event;
         switch (requestEvent) {
@@ -725,6 +744,9 @@ public class MusicPlayerService extends Service {
 
     private int mPlayProgressPercentage;
 
+    /**
+     * When the player is actively playing, this Callable, will show progres data to client.
+     */
     private final class TrackPlayProgressCheckerCallable implements Callable<String> {
 
         @Override

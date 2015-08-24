@@ -256,6 +256,10 @@ public class PlayerControllerUi extends DialogFragment {
         return playerView;
     }
 
+    /**
+     *
+     * Populate UI fields.
+     */
     private void showCurrentTrackDetails(
             TrackDetails trackDetails,
             boolean isTrackPlaying,
@@ -375,10 +379,6 @@ public class PlayerControllerUi extends DialogFragment {
                         .build());
     }
 
-    // TODO: 20/08/2015   connectedClientsCnt after each rotation is incremented by one because it was already bounded. Think about it.
-    // Do not use isMusicPlayerServiceBounded because when later in onStop() there is an attempt to unbind and it crashed.
-    // Keep calling prepare beforeUnbind separate from real unbindService*).
-
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -437,6 +437,9 @@ public class PlayerControllerUi extends DialogFragment {
                         .build());
     }
 
+    /**
+     * Get messages through Event Bus from Green Robot
+     */
     public void onEventMainThread(PlayerControllerUiEvents event) {
         PlayerControllerUiEvents.PlayerUiEvents request = event.event;
         switch (request) {
@@ -528,6 +531,9 @@ public class PlayerControllerUi extends DialogFragment {
         }
     }
 
+    /**
+     * Sets a flag that indicates the Player UI is reconnecting to the Music Player service.
+     */
     public void setReconnectToPlayerService() {
         mReconnectToPlayerService = true;
     }

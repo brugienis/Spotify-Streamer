@@ -177,10 +177,17 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mArtistsFragment.showArtistsDetails();
     }
 
+    /**
+     * Make progress bar visible
+     */
     public void showProgress() {
         mProgressBarHandler.show();
     }
 
+
+    /**
+     * Make progress bar invisible
+     */
     public void hideProgress() {
         mProgressBarHandler.hide();
     }
@@ -224,11 +231,17 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         }
     }
 
+    /**
+     * Returns true if Player UI was visible on app restart
+     */
     @Override
     public boolean wasPlayerControllerUiVisibleOnRestart() {
         return mWasPlayerControllerUiVisible;
     }
 
+    /**
+     * Set value of mWasPlayerControllerUiVisible to indicate Player UI visibility
+     */
     @Override
     public void setWasPlayerControllerUiVisible(boolean value) {
         mWasPlayerControllerUiVisible = value;
@@ -301,11 +314,17 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         mTracksFragment.setListAdapter(trackArrayAdapter);
     }
 
+    /**
+     * User clicked on a track - show Player UI.
+     */
     @Override
     public void newTrackClicked(int selectedTrack) {
         showPlayerController(selectedTrack, false);
     }
 
+    /**
+     * Show P{layer UI and reconnect to the Music Player service.
+     */
     @Override
     public void showPlayerUiAndReconnectTuPlayerService() {
         showPlayerController(-1, true);
@@ -338,6 +357,10 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         }
     }
 
+    /**
+     *
+     * Show Playing Now section in the Action Bar
+     */
     @Override
     public void showPlayNow(String playerStatus, String artistName, String albumName, String trackName) {
         mWasPlayNowVisible = true;
@@ -378,6 +401,11 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         currTrackNameTv.setText(trackName);
     }
 
+
+    /**
+     *
+     * Remove Playing Now section from the Action Bar
+     */
     @Override
     public void removePlayNow(String source) {
         mWasPlayNowVisible = false;
@@ -394,6 +422,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         getSupportActionBar().setSubtitle(mActivitySubtitle);
     }
 
+    /**
+     * Player UI is not visible
+     */
     @Override
     public void playerControllerUiIdNotVisible() {
         mWasPlayerControllerUiVisible = false;
@@ -459,6 +490,9 @@ public class SpotifyStreamerActivity extends ActionBarActivity implements
         }
     };
 
+    /**
+     * Get messages through Event Bus from Green Robot
+     */
     public void onEventMainThread(SpotifyStreamerActivityEvents event) {
         SpotifyStreamerActivityEvents.SpotifyStreamerEvents requestEvent = event.event;
         switch (requestEvent) {
