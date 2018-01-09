@@ -10,6 +10,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,11 +39,14 @@ import kaaes.spotify.webapi.android.SpotifyError;
 import kaaes.spotify.webapi.android.SpotifyService;
 import kaaes.spotify.webapi.android.models.Artist;
 import kaaes.spotify.webapi.android.models.ArtistsPager;
+import kaaes.spotify.webapi.android.models.ErrorDetails;
 import kaaes.spotify.webapi.android.models.Image;
 import kaaes.spotify.webapi.android.models.Pager;
 import kaaes.spotify.webapi.android.models.Track;
 import kaaes.spotify.webapi.android.models.Tracks;
 import retrofit.client.Response;
+
+import static android.content.ContentValues.TAG;
 
 /**
  * Retrieves artists data using search text entered by the user.
@@ -337,12 +341,15 @@ public class ArtistsFragment extends Fragment {
             artistName = params[0];
             if (mSpotifyService == null) {
                 SpotifyApi api = new SpotifyApi();
+                api.setAccessToken("BQDS1UpCAzrx6dvlbnpwk6Lzhb7CO7rV54x2Bw-sld-vcYz9RNUxSlq9tVc0g1VgZQmGIjYZUVp4k13o2DVGHzIOSAHmz6Sa-_2esgy56G3n-d7v8lAl8iMfSDVClOLN6YOTuG0H7lA_1ZQnK5klMgle5A");
                 mSpotifyService = api.getService();
             }
             callBackResultsCountDownLatch = new CountDownLatch(1);
             mSpotifyService.searchArtists(artistName, new SpotifyCallback<ArtistsPager>() {
                 @Override
                 public void failure(SpotifyError spotifyError) {
+                    ErrorDetails errorDetails = spotifyError.getErrorDetails();
+                    Log.v(TAG, "failure - errorDetails status/message: " + errorDetails.status + "/" + errorDetails.message);
                     networkProblems = true;
                     callBackResultsCountDownLatch.countDown();
                 }
@@ -465,6 +472,7 @@ public class ArtistsFragment extends Fragment {
             }
             if (mSpotifyService == null) {
                 SpotifyApi api = new SpotifyApi();
+                api.setAccessToken("BQDS1UpCAzrx6dvlbnpwk6Lzhb7CO7rV54x2Bw-sld-vcYz9RNUxSlq9tVc0g1VgZQmGIjYZUVp4k13o2DVGHzIOSAHmz6Sa-_2esgy56G3n-d7v8lAl8iMfSDVClOLN6YOTuG0H7lA_1ZQnK5klMgle5A");
                 mSpotifyService = api.getService();
             }
             Map<String, Object> options = new HashMap<>();

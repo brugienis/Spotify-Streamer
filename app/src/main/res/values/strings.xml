@@ -31,7 +31,7 @@
     <string name="service_notification_preparing_text">Preparing "%1$s</string>
     <string name="service_notification_playing_text">Playing "%1$s</string>
     <string name="service_notification_pausing_text">Pausing "%1$s</string>
-    <string name="service_notification_stopped_text">Stopped</string>
+    <string name="service_notification_stopped_text">Stopped "%1$s</string>
 
     <string name="player_preparing">Preparing</string>
     <string name="player_playing">Playing</string>
